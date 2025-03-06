@@ -1,6 +1,6 @@
 ---
 title: GitHub
-description: dlt verified source for GitHub API
+description: data_load_tool verified source for GitHub API
 keywords: [github api, github verified source, github]
 ---
 import Header from './_source-info-header.md';
@@ -45,7 +45,7 @@ To get the API token, sign in to your GitHub account and follow these steps:
 
 1. Finally, click "Generate token".
 
-1. Copy the token and save it. This is to be added later in the `dlt` configuration.
+1. Copy the token and save it. This is to be added later in the `data_load_tool` configuration.
 
 > You can optionally add API access tokens to avoid making requests as an unauthorized user.
 > If you wish to load data using the github_reaction source, the access token is mandatory.
@@ -63,7 +63,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init github duckdb
+   data_load_tool init github duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -81,7 +81,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. In `.dlt/secrets.toml`, you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
+1. In `.data_load_tool/secrets.toml`, you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
 
    ```toml
    # Put your secret values and credentials here
@@ -108,7 +108,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    ```
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `github_reactions`; you may also use any custom name instead.
 
@@ -116,24 +116,24 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
 
 ### Source `github_reactions`
 
-This `dlt.source` function uses GraphQL to fetch DltResource objects: issues and pull requests along with associated reactions, comments, and reactions to comments.
+This `data_load_tool.source` function uses GraphQL to fetch DltResource objects: issues and pull requests along with associated reactions, comments, and reactions to comments.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def github_reactions(
     owner: str,
     name: str,
-    access_token: str = dlt.secrets.value,
+    access_token: str = data_load_tool.secrets.value,
     items_per_page: int = 100,
     max_items: int = None,
     max_item_age_seconds: float = None,
 ) -> Sequence[DltResource]:
 
-   return dlt.resource(
+   return data_load_tool.resource(
       _get_reactions_data(
          "issues",
          owner,
@@ -152,7 +152,7 @@ def github_reactions(
 
 `name`: Refers to the name of the repository.
 
-`access_token`: A classic access token should be utilized and is stored in the `.dlt/secrets.toml` file.
+`access_token`: A classic access token should be utilized and is stored in the `.data_load_tool/secrets.toml` file.
 
 `items_per_page`: The number of issues/pull requests to retrieve in a single page. Defaults to 100.
 
@@ -162,16 +162,16 @@ def github_reactions(
 
 ### Resource `_get_reactions_data` ("issues")
 
-The `dlt.resource` function employs the `_get_reactions_data` method to retrieve data about issues, their associated comments, and subsequent reactions.
+The `data_load_tool.resource` function employs the `_get_reactions_data` method to retrieve data about issues, their associated comments, and subsequent reactions.
 
 ### Source `github_repo_events`
 
-This `dlt.source` fetches repository events incrementally, dispatching them to separate tables based on event type. It loads new events only and appends them to tables.
+This `data_load_tool.source` fetches repository events incrementally, dispatching them to separate tables based on event type. It loads new events only and appends them to tables.
 
 > Note: GitHub allows retrieving up to 300 events for public repositories, so frequent updates are recommended for active repos.
 
 ```py
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def github_repo_events(
     owner: str, name: str, access_token: str = None
 ) -> DltResource:
@@ -190,12 +190,12 @@ Read more about [nesting levels](../../general-usage/source#reduce-the-nesting-l
 
 ### Resource `repo_events`
 
-This `dlt.resource` function serves as the resource for the `github_repo_events` source. It yields repository events as data items.
+This `data_load_tool.resource` function serves as the resource for the `github_repo_events` source. It yields repository events as data items.
 
 ```py
-dlt.resource(primary_key="id", table_name=lambda i: i["type"])  # type: ignore
+data_load_tool.resource(primary_key="id", table_name=lambda i: i["type"])  # type: ignore
 def repo_events(
-    last_created_at: dlt.sources.incremental[str] = dlt.sources.incremental(
+    last_created_at: data_load_tool.sources.incremental[str] = data_load_tool.sources.incremental(
         "created_at", initial_value="1970-01-01T00:00:00Z", last_value_func=max
     )
 ) -> Iterator[TDataItems]:
@@ -206,7 +206,7 @@ def repo_events(
 
 `table_name`: Routes data to appropriate tables based on the data type.
 
-`last_created_at`: This parameter determines the initial value for "last_created_at" in dlt.sources.incremental. If no value is given, the default "initial_value" is used. The function "last_value_func" determines the most recent 'created_at' value.
+`last_created_at`: This parameter determines the initial value for "last_created_at" in data_load_tool.sources.incremental. If no value is given, the default "initial_value" is used. The function "last_value_func" determines the most recent 'created_at' value.
 
 Read more about [incremental loading](../../general-usage/incremental-loading#incremental-loading-with-a-cursor-field).
 
@@ -219,7 +219,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="github_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="github_reaction_data"  # Use a custom name if desired

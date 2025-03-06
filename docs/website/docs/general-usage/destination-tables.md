@@ -6,21 +6,21 @@ keywords: [destination tables, loaded data, data structure, schema, table, neste
 
 # Destination tables
 
-When you run a [pipeline](pipeline.md), dlt creates tables in the destination database and loads the data
+When you run a [pipeline](pipeline.md), data_load_tool creates tables in the destination database and loads the data
 from your [source](source.md) into these tables. In this section, we will take a closer look at what
 destination tables look like and how they are organized.
 
-We start with a simple dlt pipeline:
+We start with a simple data_load_tool pipeline:
 
 ```py
-import dlt
+import data_load_tool
 
 data = [
     {'id': 1, 'name': 'Alice'},
     {'id': 2, 'name': 'Bob'}
 ]
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='quick_start',
     destination='duckdb',
     dataset_name='mydata'
@@ -35,7 +35,7 @@ will behave similarly and have similar concepts.
 
 :::
 
-Running this pipeline will create a database schema in the destination database (DuckDB) along with a table named `users`. Quick tip: you can use the `show` command of the `dlt pipeline` CLI [to see the tables](../general-usage/dataset-access/streamlit) in the destination database.
+Running this pipeline will create a database schema in the destination database (DuckDB) along with a table named `users`. Quick tip: you can use the `show` command of the `data_load_tool pipeline` CLI [to see the tables](../general-usage/dataset-access/streamlit) in the destination database.
 
 ## Database schema
 
@@ -44,10 +44,10 @@ The schema name is the same as the `dataset_name` you provided in the pipeline d
 In the example above, we explicitly set the `dataset_name` to `mydata`. If you don't set it,
 it will be set to the pipeline name with a suffix `_dataset`.
 
-Be aware that the schema referred to in this section is distinct from the [dlt Schema](schema.md).
+Be aware that the schema referred to in this section is distinct from the [data_load_tool Schema](schema.md).
 The database schema pertains to the structure and organization of data within the database, including table
-definitions and relationships. On the other hand, the "dlt Schema" specifically refers to the format
-and structure of normalized data within the dlt pipeline.
+definitions and relationships. On the other hand, the "data_load_tool Schema" specifically refers to the format
+and structure of normalized data within the data_load_tool pipeline.
 
 ## Tables
 
@@ -59,14 +59,14 @@ the `table_name` to `users`. When `table_name` is not set, the table name will b
 For example, we can rewrite the pipeline above as:
 
 ```py
-@dlt.resource
+@data_load_tool.resource
 def users():
     yield [
         {'id': 1, 'name': 'Alice'},
         {'id': 2, 'name': 'Bob'}
     ]
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='quick_start',
     destination='duckdb',
     dataset_name='mydata'
@@ -74,12 +74,12 @@ pipeline = dlt.pipeline(
 load_info = pipeline.run(users)
 ```
 
-The result will be the same; note that we do not explicitly pass `table_name="users"` to `pipeline.run`, and the table is implicitly named `users` based on the resource name (e.g., `users()` decorated with `@dlt.resource`).
+The result will be the same; note that we do not explicitly pass `table_name="users"` to `pipeline.run`, and the table is implicitly named `users` based on the resource name (e.g., `users()` decorated with `@data_load_tool.resource`).
 
 :::note
 
 Special tables are created to track the pipeline state. These tables are prefixed with `_dlt_`
-and are not shown in the `show` command of the `dlt pipeline` CLI. However, you can see them when
+and are not shown in the `show` command of the `data_load_tool pipeline` CLI. However, you can see them when
 connecting to the database directly.
 
 :::
@@ -89,7 +89,7 @@ connecting to the database directly.
 Now let's look at a more complex example:
 
 ```py
-import dlt
+import data_load_tool
 
 data = [
     {
@@ -109,7 +109,7 @@ data = [
     }
 ]
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='quick_start',
     destination='duckdb',
     dataset_name='mydata'
@@ -134,23 +134,23 @@ Running this pipeline will create two tables in the destination, `users` (**root
 | 2 | Spot | dog | 9uxh36VU9lqKpw | wX3f5vn801W16A | 1 |
 | 3 | Fido | dog | pe3FVtCWz8VuNA | rX8ybgTeEmAmmA | 0 |
 
-When inferring a database schema, dlt maps the structure of Python objects (i.e., from parsed JSON files) into nested tables and creates references between them.
+When inferring a database schema, data_load_tool maps the structure of Python objects (i.e., from parsed JSON files) into nested tables and creates references between them.
 
 This is how it works:
 
-1. Each row in all (root and nested) data tables created by dlt contains a unique column named `_dlt_id` (**row key**).
+1. Each row in all (root and nested) data tables created by data_load_tool contains a unique column named `_dlt_id` (**row key**).
 2. Each nested table contains a column named `_dlt_parent_id` referencing a particular row (`_dlt_id`) of a parent table (**parent key**).
-3. Rows in nested tables come from the Python lists: `dlt` stores the position of each item in the list in `_dlt_list_idx`.
+3. Rows in nested tables come from the Python lists: `data_load_tool` stores the position of each item in the list in `_dlt_list_idx`.
 4. For nested tables that are loaded with the `merge` write disposition, we add a **root key** column `_dlt_root_id`, which references the child table to a row in the root table.
 
 [Learn more about nested references, row keys, and parent keys](schema.md#nested-references-root-and-nested-tables)
 
 ## Naming convention: tables and columns
 
-During a pipeline run, dlt [normalizes both table and column names](schema.md#naming-convention) to ensure compatibility with the destination database's accepted format. All names from your source data will be transformed into snake_case and will only include alphanumeric characters. Please be aware that the names in the destination database may differ somewhat from those in your original input.
+During a pipeline run, data_load_tool [normalizes both table and column names](schema.md#naming-convention) to ensure compatibility with the destination database's accepted format. All names from your source data will be transformed into snake_case and will only include alphanumeric characters. Please be aware that the names in the destination database may differ somewhat from those in your original input.
 
 ### Variant columns
-If your data has inconsistent types, `dlt` will dispatch the data to several **variant columns**. For example, if you have a resource (i.e., a JSON file) with a field named `answer` and your data contains boolean values, you will get a column named `answer` of type `BOOLEAN` in your destination. If, for some reason, on the next load, you get integer and string values in `answer`, the inconsistent data will go to `answer__v_bigint` and `answer__v_text` columns respectively.
+If your data has inconsistent types, `data_load_tool` will dispatch the data to several **variant columns**. For example, if you have a resource (i.e., a JSON file) with a field named `answer` and your data contains boolean values, you will get a column named `answer` of type `BOOLEAN` in your destination. If, for some reason, on the next load, you get integer and string values in `answer`, the inconsistent data will go to `answer__v_bigint` and `answer__v_text` columns respectively.
 The general naming rule for variant columns is `<original name>__v_<type>` where `original_name` is the existing column name (with data type clash) and `type` is the name of the data type stored in the variant.
 
 ## Load packages and load IDs
@@ -196,27 +196,27 @@ You can add [transformations](../dlt-ecosystem/transformations/) and chain them 
 
 ### Data lineage
 
-Data lineage can be super relevant for architectures like the [data vault architecture](https://www.data-vault.co.uk/what-is-data-vault/) or when troubleshooting. The data vault architecture is a data warehouse that large organizations use when representing the same process across multiple systems, which adds data lineage requirements. Using the pipeline name and `load_id` provided out of the box by `dlt`, you are able to identify the source and time of data.
+Data lineage can be super relevant for architectures like the [data vault architecture](https://www.data-vault.co.uk/what-is-data-vault/) or when troubleshooting. The data vault architecture is a data warehouse that large organizations use when representing the same process across multiple systems, which adds data lineage requirements. Using the pipeline name and `load_id` provided out of the box by `data_load_tool`, you are able to identify the source and time of data.
 
 You can [save](../running-in-production/running.md#inspect-and-save-the-load-info-and-trace) complete lineage info for a particular `load_id` including a list of loaded files, error messages (if any), elapsed times, schema changes. This can be helpful, for example, when troubleshooting problems.
 
 ## Staging dataset
 
-So far, we've been using the `append` write disposition in our example pipeline. This means that each time we run the pipeline, the data is appended to the existing tables. When you use the [merge write disposition](incremental-loading.md), dlt creates a staging database schema for staging data. This schema is named `<dataset_name>_staging` [by default](../dlt-ecosystem/staging#staging-dataset) and contains the same tables as the destination schema. When you run the pipeline, the data from the staging tables is loaded into the destination tables in a single atomic transaction.
+So far, we've been using the `append` write disposition in our example pipeline. This means that each time we run the pipeline, the data is appended to the existing tables. When you use the [merge write disposition](incremental-loading.md), data_load_tool creates a staging database schema for staging data. This schema is named `<dataset_name>_staging` [by default](../dlt-ecosystem/staging#staging-dataset) and contains the same tables as the destination schema. When you run the pipeline, the data from the staging tables is loaded into the destination tables in a single atomic transaction.
 
 Let's illustrate this with an example. We change our pipeline to use the `merge` write disposition:
 
 ```py
-import dlt
+import data_load_tool
 
-@dlt.resource(primary_key="id", write_disposition="merge")
+@data_load_tool.resource(primary_key="id", write_disposition="merge")
 def users():
     yield [
         {'id': 1, 'name': 'Alice 2'},
         {'id': 2, 'name': 'Bob 2'}
     ]
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='quick_start',
     destination='duckdb',
     dataset_name='mydata'
@@ -249,21 +249,21 @@ Notice that the `mydata.users` table now contains the data from both the previou
 
 ## Dev mode (versioned) datasets
 
-When you set the `dev_mode` argument to `True` in the `dlt.pipeline` call, dlt creates a versioned dataset.
+When you set the `dev_mode` argument to `True` in the `data_load_tool.pipeline` call, data_load_tool creates a versioned dataset.
 This means that each time you run the pipeline, the data is loaded into a new dataset (a new database schema).
 The dataset name is the same as the `dataset_name` you provided in the pipeline definition with a datetime-based suffix.
 
 We modify our pipeline to use the `dev_mode` option to see how this works:
 
 ```py
-import dlt
+import data_load_tool
 
 data = [
     {'id': 1, 'name': 'Alice'},
     {'id': 2, 'name': 'Bob'}
 ]
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='quick_start',
     destination='duckdb',
     dataset_name='mydata',
@@ -275,21 +275,21 @@ load_info = pipeline.run(data, table_name="users")
 Every time you run this pipeline, a new schema will be created in the destination database with a datetime-based suffix. The data will be loaded into tables in this schema.
 For example, the first time you run the pipeline, the schema will be named `mydata_20230912064403`, the second time it will be named `mydata_20230912064407`, and so on.
 
-## Loading data into existing tables not created by dlt
+## Loading data into existing tables not created by data_load_tool
 
-You can also load data from `dlt` into tables that already exist in the destination dataset and were not created by `dlt`.
+You can also load data from `data_load_tool` into tables that already exist in the destination dataset and were not created by `data_load_tool`.
 There are a few things to keep in mind when doing this:
 
 If you load data into a table that exists but does not contain any data, in most cases, your load will succeed without problems.
-`dlt` will create the needed columns and insert the incoming data. `dlt` will only be aware of columns that exist on the
-discovered or provided internal schema, so if you have columns in your destination that are not anticipated by `dlt`, they
-will remain in the destination but stay unknown to `dlt`. This generally will not be a problem.
+`data_load_tool` will create the needed columns and insert the incoming data. `data_load_tool` will only be aware of columns that exist on the
+discovered or provided internal schema, so if you have columns in your destination that are not anticipated by `data_load_tool`, they
+will remain in the destination but stay unknown to `data_load_tool`. This generally will not be a problem.
 
-If your destination table already exists and contains columns that have the same name as columns discovered by `dlt` but
+If your destination table already exists and contains columns that have the same name as columns discovered by `data_load_tool` but
 do not have matching datatypes, your load will fail, and you will have to fix the column on the destination table first,
 or change the column name in your incoming data to something else to avoid a collision.
 
-If your destination table exists and already contains data, your load might also initially fail, since `dlt` creates
+If your destination table exists and already contains data, your load might also initially fail, since `data_load_tool` creates
 special `non-nullable` columns that contain required mandatory metadata. Some databases will not allow you to create
 `non-nullable` columns on tables that have data, since the initial value for these columns of the existing rows cannot
 be inferred. You will have to manually create these columns with the correct type on your existing tables and

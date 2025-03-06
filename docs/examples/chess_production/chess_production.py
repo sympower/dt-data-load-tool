@@ -27,17 +27,17 @@ from tenacity import (
     wait_exponential,
 )
 
-import dlt
-from dlt.common import sleep, logger
-from dlt.common.typing import StrAny, TDataItems
-from dlt.sources.helpers.requests import client
-from dlt.pipeline.helpers import retry_load
-from dlt.common.runtime.slack import send_slack_message
+import data_load_tool
+from data_load_tool.common import sleep, logger
+from data_load_tool.common.typing import StrAny, TDataItems
+from data_load_tool.sources.helpers.requests import client
+from data_load_tool.pipeline.helpers import retry_load
+from data_load_tool.common.runtime.slack import send_slack_message
 
 
-@dlt.source
+@data_load_tool.source
 def chess(
-    chess_url: str = dlt.config.value,
+    chess_url: str = data_load_tool.config.value,
     title: str = "GM",
     max_players: int = 2,
     year: int = 2022,
@@ -47,7 +47,7 @@ def chess(
         r = client.get(f"{chess_url}{path}")
         return r.json()  # type: ignore
 
-    @dlt.resource(write_disposition="replace")
+    @data_load_tool.resource(write_disposition="replace")
     def players() -> Iterator[TDataItems]:
         # return players one by one, you could also return a list
         # that would be faster but we want to pass players item by item to the transformer
@@ -55,7 +55,7 @@ def chess(
 
     # this resource takes data from players and returns profiles
     # it uses `paralellized` flag to enable parallel run in thread pool.
-    @dlt.transformer(data_from=players, write_disposition="replace", parallelized=True)
+    @data_load_tool.transformer(data_from=players, write_disposition="replace", parallelized=True)
     def players_profiles(username: Any) -> TDataItems:
         print(f"getting {username} profile via thread {threading.current_thread().name}")
         sleep(1)  # add some latency to show parallel runs
@@ -63,7 +63,7 @@ def chess(
 
     # this resource takes data from players and returns games for the last month
     # if not specified otherwise
-    @dlt.transformer(data_from=players, write_disposition="append")
+    @data_load_tool.transformer(data_from=players, write_disposition="append")
     def players_games(username: Any) -> Iterator[TDataItems]:
         # https://api.chess.com/pub/player/{username}/games/{YYYY}/{MM}
         path = f"player/{username}/games/{year:04d}/{month:02d}"
@@ -159,8 +159,8 @@ def load_data_with_retry(pipeline, data):
 
 
 if __name__ == "__main__":
-    # create dlt pipeline
-    pipeline = dlt.pipeline(
+    # create data_load_tool pipeline
+    pipeline = data_load_tool.pipeline(
         pipeline_name="chess_pipeline",
         destination="duckdb",
         dataset_name="chess_data",

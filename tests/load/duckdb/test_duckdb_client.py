@@ -2,21 +2,21 @@ import os
 import pytest
 from typing import Iterator, cast
 
-import dlt
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.configuration.utils import get_resolved_traces
-from dlt.common.destination import Destination
-from dlt.common.known_env import DLT_LOCAL_DIR
-from dlt.common.utils import set_working_dir, uniq_id
+import data_load_tool
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.utils import get_resolved_traces
+from data_load_tool.common.destination import Destination
+from data_load_tool.common.known_env import DLT_LOCAL_DIR
+from data_load_tool.common.utils import set_working_dir, uniq_id
 
-from dlt.destinations.exceptions import DatabaseUndefinedRelation
-from dlt.destinations.impl.duckdb.configuration import (
+from data_load_tool.destinations.exceptions import DatabaseUndefinedRelation
+from data_load_tool.destinations.impl.duckdb.configuration import (
     DuckDbClientConfiguration,
 )
-from dlt.destinations import duckdb
+from data_load_tool.destinations import duckdb
 
-from dlt.destinations.impl.duckdb.exceptions import InvalidInMemoryDuckdbCredentials
-from dlt.pipeline.exceptions import PipelineNeverRan, PipelineStepFailed
+from data_load_tool.destinations.impl.duckdb.exceptions import InvalidInMemoryDuckdbCredentials
+from data_load_tool.pipeline.exceptions import PipelineNeverRan, PipelineStepFailed
 
 from tests.pipeline.utils import assert_table
 from tests.utils import autouse_test_storage, TEST_STORAGE_ROOT
@@ -68,12 +68,12 @@ def test_duckdb_in_memory_mode_via_factory():
 
         # Check if passing external duckdb connection works fine
         db = duckdb.connect(":memory:")
-        dlt.pipeline(pipeline_name="booboo", destination=dlt.destinations.duckdb(db))
+        data_load_tool.pipeline(pipeline_name="booboo", destination=data_load_tool.destinations.duckdb(db))
 
         # Check if passing :memory: to factory fails
         with pytest.raises(PipelineStepFailed) as exc:
-            p = dlt.pipeline(
-                pipeline_name="booboo", destination=dlt.destinations.duckdb(credentials=":memory:")
+            p = data_load_tool.pipeline(
+                pipeline_name="booboo", destination=data_load_tool.destinations.duckdb(credentials=":memory:")
             )
             p.run([1, 2, 3])
 
@@ -81,7 +81,7 @@ def test_duckdb_in_memory_mode_via_factory():
 
         os.environ["DESTINATION__DUCKDB__CREDENTIALS"] = ":memory:"
         with pytest.raises(PipelineStepFailed):
-            p = dlt.pipeline(
+            p = data_load_tool.pipeline(
                 pipeline_name="booboo",
                 destination="duckdb",
             )
@@ -90,7 +90,7 @@ def test_duckdb_in_memory_mode_via_factory():
         assert isinstance(exc.value.exception, InvalidInMemoryDuckdbCredentials)
 
         with pytest.raises(PipelineStepFailed) as exc:
-            p = dlt.pipeline(
+            p = data_load_tool.pipeline(
                 pipeline_name="booboo",
                 destination=Destination.from_reference("duckdb", credentials=":memory:"),
             )
@@ -109,7 +109,7 @@ def test_duckdb_database_path() -> None:
     assert c.credentials._conn_str().lower() == os.path.abspath(".duckdb").lower()
 
     # resolve without any path but with pipeline context
-    p = dlt.pipeline(pipeline_name="quack_pipeline")
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline")
     # pipeline context must be passed explicitly
     c = resolve_configuration(
         DuckDbClientConfiguration()._bind_dataset_name(dataset_name="test_dataset")
@@ -126,7 +126,7 @@ def test_duckdb_database_path() -> None:
     assert c.credentials._conn_str().lower() == db_path.lower()
 
     # must work via factory
-    factory_ = dlt.destinations.duckdb()
+    factory_ = data_load_tool.destinations.duckdb()
     c = factory_.configuration(
         DuckDbClientConfiguration()
         ._bind_dataset_name(dataset_name="test_dataset")
@@ -144,11 +144,11 @@ def test_duckdb_database_path() -> None:
             os.unlink(db_path)
 
     # must work via pipeline
-    duck_p = dlt.pipeline(pipeline_name="quack_pipeline_exp", destination="duckdb")
+    duck_p = data_load_tool.pipeline(pipeline_name="quack_pipeline_exp", destination="duckdb")
     db_path = os.path.abspath(os.path.join(".", "quack_pipeline_exp.duckdb"))
     assert duck_p.sql_client().credentials._conn_str().lower() == db_path.lower()
 
-    duck_p = dlt.pipeline(pipeline_name="quack_pipeline_exp", destination=dlt.destinations.duckdb())
+    duck_p = data_load_tool.pipeline(pipeline_name="quack_pipeline_exp", destination=data_load_tool.destinations.duckdb())
     creds_ = duck_p.sql_client().credentials
     assert creds_._conn_str().lower() == db_path.lower()
 
@@ -251,8 +251,8 @@ def test_named_destination_path() -> None:
     )
     assert c.credentials._conn_str().lower() == os.path.abspath("named.duckdb").lower()
     # even if part of of pipeline
-    named_duck = dlt.destinations.duckdb(destination_name="named")
-    pipeline = dlt.pipeline(pipeline_name="quack_pipeline", destination=named_duck)
+    named_duck = data_load_tool.destinations.duckdb(destination_name="named")
+    pipeline = data_load_tool.pipeline(pipeline_name="quack_pipeline", destination=named_duck)
     c = resolve_configuration(
         DuckDbClientConfiguration(destination_name="named")
         ._bind_dataset_name(dataset_name="test_dataset")
@@ -283,7 +283,7 @@ def test_keeps_initial_db_path() -> None:
     # this must be present in credentials so attach also sees it
     os.environ["CREDENTIALS"] = db_path
 
-    p = dlt.pipeline(pipeline_name="quack_pipeline", destination=dlt.destinations.duckdb())
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline", destination=data_load_tool.destinations.duckdb())
     print(p.pipelines_dir)
     assert p.state["_local"]["initial_cwd"] == os.path.abspath(os.path.curdir).lower()
     with p.sql_client() as conn:
@@ -291,14 +291,14 @@ def test_keeps_initial_db_path() -> None:
         assert conn.credentials._conn_str().lower() == os.path.abspath(db_path).lower()
 
     # attach the pipeline
-    p = dlt.attach(pipeline_name="quack_pipeline")
+    p = data_load_tool.attach(pipeline_name="quack_pipeline")
     assert p.state["_local"]["initial_cwd"] == os.path.abspath(os.path.curdir).lower()
     with p.sql_client() as conn:
         # still cwd
         assert conn.credentials._conn_str().lower() == os.path.abspath(db_path).lower()
 
     # now create a new pipeline
-    dlt.pipeline(pipeline_name="not_quack", destination="dummy")
+    data_load_tool.pipeline(pipeline_name="not_quack", destination="dummy")
     with p.sql_client() as conn:
         # still cwd
         assert conn.credentials._conn_str().lower() == os.path.abspath(db_path).lower()
@@ -306,24 +306,24 @@ def test_keeps_initial_db_path() -> None:
 
 def test_uses_duckdb_local_path_compat() -> None:
     db_path = "./path_test_quack.duckdb"
-    p = dlt.pipeline(pipeline_name="quack_pipeline")
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline")
     # old db location is still recognized
     p.set_local_state_val("duckdb_database", os.path.abspath(db_path))
-    p = dlt.attach("quack_pipeline", destination="duckdb")
+    p = data_load_tool.attach("quack_pipeline", destination="duckdb")
     with p.sql_client() as conn:
         # still cwd
         assert conn.credentials._conn_str().lower() == os.path.abspath(db_path).lower()
 
 
 def test_drops_pipeline_changes_bound() -> None:
-    p = dlt.pipeline(pipeline_name="quack_pipeline", destination="duckdb")
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline", destination="duckdb")
     p.run([1, 2, 3], table_name="p_table")
     p = p.drop()
     p.sync_destination()
     assert len(p.dataset().p_table.fetchall()) == 3
 
     # drops internal duckdb
-    p = dlt.pipeline(pipeline_name="quack_pipeline", destination=duckdb(":pipeline:"))
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline", destination=duckdb(":pipeline:"))
     p.run([1, 2, 3], table_name="p_table")
     p = p.drop()
     p.sync_destination()
@@ -335,14 +335,14 @@ def test_duckdb_database_delete() -> None:
     db_path = "./path_test_quack.duckdb"
     os.environ["CREDENTIALS"] = db_path
 
-    p = dlt.pipeline(pipeline_name="quack_pipeline", destination="duckdb")
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline", destination="duckdb")
     p.run([1, 2, 3], table_name="table", dataset_name="dataset")
     # attach the pipeline
-    p = dlt.attach(pipeline_name="quack_pipeline")
+    p = data_load_tool.attach(pipeline_name="quack_pipeline")
     assert p.first_run is False
     # drop the database
     os.remove(db_path)
-    p = dlt.attach(pipeline_name="quack_pipeline")
+    p = data_load_tool.attach(pipeline_name="quack_pipeline")
     assert p.first_run is False
     assert not os.path.exists(db_path)
     p.run([1, 2, 3], table_name="table", dataset_name="dataset")
@@ -356,15 +356,15 @@ def test_duck_database_path_delete() -> None:
     db_path = f"{db_folder}/path_test_quack.duckdb"
     os.environ["CREDENTIALS"] = db_path
 
-    p = dlt.pipeline(pipeline_name="deep_quack_pipeline", destination="duckdb")
+    p = data_load_tool.pipeline(pipeline_name="deep_quack_pipeline", destination="duckdb")
     p.run([1, 2, 3], table_name="table", dataset_name="dataset")
     # attach the pipeline
-    p = dlt.attach(pipeline_name="deep_quack_pipeline")
+    p = data_load_tool.attach(pipeline_name="deep_quack_pipeline")
     assert p.first_run is False
     # drop the database
     os.remove(db_path)
     os.rmdir(db_folder)
-    p = dlt.attach(pipeline_name="deep_quack_pipeline")
+    p = data_load_tool.attach(pipeline_name="deep_quack_pipeline")
     assert p.first_run is False
 
     # we won't be able to recreate the database because folder was deleted
@@ -382,7 +382,7 @@ def test_case_sensitive_database_name() -> None:
     cs_quack = os.path.join(TEST_STORAGE_ROOT, "QuAcK")
     os.makedirs(cs_quack, exist_ok=True)
     db_path = os.path.join(cs_quack, "path_TEST_quack.duckdb")
-    p = dlt.pipeline(pipeline_name="NOT_QUAck", destination=duckdb(credentials=db_path))
+    p = data_load_tool.pipeline(pipeline_name="NOT_QUAck", destination=duckdb(credentials=db_path))
     with p.sql_client() as conn:
         conn.execute_sql("DESCRIBE;")
 
@@ -411,8 +411,8 @@ def test_external_duckdb_database() -> None:
 def test_default_duckdb_dataset_name() -> None:
     # Check if dataset_name does not collide with pipeline_name
     data = ["a", "b", "c"]
-    info = dlt.run(data, destination="duckdb", table_name="data")
-    assert_table(cast(dlt.Pipeline, info.pipeline), "data", data, info=info)
+    info = data_load_tool.run(data, destination="duckdb", table_name="data")
+    assert_table(cast(data_load_tool.Pipeline, info.pipeline), "data", data, info=info)
 
 
 def delete_quack_db() -> None:

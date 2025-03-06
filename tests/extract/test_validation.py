@@ -3,17 +3,17 @@
 import typing as t
 import pytest
 
-import dlt
-from dlt.common import json
-from dlt.common.schema.exceptions import DataValidationError
-from dlt.common.typing import TDataItems
-from dlt.common.libs.pydantic import BaseModel
+import data_load_tool
+from data_load_tool.common import json
+from data_load_tool.common.schema.exceptions import DataValidationError
+from data_load_tool.common.typing import TDataItems
+from data_load_tool.common.libs.pydantic import BaseModel
 
-from dlt.extract import DltResource
-from dlt.extract.items_transform import ValidateItem
-from dlt.extract.validation import PydanticValidator
-from dlt.extract.exceptions import ResourceExtractionError
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.extract import DltResource
+from data_load_tool.extract.items_transform import ValidateItem
+from data_load_tool.extract.validation import PydanticValidator
+from data_load_tool.extract.exceptions import ResourceExtractionError
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 
 class SimpleModel(BaseModel):
@@ -24,7 +24,7 @@ class SimpleModel(BaseModel):
 @pytest.mark.parametrize("yield_list", [True, False])
 def test_validator_model_in_decorator(yield_list: bool) -> None:
     # model passed in decorator
-    @dlt.resource(columns=SimpleModel)
+    @data_load_tool.resource(columns=SimpleModel)
     def some_data() -> t.Iterator[TDataItems]:
         items = [{"a": 1, "b": "2"}, {"a": 2, "b": "3"}]
         if yield_list:
@@ -42,7 +42,7 @@ def test_validator_model_in_decorator(yield_list: bool) -> None:
 def test_validator_model_in_apply_hints(yield_list: bool) -> None:
     # model passed in apply_hints
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data() -> t.Iterator[TDataItems]:
         items = [{"a": 1, "b": "2"}, {"a": 2, "b": "3"}]
         if yield_list:
@@ -60,7 +60,7 @@ def test_validator_model_in_apply_hints(yield_list: bool) -> None:
 
 @pytest.mark.parametrize("yield_list", [True, False])
 def test_remove_validator(yield_list: bool) -> None:
-    @dlt.resource(columns=SimpleModel)
+    @data_load_tool.resource(columns=SimpleModel)
     def some_data() -> t.Iterator[TDataItems]:
         items = [{"a": 1, "b": "2"}, {"a": 2, "b": "3"}]
         if yield_list:
@@ -77,7 +77,7 @@ def test_remove_validator(yield_list: bool) -> None:
 
 @pytest.mark.parametrize("yield_list", [True, False])
 def test_replace_validator_model(yield_list: bool) -> None:
-    @dlt.resource(columns=SimpleModel)
+    @data_load_tool.resource(columns=SimpleModel)
     def some_data() -> t.Iterator[TDataItems]:
         items = [{"a": 1, "b": "2"}, {"a": 2, "b": "3"}]
         if yield_list:
@@ -112,7 +112,7 @@ def test_replace_validator_model(yield_list: bool) -> None:
 
 @pytest.mark.parametrize("yield_list", [True, False])
 def test_validator_property_setter(yield_list: bool) -> None:
-    @dlt.resource(columns=SimpleModel)
+    @data_load_tool.resource(columns=SimpleModel)
     def some_data() -> t.Iterator[TDataItems]:
         items = [{"a": 1, "b": "2"}, {"a": 2, "b": "3"}]
         if yield_list:
@@ -146,7 +146,7 @@ def test_validator_property_setter(yield_list: bool) -> None:
 
 @pytest.mark.parametrize("yield_list", [True, False])
 def test_default_validation(yield_list: bool) -> None:
-    @dlt.resource(columns=SimpleModel)
+    @data_load_tool.resource(columns=SimpleModel)
     def some_data() -> t.Iterator[TDataItems]:
         # yield item that fails schema validation
         items = [{"a": 1, "b": "z"}, {"a": "not_int", "b": "x"}]
@@ -175,7 +175,7 @@ def test_default_validation(yield_list: bool) -> None:
     assert val_ex.schema_entity == "data_type"
 
     # fail in pipeline
-    @dlt.resource(columns=SimpleModel)
+    @data_load_tool.resource(columns=SimpleModel)
     def some_data_extra() -> t.Iterator[TDataItems]:
         # yield item that fails schema validation
         items = [{"a": 1, "b": "z", "c": 1.3}, {"a": "not_int", "b": "x"}]
@@ -184,7 +184,7 @@ def test_default_validation(yield_list: bool) -> None:
         else:
             yield from items
 
-    pipeline = dlt.pipeline()
+    pipeline = data_load_tool.pipeline()
     with pytest.raises(PipelineStepFailed) as py_ex:
         pipeline.extract(some_data_extra())
     assert isinstance(py_ex.value.__cause__, ResourceExtractionError)
@@ -206,7 +206,7 @@ def test_validation_with_contracts(yield_list: bool) -> None:
             yield from items
 
     # let it evolve
-    r: DltResource = dlt.resource(some_data(), schema_contract="evolve", columns=SimpleModel)
+    r: DltResource = data_load_tool.resource(some_data(), schema_contract="evolve", columns=SimpleModel)
     validator: PydanticValidator[SimpleModel] = r.validator  # type: ignore[assignment]
     assert validator.column_mode == "evolve"
     assert validator.data_mode == "evolve"
@@ -225,7 +225,7 @@ def test_validation_with_contracts(yield_list: bool) -> None:
     assert items[2]["c"] == "not_int"
 
     # let it drop
-    r = dlt.resource(some_data(), schema_contract="discard_row", columns=SimpleModel)
+    r = data_load_tool.resource(some_data(), schema_contract="discard_row", columns=SimpleModel)
     validator = r.validator  # type: ignore[assignment]
     assert validator.column_mode == "discard_row"
     assert validator.data_mode == "discard_row"
@@ -238,8 +238,8 @@ def test_validation_with_contracts(yield_list: bool) -> None:
     # filter just offending values
     with pytest.raises(NotImplementedError):
         # pydantic data_type cannot be discard_value
-        dlt.resource(some_data(), schema_contract="discard_value", columns=SimpleModel)
-    r = dlt.resource(
+        data_load_tool.resource(some_data(), schema_contract="discard_value", columns=SimpleModel)
+    r = data_load_tool.resource(
         some_data(),
         schema_contract={"columns": "discard_value", "data_type": "evolve"},
         columns=SimpleModel,

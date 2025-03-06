@@ -1,11 +1,11 @@
-import dlt
+import data_load_tool
 
 
-@dlt.source
+@data_load_tool.source
 def shorthand(data):
-    return dlt.resource(data, name="alpha")
+    return data_load_tool.resource(data, name="alpha")
 
 
-@dlt.source(name="shorthand_registry", section="shorthand")
+@data_load_tool.source(name="shorthand_registry", section="shorthand")
 def with_shorthand_registry(data):
-    return dlt.resource(data, name="alpha")
+    return data_load_tool.resource(data, name="alpha")

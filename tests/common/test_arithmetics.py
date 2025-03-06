@@ -1,6 +1,6 @@
 import pytest
-from dlt.common import Decimal
-from dlt.common.arithmetics import numeric_default_context, numeric_default_quantize, Inexact
+from data_load_tool.common import Decimal
+from data_load_tool.common.arithmetics import numeric_default_context, numeric_default_quantize, Inexact
 
 
 def test_default_numeric_quantize() -> None:

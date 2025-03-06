@@ -414,9 +414,9 @@ settings:
     lock_timestamp: timestamp
 
 normalizers:
-  names: dlt.common.normalizers.names.snake_case
+  names: data_load_tool.common.normalizers.names.snake_case
   json:
-    module: dlt.common.normalizers.json.relational
+    module: data_load_tool.common.normalizers.json.relational
     config:
       generate_dlt_id: true
       propagation:

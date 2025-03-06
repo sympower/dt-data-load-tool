@@ -5,7 +5,7 @@ import os
 import argparse
 from typing import List
 
-import dlt.cli.echo as fmt
+import data_load_tool.cli.echo as fmt
 
 EXAMPLES_DIR = "../examples"
 

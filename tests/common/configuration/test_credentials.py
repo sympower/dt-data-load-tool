@@ -2,9 +2,9 @@ import os
 from typing import Any, Dict
 
 import pytest
-from dlt.common.configuration import resolve_configuration
-from dlt.common.configuration.exceptions import ConfigFieldMissingException
-from dlt.common.configuration.specs import (
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException
+from data_load_tool.common.configuration.specs import (
     ConnectionStringCredentials,
     GcpServiceAccountCredentialsWithoutDefaults,
     GcpServiceAccountCredentials,
@@ -12,16 +12,16 @@ from dlt.common.configuration.specs import (
     GcpOAuthCredentials,
     AwsCredentials,
 )
-from dlt.common.configuration.specs.exceptions import (
+from data_load_tool.common.configuration.specs.exceptions import (
     InvalidConnectionString,
     InvalidGoogleNativeCredentialsType,
     InvalidGoogleOauth2Json,
     InvalidGoogleServicesJson,
     OAuth2ScopesRequired,
 )
-from dlt.common.configuration.specs import RuntimeConfiguration
+from data_load_tool.common.configuration.specs import RuntimeConfiguration
 
-from dlt.destinations.impl.snowflake.configuration import SnowflakeCredentials
+from data_load_tool.destinations.impl.snowflake.configuration import SnowflakeCredentials
 from tests.utils import TEST_DICT_CONFIG_PROVIDER, preserve_environ
 from tests.common.utils import json_case_path
 from tests.common.configuration.utils import ConnectionStringCompatCredentials, environment

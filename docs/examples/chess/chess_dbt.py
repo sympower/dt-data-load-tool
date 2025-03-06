@@ -1,5 +1,5 @@
 import os
-import dlt
+import data_load_tool
 
 # from chess import chess
 
@@ -9,11 +9,11 @@ if __name__ == "__main__":
     print("Make sure the pipeline in chess.py was ran at least once")
 
     # chess_url in config.toml, credentials for postgres in secrets.toml, credentials always under credentials key
-    pipeline = dlt.attach(pipeline_name="chess_games")
+    pipeline = data_load_tool.attach(pipeline_name="chess_games")
     # create or restore exiting virtual environment where dbt exists
-    venv = dlt.dbt.get_venv(pipeline, dbt_version="1.2.4")
+    venv = data_load_tool.dbt.get_venv(pipeline, dbt_version="1.2.4")
     # get the runner for the "dbt_transform" package
-    transforms = dlt.dbt.package(pipeline, "dbt_transform", venv=venv)
+    transforms = data_load_tool.dbt.package(pipeline, "dbt_transform", venv=venv)
     # run all the steps (deps -> seed -> source tests -> run)
     # request all the source tests
     models = transforms.run_all(source_tests_selector="source:*")

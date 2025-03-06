@@ -1,13 +1,13 @@
-import dlt
+import data_load_tool
 from typing import Any, List
 
-import dlt
-from dlt.common.pipeline import PipelineContext
-from dlt.common.configuration.container import Container
-from dlt.common.schema.utils import get_columns_names_with_prop
+import data_load_tool
+from data_load_tool.common.pipeline import PipelineContext
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.schema.utils import get_columns_names_with_prop
 
-from dlt.destinations.impl.weaviate.weaviate_client import WeaviateClient
-from dlt.destinations.impl.weaviate.weaviate_adapter import VECTORIZE_HINT, TOKENIZATION_HINT
+from data_load_tool.destinations.impl.weaviate.weaviate_client import WeaviateClient
+from data_load_tool.destinations.impl.weaviate.weaviate_adapter import VECTORIZE_HINT, TOKENIZATION_HINT
 
 
 def assert_unordered_list_equal(list1: List[Any], list2: List[Any]) -> None:
@@ -17,7 +17,7 @@ def assert_unordered_list_equal(list1: List[Any], list2: List[Any]) -> None:
 
 
 def assert_class(
-    pipeline: dlt.Pipeline,
+    pipeline: data_load_tool.Pipeline,
     class_name: str,
     expected_items_count: int = None,
     items: List[Any] = None,
@@ -90,7 +90,7 @@ def drop_active_pipeline_data() -> None:
 
     if Container()[PipelineContext].is_active():
         # take existing pipeline
-        p = dlt.pipeline()
+        p = data_load_tool.pipeline()
         with p.destination_client() as client:
             if schema_has_classes(client):
                 client.drop_storage()

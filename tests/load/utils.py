@@ -21,16 +21,16 @@ from pathlib import Path
 from urllib.parse import urlparse
 from dataclasses import dataclass
 
-import dlt
-from dlt.common import json, sleep
-from dlt.common.configuration import resolve_configuration
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.specs.config_section_context import ConfigSectionContext
-from dlt.common.configuration.specs import (
+import data_load_tool
+from data_load_tool.common import json, sleep
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.specs.config_section_context import ConfigSectionContext
+from data_load_tool.common.configuration.specs import (
     CredentialsConfiguration,
     GcpOAuthCredentialsWithoutDefaults,
 )
-from dlt.common.destination.client import (
+from data_load_tool.common.destination.client import (
     DestinationClientDwhConfiguration,
     JobClientBase,
     RunnableLoadJob,
@@ -39,24 +39,24 @@ from dlt.common.destination.client import (
     WithStagingDataset,
     DestinationCapabilitiesContext,
 )
-from dlt.common.destination import TLoaderFileFormat, Destination, TDestinationReferenceArg
-from dlt.common.destination.client import DEFAULT_FILE_LAYOUT
-from dlt.common.data_writers import DataWriter
-from dlt.common.pipeline import PipelineContext
-from dlt.common.schema import TTableSchemaColumns, Schema
-from dlt.common.schema.typing import TTableFormat
-from dlt.common.storages import SchemaStorage, FileStorage, SchemaStorageConfiguration
-from dlt.common.schema.utils import new_table, normalize_table_identifiers
-from dlt.common.storages import ParsedLoadJobFileName, LoadStorage, PackageStorage
-from dlt.common.storages.load_package import create_load_id
-from dlt.common.typing import StrAny
-from dlt.common.utils import uniq_id
+from data_load_tool.common.destination import TLoaderFileFormat, Destination, TDestinationReferenceArg
+from data_load_tool.common.destination.client import DEFAULT_FILE_LAYOUT
+from data_load_tool.common.data_writers import DataWriter
+from data_load_tool.common.pipeline import PipelineContext
+from data_load_tool.common.schema import TTableSchemaColumns, Schema
+from data_load_tool.common.schema.typing import TTableFormat
+from data_load_tool.common.storages import SchemaStorage, FileStorage, SchemaStorageConfiguration
+from data_load_tool.common.schema.utils import new_table, normalize_table_identifiers
+from data_load_tool.common.storages import ParsedLoadJobFileName, LoadStorage, PackageStorage
+from data_load_tool.common.storages.load_package import create_load_id
+from data_load_tool.common.typing import StrAny
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations.exceptions import CantExtractTablePrefix
-from dlt.destinations.sql_client import SqlClientBase
-from dlt.destinations.job_client_impl import SqlJobClientBase
+from data_load_tool.destinations.exceptions import CantExtractTablePrefix
+from data_load_tool.destinations.sql_client import SqlClientBase
+from data_load_tool.destinations.job_client_impl import SqlJobClientBase
 
-from dlt.pipeline.exceptions import SqlClientNotAvailable
+from data_load_tool.pipeline.exceptions import SqlClientNotAvailable
 from tests.utils import (
     ACTIVE_DESTINATIONS,
     ACTIVE_TABLE_FORMATS,
@@ -72,17 +72,17 @@ from tests.cases import (
 )
 
 # Bucket urls.
-AWS_BUCKET = dlt.config.get("tests.bucket_url_s3", str)
-GCS_BUCKET = dlt.config.get("tests.bucket_url_gs", str)
-AZ_BUCKET = dlt.config.get("tests.bucket_url_az", str)
-ABFS_BUCKET = dlt.config.get("tests.bucket_url_abfss", str)
-GDRIVE_BUCKET = dlt.config.get("tests.bucket_url_gdrive", str)
-FILE_BUCKET = dlt.config.get("tests.bucket_url_file", str)
-R2_BUCKET = dlt.config.get("tests.bucket_url_r2", str)
-SFTP_BUCKET = dlt.config.get("tests.bucket_url_sftp", str)
-MEMORY_BUCKET = dlt.config.get("tests.memory", str)
+AWS_BUCKET = data_load_tool.config.get("tests.bucket_url_s3", str)
+GCS_BUCKET = data_load_tool.config.get("tests.bucket_url_gs", str)
+AZ_BUCKET = data_load_tool.config.get("tests.bucket_url_az", str)
+ABFS_BUCKET = data_load_tool.config.get("tests.bucket_url_abfss", str)
+GDRIVE_BUCKET = data_load_tool.config.get("tests.bucket_url_gdrive", str)
+FILE_BUCKET = data_load_tool.config.get("tests.bucket_url_file", str)
+R2_BUCKET = data_load_tool.config.get("tests.bucket_url_r2", str)
+SFTP_BUCKET = data_load_tool.config.get("tests.bucket_url_sftp", str)
+MEMORY_BUCKET = data_load_tool.config.get("tests.memory", str)
 
-ALL_FILESYSTEM_DRIVERS = dlt.config.get("ALL_FILESYSTEM_DRIVERS", list) or [
+ALL_FILESYSTEM_DRIVERS = data_load_tool.config.get("ALL_FILESYSTEM_DRIVERS", list) or [
     "s3",
     "gs",
     "az",
@@ -120,10 +120,10 @@ R2_BUCKET_CONFIG = dict(
     bucket_url=R2_BUCKET,
     # Credentials included so we can override aws credentials in env later
     credentials=dict(
-        aws_access_key_id=dlt.config.get("tests.r2_aws_access_key_id", str),
-        aws_secret_access_key=dlt.config.get("tests.r2_aws_secret_access_key", str),
-        endpoint_url=dlt.config.get("tests.r2_endpoint_url", str),
-        region_name=dlt.config.get("tests.r2_region_name", str),
+        aws_access_key_id=data_load_tool.config.get("tests.r2_aws_access_key_id", str),
+        aws_secret_access_key=data_load_tool.config.get("tests.r2_aws_secret_access_key", str),
+        endpoint_url=data_load_tool.config.get("tests.r2_endpoint_url", str),
+        region_name=data_load_tool.config.get("tests.r2_region_name", str),
     ),
 )
 
@@ -236,7 +236,7 @@ class DestinationTestConfiguration:
 
     def setup_pipeline(
         self, pipeline_name: str, dataset_name: str = None, dev_mode: bool = False, **kwargs
-    ) -> dlt.Pipeline:
+    ) -> data_load_tool.Pipeline:
         """Convenience method to setup pipeline with this configuration"""
 
         self.dev_mode = dev_mode
@@ -245,7 +245,7 @@ class DestinationTestConfiguration:
             destination = self.destination_factory(**kwargs)
         else:
             self.setup()
-        pipeline = dlt.pipeline(
+        pipeline = data_load_tool.pipeline(
             pipeline_name=pipeline_name,
             destination=destination,
             staging=kwargs.pop("staging", self.staging),
@@ -255,13 +255,13 @@ class DestinationTestConfiguration:
         )
         return pipeline
 
-    def attach_pipeline(self, pipeline_name: str, **kwargs) -> dlt.Pipeline:
+    def attach_pipeline(self, pipeline_name: str, **kwargs) -> data_load_tool.Pipeline:
         """Attach to existing pipeline keeping the dev_mode"""
         # remember dev_mode from setup_pipeline
-        pipeline = dlt.attach(pipeline_name, **kwargs)
+        pipeline = data_load_tool.attach(pipeline_name, **kwargs)
         return pipeline
 
-    def supports_sql_client(self, pipeline: dlt.Pipeline) -> bool:
+    def supports_sql_client(self, pipeline: data_load_tool.Pipeline) -> bool:
         """Checks if destination supports SQL queries"""
         try:
             pipeline.sql_client()
@@ -297,7 +297,7 @@ def destinations_configs(
         assert item in IMPLEMENTED_DESTINATIONS, f"Destination {item} is not implemented"
 
     # import filesystem destination to use named version for minio
-    from dlt.destinations import filesystem
+    from data_load_tool.destinations import filesystem
 
     # build destination configs
     destination_configs: List[DestinationTestConfiguration] = []
@@ -731,7 +731,7 @@ def drop_pipeline(request, preserve_environ) -> Iterator[None]:
         pass
 
 
-def drop_pipeline_data(p: dlt.Pipeline) -> None:
+def drop_pipeline_data(p: data_load_tool.Pipeline) -> None:
     """Drops all the datasets for a given pipeline"""
 
     def _drop_dataset(schema_name: str) -> None:
@@ -767,7 +767,7 @@ def drop_active_pipeline_data() -> None:
     if Container()[PipelineContext].is_active():
         try:
             # take existing pipeline
-            p = dlt.pipeline()
+            p = data_load_tool.pipeline()
             drop_pipeline_data(p)
             # p._wipe_working_folder()
         finally:

@@ -10,7 +10,7 @@ import Link from '../../_plus_admonition.md';
 
 # Observability
 
-There are several features under development in dlt+ to enhance your observability workflows. These include:
+There are several features under development in data_load_tool+ to enhance your observability workflows. These include:
 * A UI to explore and debug your pipeline runs
 * An AI agent to investigate your traces and logs
 

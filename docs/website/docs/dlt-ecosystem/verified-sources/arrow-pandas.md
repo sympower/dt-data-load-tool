@@ -1,6 +1,6 @@
 ---
 title: Arrow Table / Pandas
-description: dlt source for Arrow tables and Pandas dataframes
+description: data_load_tool source for Arrow tables and Pandas dataframes
 keywords: [arrow, pandas, parquet, source]
 ---
 import Header from './_source-info-header.md';
@@ -13,18 +13,18 @@ You can load data directly from an Arrow table or Pandas dataframe.
 This is supported by all destinations, but it is especially recommended when using destinations that support the Parquet file format natively (e.g., [Snowflake](../destinations/snowflake.md) and [Filesystem](../destinations/filesystem.md)).
 See the [destination support](#destination-support) section for more information.
 
-When used with a Parquet supported destination, this is a more performant way to load structured data since `dlt` bypasses many processing steps normally involved in passing JSON objects through the pipeline.
-`dlt` automatically translates the Arrow table's schema to the destination table's schema and writes the table to a parquet file, which gets uploaded to the destination without any further processing.
+When used with a Parquet supported destination, this is a more performant way to load structured data since `data_load_tool` bypasses many processing steps normally involved in passing JSON objects through the pipeline.
+`data_load_tool` automatically translates the Arrow table's schema to the destination table's schema and writes the table to a parquet file, which gets uploaded to the destination without any further processing.
 
 ## Usage
 
-To write an Arrow source, pass any `pyarrow.Table`, `pyarrow.RecordBatch`, or `pandas.DataFrame` object (or list thereof) to the pipeline's `run` or `extract` method, or yield table(s)/dataframe(s) from a `@dlt.resource` decorated function.
+To write an Arrow source, pass any `pyarrow.Table`, `pyarrow.RecordBatch`, or `pandas.DataFrame` object (or list thereof) to the pipeline's `run` or `extract` method, or yield table(s)/dataframe(s) from a `@data_load_tool.resource` decorated function.
 
 This example loads a Pandas dataframe to a Snowflake table:
 
 ```py
-import dlt
-from dlt.common import pendulum
+import data_load_tool
+from data_load_tool.common import pendulum
 import pandas as pd
 
 
@@ -35,11 +35,11 @@ df = pd.DataFrame({
     "order_amount": [100.0, 200.0, 300.0],
 })
 
-pipeline = dlt.pipeline("orders_pipeline", destination="snowflake")
+pipeline = data_load_tool.pipeline("orders_pipeline", destination="snowflake")
 
 pipeline.run(df, table_name="orders")
 ```
-Note that Pandas indexes are not save by default (up from `dlt` version 1.4.1). If for some reason you need the destination,
+Note that Pandas indexes are not save by default (up from `data_load_tool` version 1.4.1). If for some reason you need the destination,
 use `Table.from_pandas` with `preserve_index` set to True to explicitly convert the dataframe into arrow table.
 
 A `pyarrow` table can be loaded in the same way:
@@ -79,7 +79,7 @@ The output file format is chosen automatically based on the destination's capabi
 
 ## Add `_dlt_load_id` and `_dlt_id` to your tables
 
-`dlt` does not add any data lineage columns by default when loading Arrow tables. This is to give the best performance and avoid unnecessary data copying.
+`data_load_tool` does not add any data lineage columns by default when loading Arrow tables. This is to give the best performance and avoid unnecessary data copying.
 
 But if you need them, the `_dlt_load_id` (ID of the load operation when the row was added) and `_dlt_id` (unique ID for the row) columns can be added respectively with the following configuration options:
 
@@ -97,25 +97,25 @@ Keep in mind that enabling these incurs some performance overhead:
 ## Incremental loading with Arrow tables
 
 You can use incremental loading with Arrow tables as well.
-Usage is the same as with other dlt resources. Refer to the [incremental loading](../../general-usage/incremental-loading.md) guide for more information.
+Usage is the same as with other data_load_tool resources. Refer to the [incremental loading](../../general-usage/incremental-loading.md) guide for more information.
 
 Example:
 
 ```py
-import dlt
-from dlt.common import pendulum
+import data_load_tool
+from data_load_tool.common import pendulum
 import pandas as pd
 
 # Create a resource that yields a dataframe, using the `ordered_at` field as an incremental cursor
-@dlt.resource(primary_key="order_id")
-def orders(ordered_at = dlt.sources.incremental('ordered_at')):
+@data_load_tool.resource(primary_key="order_id")
+def orders(ordered_at = data_load_tool.sources.incremental('ordered_at')):
     # Get a dataframe/arrow table from somewhere
     # If your database supports it, you can use the last_value to filter data at the source.
     # Otherwise, it will be filtered automatically after loading the data.
     df = _get_orders(since=ordered_at.last_value)
     yield df
 
-pipeline = dlt.pipeline("orders_pipeline", destination="snowflake")
+pipeline = data_load_tool.pipeline("orders_pipeline", destination="snowflake")
 pipeline.run(orders)
 # Run again to load only new data
 pipeline.run(orders)
@@ -126,7 +126,7 @@ Look at the [Connector X + Arrow Example](../../examples/connector_x_arrow/) to 
 :::
 
 ## Loading JSON documents
-If you want to skip the default `dlt` JSON normalizer, you can use any available method to convert JSON documents into tabular data.
+If you want to skip the default `data_load_tool` JSON normalizer, you can use any available method to convert JSON documents into tabular data.
 * **pandas** has `read_json` and `json_normalize` methods
 * **pyarrow** can infer the table schema and convert JSON files into tables with `read_json`
 * **duckdb** can do the same with `read_json_auto`
@@ -138,13 +138,13 @@ conn = duckdb.connect()
 table = conn.execute("SELECT * FROM read_json_auto('./json_file_path')").fetch_arrow_table()
 ```
 
-Note that **duckdb** and **pyarrow** methods will generate [nested types](#loading-nested-types) for nested data, which are only partially supported by `dlt`.
+Note that **duckdb** and **pyarrow** methods will generate [nested types](#loading-nested-types) for nested data, which are only partially supported by `data_load_tool`.
 
 ## Supported Arrow data types
 
-The Arrow data types are translated to dlt data types as follows:
+The Arrow data types are translated to data_load_tool data types as follows:
 
-| Arrow type        | dlt type    | Notes                                                      |
+| Arrow type        | data_load_tool type    | Notes                                                      |
 |-------------------|-------------|------------------------------------------------------------|
 | `string`          | `text`      |                                                            |
 | `float`/`double`  | `double`    |                                                            |

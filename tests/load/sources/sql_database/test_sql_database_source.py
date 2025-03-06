@@ -4,17 +4,17 @@ from typing import Any, Callable, cast, List, Optional, Set
 
 import pytest
 
-import dlt
-from dlt.common import json
-from dlt.common.configuration.exceptions import ConfigFieldMissingException
-from dlt.common.exceptions import MissingDependencyException
+import data_load_tool
+from data_load_tool.common import json
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException
+from data_load_tool.common.exceptions import MissingDependencyException
 
-from dlt.common.schema.typing import TColumnSchema, TSortOrder, TTableSchemaColumns
-from dlt.common.utils import uniq_id
+from data_load_tool.common.schema.typing import TColumnSchema, TSortOrder, TTableSchemaColumns
+from data_load_tool.common.utils import uniq_id
 
-from dlt.extract.exceptions import ResourceExtractionError
-from dlt.extract.incremental.transform import JsonIncremental, ArrowIncremental
-from dlt.sources import DltResource
+from data_load_tool.extract.exceptions import ResourceExtractionError
+from data_load_tool.extract.incremental.transform import JsonIncremental, ArrowIncremental
+from data_load_tool.sources import DltResource
 
 from tests.pipeline.utils import (
     assert_load_info,
@@ -26,14 +26,14 @@ from tests.utils import data_item_length, load_table_counts
 
 
 try:
-    from dlt.sources.sql_database import (
+    from data_load_tool.sources.sql_database import (
         ReflectionLevel,
         TableBackend,
         sql_database,
         sql_table,
         remove_nullability_adapter,
     )
-    from dlt.sources.sql_database.helpers import unwrap_json_connector_x
+    from data_load_tool.sources.sql_database.helpers import unwrap_json_connector_x
     from tests.load.sources.sql_database.sql_source import SQLAlchemySourceDB
     import sqlalchemy as sa
 except MissingDependencyException:
@@ -59,8 +59,8 @@ def reset_os_environ():
     os.environ.update(original_environ)
 
 
-def make_pipeline(destination_name: str) -> dlt.Pipeline:
-    return dlt.pipeline(
+def make_pipeline(destination_name: str) -> data_load_tool.Pipeline:
+    return data_load_tool.pipeline(
         pipeline_name="sql_database" + uniq_id(),
         destination=destination_name,
         dataset_name="test_sql_pipeline_" + uniq_id(),
@@ -110,7 +110,7 @@ def test_pass_engine_credentials(sql_source_db: SQLAlchemySourceDB) -> None:
 
 
 def test_engine_adapter_callback(sql_source_db: SQLAlchemySourceDB) -> None:
-    from dlt.common.libs.sql_alchemy import Engine
+    from data_load_tool.common.libs.sql_alchemy import Engine
 
     adapter_calls: int = 0
 
@@ -211,9 +211,9 @@ def test_general_sql_database_config(sql_source_db: SQLAlchemySourceDB) -> None:
 def test_text_query_adapter(
     sql_source_db: SQLAlchemySourceDB, backend: TableBackend, add_new_columns: bool
 ) -> None:
-    from dlt.common.libs.sql_alchemy import Table, sqltypes, sa, Engine, TextClause
-    from dlt.sources.sql_database.helpers import SelectAny
-    from dlt.extract.incremental import Incremental
+    from data_load_tool.common.libs.sql_alchemy import Table, sqltypes, sa, Engine, TextClause
+    from data_load_tool.sources.sql_database.helpers import SelectAny
+    from data_load_tool.extract.incremental import Incremental
 
     def new_columns(table: Table) -> None:
         required_columns = [
@@ -250,7 +250,7 @@ def test_text_query_adapter(
         backend=backend,
         table_adapter_callback=new_columns if add_new_columns else None,
         query_adapter_callback=query_adapter,
-        incremental=dlt.sources.incremental("updated_at"),
+        incremental=data_load_tool.sources.incremental("updated_at"),
     )
 
     pipeline = make_pipeline("duckdb")
@@ -276,8 +276,8 @@ def test_text_query_adapter(
 
 @pytest.mark.parametrize("backend", ["sqlalchemy", "pandas", "pyarrow"])
 def test_computed_column(sql_source_db: SQLAlchemySourceDB, backend: TableBackend) -> None:
-    from dlt.common.libs.sql_alchemy import Table, sa, sqltypes
-    from dlt.sources.sql_database.helpers import SelectAny
+    from data_load_tool.common.libs.sql_alchemy import Table, sa, sqltypes
+    from data_load_tool.sources.sql_database.helpers import SelectAny
 
     def add_max_timestamp(table: Table) -> SelectAny:
         computed_max_timestamp = sa.sql.type_coerce(
@@ -294,7 +294,7 @@ def test_computed_column(sql_source_db: SQLAlchemySourceDB, backend: TableBacken
         reflection_level="full",
         backend=backend,
         table_adapter_callback=add_max_timestamp,
-        incremental=dlt.sources.incremental("max_timestamp"),
+        incremental=data_load_tool.sources.incremental("max_timestamp"),
     )
 
     pipeline = make_pipeline("duckdb")
@@ -361,7 +361,7 @@ def test_load_sql_table_resource_incremental_end_value(
     if last_value_func is min:
         start_id, end_id = end_id, start_id
 
-    @dlt.source
+    @data_load_tool.source
     def sql_table_source() -> List[DltResource]:
         return [
             sql_table(
@@ -369,7 +369,7 @@ def test_load_sql_table_resource_incremental_end_value(
                 schema=sql_source_db.schema,
                 table="chat_message",
                 backend=backend,
-                incremental=dlt.sources.incremental(
+                incremental=data_load_tool.sources.incremental(
                     "id",
                     initial_value=start_id,
                     end_value=end_id,
@@ -493,7 +493,7 @@ def test_reflection_levels(
     def prepare_source():
         if standalone_resource:
 
-            @dlt.source
+            @data_load_tool.source
             def dummy_source():
                 yield sql_table(
                     credentials=sql_source_db.credentials,
@@ -588,7 +588,7 @@ def test_reflect_foreign_keys_as_table_references(
     def prepare_source():
         if standalone_resource:
 
-            @dlt.source
+            @data_load_tool.source
             def dummy_source():
                 yield sql_table(
                     credentials=sql_source_db.credentials,
@@ -810,7 +810,7 @@ def test_set_primary_key_deferred_incremental(
     backend: TableBackend,
 ) -> None:
     # this tests dynamically adds primary key to resource and as consequence to incremental
-    updated_at = dlt.sources.incremental("updated_at")  # type: ignore[var-annotated]
+    updated_at = data_load_tool.sources.incremental("updated_at")  # type: ignore[var-annotated]
     resource = sql_table(
         credentials=sql_source_db.credentials,
         table="chat_message",
@@ -827,7 +827,7 @@ def test_set_primary_key_deferred_incremental(
 
     def _assert_incremental(item):
         # for all the items, all keys must be present
-        _r = dlt.current.source().resources[dlt.current.resource_name()]
+        _r = data_load_tool.current.source().resources[data_load_tool.current.resource_name()]
         # assert _r.incremental._incremental is updated_at
         if len(item) == 0:
             # not yet propagated
@@ -989,7 +989,7 @@ def test_sql_table_from_view(sql_source_db: SQLAlchemySourceDB, backend: TableBa
         backend=backend,
         # use minimal level so we infer types from DATA
         reflection_level="minimal",
-        incremental=dlt.sources.incremental("_created_at"),
+        incremental=data_load_tool.sources.incremental("_created_at"),
     )
 
     pipeline = make_pipeline("duckdb")
@@ -1060,7 +1060,7 @@ def test_infer_unsupported_types(
     )
     if standalone_resource:
 
-        @dlt.source
+        @data_load_tool.source
         def dummy_source():
             yield sql_table(
                 **common_kwargs,  # type: ignore[arg-type]
@@ -1160,8 +1160,8 @@ def test_sql_table_included_columns(
 def test_query_adapter_callback(
     sql_source_db: SQLAlchemySourceDB, backend: TableBackend, standalone_resource: bool
 ) -> None:
-    from dlt.sources.sql_database.helpers import SelectAny
-    from dlt.common.libs.sql_alchemy import Table
+    from data_load_tool.sources.sql_database.helpers import SelectAny
+    from data_load_tool.common.libs.sql_alchemy import Table
 
     def query_adapter_callback(query: SelectAny, table: Table) -> SelectAny:
         if table.name == "chat_channel":
@@ -1179,7 +1179,7 @@ def test_query_adapter_callback(
 
     if standalone_resource:
 
-        @dlt.source
+        @data_load_tool.source
         def dummy_source():
             yield sql_table(
                 **common_kwargs,  # type: ignore[arg-type]
@@ -1215,7 +1215,7 @@ def test_query_adapter_callback(
 
 
 def assert_row_counts(
-    pipeline: dlt.Pipeline,
+    pipeline: data_load_tool.Pipeline,
     sql_source_db: SQLAlchemySourceDB,
     tables: Optional[List[str]] = None,
     include_views: bool = False,
@@ -1271,7 +1271,7 @@ def assert_no_precision_columns(
         expected = add_default_decimal_precision(expected)
     elif backend == "sqlalchemy":
         # no precision, no nullability, all hints inferred
-        # remove dlt columns
+        # remove data_load_tool columns
         actual = remove_dlt_columns(actual)
     elif backend == "pandas":
         # no precision, no nullability, all hints inferred

@@ -4,23 +4,23 @@ from typing import Any, Dict, List, Literal, NamedTuple, Optional, Union, cast, 
 import pytest
 from requests.auth import AuthBase
 
-import dlt
-import dlt.common
-import dlt.common.exceptions
-import dlt.extract
-from dlt.common.configuration import inject_section
-from dlt.common.configuration.specs import ConfigSectionContext
-from dlt.common.typing import TSecretStrValue
-from dlt.common.utils import custom_environ
-from dlt.sources.rest_api import (
+import data_load_tool
+import data_load_tool.common
+import data_load_tool.common.exceptions
+import data_load_tool.extract
+from data_load_tool.common.configuration import inject_section
+from data_load_tool.common.configuration.specs import ConfigSectionContext
+from data_load_tool.common.typing import TSecretStrValue
+from data_load_tool.common.utils import custom_environ
+from data_load_tool.sources.rest_api import (
     _mask_secrets,
     rest_api_source,
 )
-from dlt.sources.rest_api.config_setup import (
+from data_load_tool.sources.rest_api.config_setup import (
     AUTH_MAP,
     create_auth,
 )
-from dlt.sources.rest_api.typing import (
+from data_load_tool.sources.rest_api.typing import (
     AuthConfigBase,
     AuthType,
     AuthTypeConfig,
@@ -28,12 +28,12 @@ from dlt.sources.rest_api.typing import (
 )
 
 try:
-    from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+    from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 except ImportError:
     pass
 
 
-from dlt.sources.helpers.rest_client.auth import (
+from data_load_tool.sources.helpers.rest_client.auth import (
     APIKeyAuth,
     BearerTokenAuth,
     HttpBasicAuth,
@@ -315,7 +315,7 @@ def test_validation_masks_auth_secrets() -> None:
         },
         "resources": ["posts"],
     }
-    with pytest.raises(dlt.common.exceptions.DictValidationException) as e:
+    with pytest.raises(data_load_tool.common.exceptions.DictValidationException) as e:
         rest_api_source(incorrect_config)
     assert (
         re.search("sensitive-secret", str(e.value)) is None

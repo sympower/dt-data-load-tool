@@ -1,5 +1,5 @@
 from typing import ClassVar
-from dlt.common.normalizers.naming.direct import NamingConvention as DirectNamingConvention
+from data_load_tool.common.normalizers.naming.direct import NamingConvention as DirectNamingConvention
 
 
 class NamingConvention(DirectNamingConvention):

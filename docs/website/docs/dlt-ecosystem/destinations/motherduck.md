@@ -1,15 +1,15 @@
 ---
 title: MotherDuck
-description: MotherDuck `dlt` destination
+description: MotherDuck `data_load_tool` destination
 keywords: [MotherDuck, duckdb, destination, data warehouse]
 ---
 
 # MotherDuck
 
-## Install dlt with MotherDuck
-**To install the dlt library with MotherDuck dependencies:**
+## Install data_load_tool with MotherDuck
+**To install the data_load_tool library with MotherDuck dependencies:**
 ```sh
-pip install "dlt[motherduck]"
+pip install "data_load_tool[motherduck]"
 ```
 
 :::tip
@@ -25,7 +25,7 @@ or export the **LOAD__WORKERS=3** env variable. See more in [performance](../../
 
 **1. Initialize a project with a pipeline that loads to MotherDuck by running**
 ```sh
-dlt init chess motherduck
+data_load_tool init chess motherduck
 ```
 
 **2. Install the necessary dependencies for MotherDuck by running**
@@ -33,9 +33,9 @@ dlt init chess motherduck
 pip install -r requirements.txt
 ```
 
-This will install dlt with the **motherduck** extra which contains **duckdb** and **pyarrow** dependencies.
+This will install data_load_tool with the **motherduck** extra which contains **duckdb** and **pyarrow** dependencies.
 
-**3. Add your MotherDuck token to `.dlt/secrets.toml`**
+**3. Add your MotherDuck token to `.data_load_tool/secrets.toml`**
 ```toml
 [destination.motherduck.credentials]
 database = "dlt_data_3"
@@ -69,8 +69,8 @@ python3 chess_pipeline.py
 ```
 
 ### Motherduck connection identifier
-We enable Motherduck to identify that the connection is created by `dlt`. Motherduck will use this identifier to better understand the usage patterns
-associated with `dlt` integration. The connection identifier is `dltHub_dlt/DLT_VERSION(OS_NAME)`.
+We enable Motherduck to identify that the connection is created by `data_load_tool`. Motherduck will use this identifier to better understand the usage patterns
+associated with `data_load_tool` integration. The connection identifier is `dltHub_dlt/DLT_VERSION(OS_NAME)`.
 
 ## Write disposition
 All write dispositions are supported.
@@ -86,8 +86,8 @@ This destination [integrates with dbt](../transformations/dbt/dbt.md) via [dbt-d
 ## Multi-statement transaction support
 Motherduck supports multi-statement transactions. This change happened with `duckdb 0.10.2`.
 
-## Syncing of `dlt` state
-This destination fully supports [dlt state sync](../../general-usage/state#syncing-state-with-destination).
+## Syncing of `data_load_tool` state
+This destination fully supports [data_load_tool state sync](../../general-usage/state#syncing-state-with-destination).
 
 ## Troubleshooting
 

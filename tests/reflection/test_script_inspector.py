@@ -1,9 +1,9 @@
 from types import SimpleNamespace
 import pytest
 
-from dlt.common.reflection.ref import DummyModule
+from data_load_tool.common.reflection.ref import DummyModule
 
-from dlt.reflection.script_inspector import (
+from data_load_tool.reflection.script_inspector import (
     import_script_module,
     import_pipeline_script,
     PipelineIsRunning,

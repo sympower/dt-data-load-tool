@@ -1,12 +1,12 @@
 import sys
 
-import dlt
-from dlt.common import json
+import data_load_tool
+from data_load_tool.common import json
 
 
-@dlt.source
+@data_load_tool.source
 def github():
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="issues",
         write_disposition={"disposition": "merge", "strategy": "scd2"},
         primary_key="id",
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     def filter_issues(issue):
         return issue["number"] not in delete_issues
 
-    p = dlt.pipeline("dlt_github_pipeline", destination="duckdb", dataset_name="github_3")
+    p = data_load_tool.pipeline("dlt_github_pipeline", destination="duckdb", dataset_name="github_3")
     github_source = github()
     info = p.run(github_source.load_issues.add_filter(filter_issues))
     print(info)

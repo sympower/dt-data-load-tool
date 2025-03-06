@@ -15,17 +15,17 @@ from typing import (
     Union,
 )
 
-from dlt.common import Decimal, jsonpath
-from dlt.common.exceptions import DictValidationException
-from dlt.common.schema.typing import (
+from data_load_tool.common import Decimal, jsonpath
+from data_load_tool.common.exceptions import DictValidationException
+from data_load_tool.common.schema.typing import (
     TStoredSchema,
     TColumnSchema,
     TWriteDispositionConfig,
 )
-from dlt.common.schema.utils import simple_regex_validator
-from dlt.common.typing import DictStrStr, StrStr, TDataItem, TSortOrder, TColumnNames, TypedDict
+from data_load_tool.common.schema.utils import simple_regex_validator
+from data_load_tool.common.typing import DictStrStr, StrStr, TDataItem, TSortOrder, TColumnNames, TypedDict
 
-from dlt.common.validation import validate_dict, validate_dict_ignoring_xkeys
+from data_load_tool.common.validation import validate_dict, validate_dict_ignoring_xkeys
 
 
 TLiteral = Literal["uno", "dos", "tres"]

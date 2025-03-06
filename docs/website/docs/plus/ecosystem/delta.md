@@ -10,10 +10,10 @@ import Link from '../../_plus_admonition.md';
 
 # Delta
 
-The Delta destination is based on the [filesystem destination](../../dlt-ecosystem/destinations/filesystem.md) in dlt. All configuration options from the filesystem destination can be configured as well.
+The Delta destination is based on the [filesystem destination](../../dlt-ecosystem/destinations/filesystem.md) in data_load_tool. All configuration options from the filesystem destination can be configured as well.
 
 :::caution
-Under the hood, dlt+ uses the [deltalake library](https://pypi.org/project/deltalake/) to write Delta tables. Beware that when loading a large amount of data for one table, the underlying Rust implementation will consume a lot of memory. This is a known issue, and the maintainers are actively working on a solution. You can track the progress [here](https://github.com/delta-io/delta-rs/pull/2289). Until the issue is resolved, you can mitigate the memory consumption by doing multiple smaller incremental pipeline runs.
+Under the hood, data_load_tool+ uses the [deltalake library](https://pypi.org/project/deltalake/) to write Delta tables. Beware that when loading a large amount of data for one table, the underlying Rust implementation will consume a lot of memory. This is a known issue, and the maintainers are actively working on a solution. You can track the progress [here](https://github.com/delta-io/delta-rs/pull/2289). Until the issue is resolved, you can mitigate the memory consumption by doing multiple smaller incremental pipeline runs.
 :::
 
 ## Setup
@@ -24,14 +24,14 @@ pip install deltalake
 pip install pyarrow>=2.0.18
 ```
 
-Initialize a dlt+ project in the current working directory with the following command:
+Initialize a data_load_tool+ project in the current working directory with the following command:
 
 ```sh
 # replace sql_database with the source of your choice
-dlt project init sql_database delta
+data_load_tool project init sql_database delta
 ```
 
-This will create a Delta destination in your `dlt.yml`, where you can configure the destination:
+This will create a Delta destination in your `data_load_tool.yml`, where you can configure the destination:
 
 ```yaml
 destinations:
@@ -107,7 +107,7 @@ sftp_key_passphrase = "your_passphrase"   # Optional: passphrase for your privat
 The Delta destination can also be defined in Python as follows:
 
 ```py
-pipeline = dlt.pipeline("loads_delta", destination="delta")
+pipeline = data_load_tool.pipeline("loads_delta", destination="delta")
 ```
 
 ## Write dispositions
@@ -123,7 +123,7 @@ The `upsert` merge strategy for the Delta destination is **experimental**.
 
 The `merge` write disposition can be configured as follows on the source/resource level:
 
-<Tabs values={[{"label": "dlt.yml", "value": "yaml"}, {"label": "Python", "value": "python"}]}  groupId="language" defaultValue="yaml">
+<Tabs values={[{"label": "data_load_tool.yml", "value": "yaml"}, {"label": "Python", "value": "python"}]}  groupId="language" defaultValue="yaml">
   <TabItem value="yaml">
 
 ```yaml
@@ -139,7 +139,7 @@ sources:
   <TabItem value="python">
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     primary_key="id",  # merge_key also works; primary_key and merge_key may be used together
     write_disposition={"disposition": "merge", "strategy": "upsert"},
 )
@@ -150,7 +150,7 @@ def my_resource():
     ]
 ...
 
-pipeline = dlt.pipeline("loads_delta", destination="delta")
+pipeline = data_load_tool.pipeline("loads_delta", destination="delta")
 
 ```
 </TabItem>
@@ -166,7 +166,7 @@ pipeline.run(write_disposition={"disposition": "merge", "strategy": "upsert"})
 
 Delta tables can be partitioned (using [Hive-style partitioning](https://delta.io/blog/pros-cons-hive-style-partionining/)) by specifying one or more partition column hints on the source/resource level:
 
-<Tabs values={[{"label": "dlt.yml", "value": "yaml"}, {"label": "Python", "value": "python"}]}  groupId="language" defaultValue="yaml">
+<Tabs values={[{"label": "data_load_tool.yml", "value": "yaml"}, {"label": "Python", "value": "python"}]}  groupId="language" defaultValue="yaml">
   <TabItem value="yaml">
 
   ```yaml
@@ -183,13 +183,13 @@ Delta tables can be partitioned (using [Hive-style partitioning](https://delta.i
   <TabItem value="python">
 
   ```py
-  @dlt.resource(
+  @data_load_tool.resource(
     columns={"_dlt_load_id": {"partition": True}}
   )
   def my_resource():
       ...
 
-  pipeline = dlt.pipeline("loads_delta", destination="delta")
+  pipeline = data_load_tool.pipeline("loads_delta", destination="delta")
   ```
 
   </TabItem>
@@ -203,7 +203,7 @@ Partition evolution (changing partition columns after a table has been created) 
 You can use the `get_delta_tables` helper functions to access the native [DeltaTable](https://delta-io.github.io/delta-rs/api/delta_table/) objects.
 
 ```py
-from dlt.common.libs.deltalake import get_delta_tables
+from data_load_tool.common.libs.deltalake import get_delta_tables
 
 ...
 
@@ -221,13 +221,13 @@ delta_tables["another_delta_table"].optimize.z_order(["col_a", "col_b"])
 The Delta destination automatically assigns the `delta` table format to all resources that it will load. You can still fall back to storing files by setting `table_format` to native on the resource level:
 
   ```py
-  @dlt.resource(
+  @data_load_tool.resource(
     table_format="native"
   )
   def my_resource():
       ...
 
-  pipeline = dlt.pipeline("loads_delta", destination="delta")
+  pipeline = data_load_tool.pipeline("loads_delta", destination="delta")
   ```
 
 ### Storage options
@@ -238,9 +238,9 @@ You can pass storage options by configuring `destination.delta.deltalake_storage
 deltalake_storage_options = '{"AWS_S3_LOCKING_PROVIDER": "dynamodb", "DELTA_DYNAMO_TABLE_NAME": "custom_table_name"}'
 ```
 
-`dlt` passes these options to the `storage_options` argument of the `write_deltalake` method in the `deltalake` library. Look at their [documentation](https://delta-io.github.io/delta-rs/api/delta_writer/#deltalake.write_deltalake) to see which options can be used.
+`data_load_tool` passes these options to the `storage_options` argument of the `write_deltalake` method in the `deltalake` library. Look at their [documentation](https://delta-io.github.io/delta-rs/api/delta_writer/#deltalake.write_deltalake) to see which options can be used.
 
-You don't need to specify credentials here. dlt merges the required credentials with the options you provided before passing them as `storage_options`.
+You don't need to specify credentials here. data_load_tool merges the required credentials with the options you provided before passing them as `storage_options`.
 
 :::warning
 When using `s3`, you need to specify storage options to [configure](https://delta-io.github.io/delta-rs/usage/writing/writing-to-s3-with-locking-provider/) locking behavior.

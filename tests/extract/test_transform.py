@@ -1,16 +1,16 @@
 import pytest
 
-import dlt
-from dlt.sources.helpers.transform import pivot
-from dlt.extract.exceptions import ResourceExtractionError
+import data_load_tool
+from data_load_tool.sources.helpers.transform import pivot
+from data_load_tool.extract.exceptions import ResourceExtractionError
 
 
-@dlt.resource
+@data_load_tool.resource
 def pivot_test_wrong_resource():
     yield [{"a": 1}]
 
 
-@dlt.resource
+@data_load_tool.resource
 def pivot_test_wrong_resource2():
     yield [{"a": [1]}]
 
@@ -29,7 +29,7 @@ def test_transform_pivot_wrong_data() -> None:
         list(res)
 
 
-@dlt.resource
+@data_load_tool.resource
 def pivot_test_resource():
     for row in (
         [
@@ -164,7 +164,7 @@ def test_transform_pivot_prefix() -> None:
     ]
 
 
-@dlt.resource
+@data_load_tool.resource
 def pivot_test_pandas_resource():
     import pandas
 

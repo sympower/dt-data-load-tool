@@ -1,13 +1,13 @@
 from typing import Dict
 import pytest
 
-from dlt.common.destination import Destination, DestinationReference
-from dlt.common.destination.client import DestinationClientDwhConfiguration
-from dlt.common.destination import DestinationCapabilitiesContext
-from dlt.common.destination.exceptions import UnknownDestinationModule
-from dlt.common.schema import Schema
-from dlt.common.typing import is_subclass
-from dlt.common.normalizers.naming import sql_ci_v1, sql_cs_v1
+from data_load_tool.common.destination import Destination, DestinationReference
+from data_load_tool.common.destination.client import DestinationClientDwhConfiguration
+from data_load_tool.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.destination.exceptions import UnknownDestinationModule
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.typing import is_subclass
+from data_load_tool.common.normalizers.naming import sql_ci_v1, sql_cs_v1
 
 from tests.common.configuration.utils import environment
 from tests.utils import ACTIVE_DESTINATIONS
@@ -20,8 +20,8 @@ def test_import_unknown_destination() -> None:
     assert unk_ex.value.ref == "meltdb"
     assert unk_ex.value.qualified_refs == [
         "meltdb",
-        "dlt.destinations.meltdb",
-        "dlt.destinations.meltdb",
+        "data_load_tool.destinations.meltdb",
+        "data_load_tool.destinations.meltdb",
     ]
     traces = unk_ex.value.traces
     assert len(traces) == 2 and traces[0].reason == "AttrNotFound"
@@ -54,35 +54,35 @@ def test_custom_destination_module() -> None:
 
 def test_arguments_propagated_to_config() -> None:
     dest = DestinationReference.from_reference(
-        "dlt.destinations.duckdb", create_indexes=None, unknown_param="A"
+        "data_load_tool.destinations.duckdb", create_indexes=None, unknown_param="A"
     )
     # None for create_indexes is not a default and it is passed on, unknown_param is removed because it is unknown
     assert dest.config_params == {"create_indexes": None}
     assert dest.caps_params == {}
 
     # test explicit config value being passed
-    import dlt
+    import data_load_tool
 
     dest = DestinationReference.from_reference(
-        "dlt.destinations.duckdb", create_indexes=dlt.config.value, unknown_param="A"
+        "data_load_tool.destinations.duckdb", create_indexes=data_load_tool.config.value, unknown_param="A"
     )
-    assert dest.config_params == {"create_indexes": dlt.config.value}
+    assert dest.config_params == {"create_indexes": data_load_tool.config.value}
     assert dest.caps_params == {}
 
     dest = DestinationReference.from_reference(
-        "dlt.destinations.weaviate", naming_convention="duck_case", create_indexes=True
+        "data_load_tool.destinations.weaviate", naming_convention="duck_case", create_indexes=True
     )
     # create indexes are not known
     assert dest.config_params == {}
 
     # create explicit caps
     dest = DestinationReference.from_reference(
-        "dlt.destinations.dummy",
+        "data_load_tool.destinations.dummy",
         naming_convention="duck_case",
         recommended_file_size=4000000,
         loader_file_format="parquet",
     )
-    from dlt.destinations.impl.dummy.configuration import DummyClientConfiguration
+    from data_load_tool.destinations.impl.dummy.configuration import DummyClientConfiguration
 
     assert dest.config_params == {"loader_file_format": "parquet"}
     # loader_file_format is a legacy param that is duplicated as preferred_loader_file_format
@@ -102,7 +102,7 @@ def test_arguments_propagated_to_config() -> None:
 
 def test_factory_config_injection(environment: Dict[str, str]) -> None:
     environment["DESTINATION__LOADER_FILE_FORMAT"] = "parquet"
-    from dlt.destinations import dummy
+    from data_load_tool.destinations import dummy
 
     # caps will resolve from config without client
     assert dummy().capabilities().preferred_loader_file_format == "parquet"
@@ -129,8 +129,8 @@ def test_factory_config_injection(environment: Dict[str, str]) -> None:
     # test named destination
     environment.clear()
     import os
-    from dlt.destinations import filesystem
-    from dlt.destinations.impl.filesystem.configuration import (
+    from data_load_tool.destinations import filesystem
+    from data_load_tool.destinations.impl.filesystem.configuration import (
         FilesystemDestinationClientConfiguration,
     )
 
@@ -143,22 +143,22 @@ def test_factory_config_injection(environment: Dict[str, str]) -> None:
 
 
 def test_import_module_by_path() -> None:
-    # importing works directly from dlt destinations
-    dest = DestinationReference.from_reference("dlt.destinations.postgres")
+    # importing works directly from data_load_tool destinations
+    dest = DestinationReference.from_reference("data_load_tool.destinations.postgres")
     assert dest.destination_name == "postgres"
-    assert dest.destination_type == "dlt.destinations.postgres"
+    assert dest.destination_type == "data_load_tool.destinations.postgres"
 
     # try again directly with the output from the first dest
     dest2 = DestinationReference.from_reference(dest.destination_type, destination_name="my_pg")
     assert dest2.destination_name == "my_pg"
-    assert dest2.destination_type == "dlt.destinations.postgres"
+    assert dest2.destination_type == "data_load_tool.destinations.postgres"
 
     # try again with the path into the impl folder
     dest3 = DestinationReference.from_reference(
-        "dlt.destinations.impl.postgres.factory.postgres", destination_name="my_pg_2"
+        "data_load_tool.destinations.impl.postgres.factory.postgres", destination_name="my_pg_2"
     )
     assert dest3.destination_name == "my_pg_2"
-    assert dest3.destination_type == "dlt.destinations.postgres"
+    assert dest3.destination_type == "data_load_tool.destinations.postgres"
 
 
 def test_import_all_destinations() -> None:
@@ -167,7 +167,7 @@ def test_import_all_destinations() -> None:
         dest = DestinationReference.from_reference(
             dest_type, None, dest_type + "_name", "production"
         )
-        assert dest.destination_type == "dlt.destinations." + dest_type
+        assert dest.destination_type == "data_load_tool.destinations." + dest_type
         assert dest.destination_name == dest_type + "_name"
         assert dest.config_params["environment"] == "production"
         assert dest.config_params["destination_name"] == dest_type + "_name"
@@ -230,7 +230,7 @@ def test_base_adjust_capabilities() -> None:
 
 
 def test_instantiate_all_factories() -> None:
-    from dlt import destinations
+    from data_load_tool import destinations
 
     impls = dir(destinations)
     for impl in impls:
@@ -242,7 +242,7 @@ def test_instantiate_all_factories() -> None:
         assert dest.destination_name
         assert dest.destination_type
         # custom destination is named after the callable
-        if dest.destination_type != "dlt.destinations.destination":
+        if dest.destination_type != "data_load_tool.destinations.destination":
             assert dest.destination_type.endswith(dest.destination_name)
         else:
             assert dest.destination_name == "dummy_custom_destination"
@@ -269,8 +269,8 @@ def test_instantiate_all_factories() -> None:
 
 def test_import_destination_config() -> None:
     # importing destination by type will work
-    dest = Destination.from_reference(ref="dlt.destinations.duckdb", environment="stage")
-    assert dest.destination_type == "dlt.destinations.duckdb"
+    dest = Destination.from_reference(ref="data_load_tool.destinations.duckdb", environment="stage")
+    assert dest.destination_type == "data_load_tool.destinations.duckdb"
     assert dest.config_params["environment"] == "stage"
     config = dest.configuration(dest.spec()._bind_dataset_name(dataset_name="dataset"))  # type: ignore
     assert config.destination_type == "duckdb"
@@ -280,7 +280,7 @@ def test_import_destination_config() -> None:
 
     # importing destination by will work
     dest = Destination.from_reference(ref=None, destination_name="duckdb", environment="production")
-    assert dest.destination_type == "dlt.destinations.duckdb"
+    assert dest.destination_type == "data_load_tool.destinations.duckdb"
     assert dest.config_params["environment"] == "production"
     config = dest.configuration(dest.spec()._bind_dataset_name(dataset_name="dataset"))  # type: ignore
     assert config.destination_type == "duckdb"
@@ -291,7 +291,7 @@ def test_import_destination_config() -> None:
     dest = Destination.from_reference(
         ref="duckdb", destination_name="my_destination", environment="devel"
     )
-    assert dest.destination_type == "dlt.destinations.duckdb"
+    assert dest.destination_type == "data_load_tool.destinations.duckdb"
     assert dest.destination_name == "my_destination"
     assert dest.config_params["environment"] == "devel"
     config = dest.configuration(dest.spec()._bind_dataset_name(dataset_name="dataset"))  # type: ignore

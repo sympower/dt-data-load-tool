@@ -1,7 +1,7 @@
 ---
 
 title: Databricks
-description: Databricks `dlt` destination
+description: Databricks `data_load_tool` destination
 keywords: [Databricks, destination, data warehouse]
 
 ---
@@ -9,12 +9,12 @@ keywords: [Databricks, destination, data warehouse]
 # Databricks
 *Big thanks to Evan Phillips and [swishbi.com](https://swishbi.com/) for contributing code, time, and a test environment.*
 
-## Install dlt with Databricks
+## Install data_load_tool with Databricks
 
-**To install the dlt library with Databricks dependencies:**
+**To install the data_load_tool library with Databricks dependencies:**
 
 ```sh
-pip install "dlt[databricks]"
+pip install "data_load_tool[databricks]"
 ```
 
 ## Set up your Databricks workspace
@@ -87,7 +87,7 @@ If you already have your Databricks workspace set up, you can skip to the [Loade
 
 ## Authentication
 
-`dlt` currently supports two options for authentication:
+`data_load_tool` currently supports two options for authentication:
 1. [OAuth2](#using-oauth2) (recommended) allows you to authenticate to Databricks using a service principal via OAuth2 M2M.
 2. [Access token](#using-access-token) approach using a developer access token. This method may be deprecated in the future by Databricks.
 
@@ -208,7 +208,7 @@ os.environ["DESTINATIONS__DATABRICKS__CREDENTIALS__ACCESS_TOKEN"]=os.environ.get
 **1. Initialize a project with a pipeline that loads to Databricks by running**
 
 ```sh
-dlt init chess databricks
+data_load_tool init chess databricks
 ```
 
 **2. Install the necessary dependencies for Databricks by running**
@@ -217,9 +217,9 @@ dlt init chess databricks
 pip install -r requirements.txt
 ```
 
-This will install dlt with the `databricks` extra, which contains the Databricks Python dbapi client.
+This will install data_load_tool with the `databricks` extra, which contains the Databricks Python dbapi client.
 
-**3. Enter your credentials into `.dlt/secrets.toml`.**
+**3. Enter your credentials into `.data_load_tool/secrets.toml`.**
 
 This should include your connection parameters and your authentication credentials.
 
@@ -238,13 +238,13 @@ catalog = "my_catalog"
 
 You can find other options for specifying credentials in the [Authentication section](#authentication).
 
-See [Staging support](#staging-support) for authentication options when `dlt` copies files from buckets.
+See [Staging support](#staging-support) for authentication options when `data_load_tool` copies files from buckets.
 
 ### Using default credentials
-If none of auth methods above is configured, `dlt` attempts to get authorization from the Databricks workspace context. The context may
+If none of auth methods above is configured, `data_load_tool` attempts to get authorization from the Databricks workspace context. The context may
 come, for example, from a Notebook (runtime) or via standard set of env variables that Databricks Python sdk recognizes (ie. **DATABRICKS_TOKEN** or **DATABRICKS_HOST**)
 
-`dlt` is able to set `server_hostname` and `http_path` from available warehouses. We use default warehouse id (**DATABRICKS_WAREHOUSE_ID**)
+`data_load_tool` is able to set `server_hostname` and `http_path` from available warehouses. We use default warehouse id (**DATABRICKS_WAREHOUSE_ID**)
 if set (via env variable), or a first one on warehouse's list.
 
 ## Write disposition
@@ -253,7 +253,7 @@ All write dispositions are supported.
 ## Data loading
 To load data into Databricks, you must set up a staging filesystem by configuring an Amazon S3 or Azure Blob Storage bucket. Parquet is the default file format used for data uploads. As an alternative to Parquet, you can switch to using JSONL.
 
-dlt will upload the data in Parquet files (or JSONL, if configured) to the bucket and then use `COPY INTO` statements to ingest the data into Databricks.
+data_load_tool will upload the data in Parquet files (or JSONL, if configured) to the bucket and then use `COPY INTO` statements to ingest the data into Databricks.
 
 For more information on staging, see the [Staging support](#staging-support) section below.
 
@@ -263,25 +263,25 @@ For more information on staging, see the [Staging support](#staging-support) sec
 
 The JSONL format has some limitations when used with Databricks:
 
-1. Compression must be disabled to load JSONL files in Databricks. Set `data_writer.disable_compression` to `true` in the dlt config when using this format.
+1. Compression must be disabled to load JSONL files in Databricks. Set `data_writer.disable_compression` to `true` in the data_load_tool config when using this format.
 2. The following data types are not supported when using the JSONL format with `databricks`: `decimal`, `json`, `date`, `binary`. Use `parquet` if your data contains these types.
 3. The `bigint` data type with precision is not supported with the JSONL format.
 
 ## Direct Load (Databricks Managed Volumes)
 
-`dlt` now supports **Direct Load**, enabling pipelines to run seamlessly from **Databricks Notebooks** without external staging. When executed in a Databricks Notebook, `dlt` uses the notebook context for configuration if not explicitly provided.
+`data_load_tool` now supports **Direct Load**, enabling pipelines to run seamlessly from **Databricks Notebooks** without external staging. When executed in a Databricks Notebook, `data_load_tool` uses the notebook context for configuration if not explicitly provided.
 
 Direct Load also works **outside Databricks**, requiring explicit configuration of `server_hostname`, `http_path`, `catalog`, and authentication (`client_id`/`client_secret` for OAuth or `access_token` for token-based authentication).
 
 The example below demonstrates how to load data directly from a **Databricks Notebook**. Simply specify the **Databricks catalog** and optionally a **fully qualified volume name** (recommended for production) – the remaining configuration comes from the notebook context:
 
 ```py
-import dlt
-from dlt.destinations import databricks
-from dlt.sources.rest_api import rest_api_source
+import data_load_tool
+from data_load_tool.destinations import databricks
+from data_load_tool.sources.rest_api import rest_api_source
 
 # Fully qualified Databricks managed volume (recommended for production)
-# - dlt assumes the named volume already exists
+# - data_load_tool assumes the named volume already exists
 staging_volume_name = "dlt_ci.dlt_tests_shared.static_volume"
 
 bricks = databricks(credentials={"catalog": "dlt_ci"}, staging_volume_name=staging_volume_name)
@@ -294,7 +294,7 @@ pokemon_source = rest_api_source(
     }
 )
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="rest_api_example",
     dataset_name="rest_api_data",
     destination=bricks,
@@ -305,7 +305,7 @@ print(load_info)
 print(pipeline.dataset().pokemon.df())
 ```
 
-- If **no** *staging_volume_name* **is provided**, dlt creates a **default volume** automatically.
+- If **no** *staging_volume_name* **is provided**, data_load_tool creates a **default volume** automatically.
 - **For production**, explicitly setting *staging_volume_name* is recommended.
 - The volume is used as a **temporary location** to store files before loading.
 
@@ -319,7 +319,7 @@ keep_staged_files = false
 
 ## Staging support
 
-Databricks supports both Amazon S3, Azure Blob Storage, and Google Cloud Storage as staging locations. `dlt` will upload files in Parquet format to the staging location and will instruct Databricks to load data from there.
+Databricks supports both Amazon S3, Azure Blob Storage, and Google Cloud Storage as staging locations. `data_load_tool` will upload files in Parquet format to the staging location and will instruct Databricks to load data from there.
 
 ### Databricks and Amazon S3
 
@@ -376,15 +376,15 @@ os.environ["DESTINATIONS__FILESYSTEM__CREDENTIALS__AWS_SECRET_ACCESS_KEY"] = os.
 
 Refer to the [Azure Blob Storage filesystem documentation](./filesystem.md#azure-blob-storage) for details on connecting your Azure Blob Storage container with the `bucket_url` and `credentials`.
 
-To enable support for Azure Blob Storage with dlt, make sure to install the necessary dependencies by running:
+To enable support for Azure Blob Storage with data_load_tool, make sure to install the necessary dependencies by running:
 
 ```sh
-pip install "dlt[az]"
+pip install "data_load_tool[az]"
 ```
 
 :::note
 Databricks requires that you use ABFS URLs in the following format: `abfss://container_name@storage_account_name.dfs.core.windows.net/path`.
-dlt is able to adapt the other representation (i.e., `az://container-name/path`), but we recommend that you use the correct form.
+data_load_tool is able to adapt the other representation (i.e., `az://container-name/path`), but we recommend that you use the correct form.
 :::
 
 Example to set up Databricks with Azure as a staging destination:
@@ -439,15 +439,15 @@ os.environ["DESTINATIONS__FILESYSTEM__CREDENTIALS__AZURE_STORAGE_ACCOUNT_KEY"] =
 In order to load from Google Cloud Storage stage, you must set up the credentials via a **named credential**. See below. Databricks does not allow you to pass Google Credentials explicitly in SQL statements.
 
 ### Use external locations and stored credentials
-`dlt` forwards bucket credentials to the `COPY INTO` SQL command by default. You may prefer to use [external locations or stored credentials instead](https://docs.databricks.com/en/sql/language-manual/sql-ref-external-locations.html#external-location) that are stored on the Databricks side.
+`data_load_tool` forwards bucket credentials to the `COPY INTO` SQL command by default. You may prefer to use [external locations or stored credentials instead](https://docs.databricks.com/en/sql/language-manual/sql-ref-external-locations.html#external-location) that are stored on the Databricks side.
 
-If you set up an external location for your staging path, you can tell `dlt` to use it:
+If you set up an external location for your staging path, you can tell `data_load_tool` to use it:
 ```toml
 [destination.databricks]
 is_staging_external_location=true
 ```
 
-If you set up Databricks credentials named, for example, **credential_x**, you can tell `dlt` to use them:
+If you set up Databricks credentials named, for example, **credential_x**, you can tell `data_load_tool` to use them:
 ```toml
 [destination.databricks]
 staging_credentials_name="credential_x"
@@ -455,9 +455,9 @@ staging_credentials_name="credential_x"
 
 Both options are available from code:
 ```py
-import dlt
+import data_load_tool
 
-bricks = dlt.destinations.databricks(staging_credentials_name="credential_x")
+bricks = data_load_tool.destinations.databricks(staging_credentials_name="credential_x")
 ```
 
 ## Additional destination capabilities
@@ -465,12 +465,12 @@ bricks = dlt.destinations.databricks(staging_credentials_name="credential_x")
 ### dbt support
 This destination [integrates with dbt](../transformations/dbt/dbt.md) via [dbt-databricks](https://github.com/databricks/dbt-databricks).
 
-### Syncing of `dlt` state
-This destination fully supports [dlt state sync](../../general-usage/state#syncing-state-with-destination).
+### Syncing of `data_load_tool` state
+This destination fully supports [data_load_tool state sync](../../general-usage/state#syncing-state-with-destination).
 
 ### Databricks user agent
-We enable Databricks to identify that the connection is created by `dlt`.
-Databricks will use this user agent identifier to better understand the usage patterns associated with dlt integration. The connection identifier is `dltHub_dlt`.
+We enable Databricks to identify that the connection is created by `data_load_tool`.
+Databricks will use this user agent identifier to better understand the usage patterns associated with data_load_tool integration. The connection identifier is `dltHub_dlt`.
 
 <!--@@@DLT_TUBA databricks-->
 

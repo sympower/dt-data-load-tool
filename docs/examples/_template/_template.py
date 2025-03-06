@@ -15,11 +15,11 @@ With this example you will learn to:
 
 """
 
-import dlt
+import data_load_tool
 
 if __name__ == "__main__":
     # run a pipeline
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="example_pipeline", destination="duckdb", dataset_name="example_data"
     )
     # Extract, normalize, and load the data

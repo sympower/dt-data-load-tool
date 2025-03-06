@@ -4,13 +4,13 @@ import threading
 import random
 from itertools import product
 
-import dlt, asyncio, pytest, os
-from dlt.extract.exceptions import ResourceExtractionError
+import data_load_tool, asyncio, pytest, os
+from data_load_tool.extract.exceptions import ResourceExtractionError
 
 
 def test_async_iterator_resource() -> None:
     # define an asynchronous iterator
-    @dlt.resource()
+    @data_load_tool.resource()
     class AsyncIterator:
         def __init__(self):
             self.counter = 0
@@ -30,7 +30,7 @@ def test_async_iterator_resource() -> None:
             # return the counter value
             return {"i": self.counter}
 
-    pipeline_1 = dlt.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
+    pipeline_1 = data_load_tool.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
     pipeline_1.run(AsyncIterator, table_name="async")
     with pipeline_1.sql_client() as c:
         with c.execute_query("SELECT * FROM async") as cur:
@@ -47,13 +47,13 @@ def test_async_generator_resource() -> None:
             await asyncio.sleep(0.1)
             yield {"letter": l_}
 
-    @dlt.resource
+    @data_load_tool.resource
     async def async_gen_resource():
         for l_ in ["d", "e", "f"]:
             await asyncio.sleep(0.1)
             yield {"letter": l_}
 
-    pipeline_1 = dlt.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
+    pipeline_1 = data_load_tool.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
 
     # pure async function
     pipeline_1.run(async_gen_table(), table_name="async")
@@ -81,7 +81,7 @@ def test_async_generator_nested() -> None:
         for idx_ in range(3):
             yield _gen(idx_)
 
-    pipeline_1 = dlt.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
+    pipeline_1 = data_load_tool.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
     pipeline_1.run(async_inner_table(), table_name="async")
     with pipeline_1.sql_client() as c:
         with c.execute_query("SELECT * FROM async") as cur:
@@ -101,20 +101,20 @@ def test_async_generator_nested() -> None:
 
 
 def test_async_generator_transformer() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     async def async_resource():
         for l_ in ["a", "b", "c"]:
             await asyncio.sleep(0.1)
             yield {"letter": l_}
 
-    @dlt.transformer(data_from=async_resource)
+    @data_load_tool.transformer(data_from=async_resource)
     async def async_transformer(item):
         await asyncio.sleep(0.1)
         yield {
             "letter": item["letter"] + "t",
         }
 
-    pipeline_1 = dlt.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
+    pipeline_1 = data_load_tool.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
     pipeline_1.run(async_transformer(), table_name="async")
 
     with pipeline_1.sql_client() as c:
@@ -132,21 +132,21 @@ def test_parallel_async_generators(next_item_mode: str, resource_mode: str) -> N
     os.environ["EXTRACT__NEXT_ITEM_MODE"] = next_item_mode
     execution_order = []
 
-    @dlt.resource(table_name="table1")
+    @data_load_tool.resource(table_name="table1")
     def sync_resource1():
         for l_ in ["a", "b", "c"]:
             nonlocal execution_order
             execution_order.append("one")
             yield {"letter": l_}
 
-    @dlt.resource(table_name="table2")
+    @data_load_tool.resource(table_name="table2")
     def sync_resource2():
         for l_ in ["e", "f", "g"]:
             nonlocal execution_order
             execution_order.append("two")
             yield {"letter": l_}
 
-    @dlt.resource(table_name="table1")
+    @data_load_tool.resource(table_name="table1")
     async def async_resource1():
         for l_ in ["a", "b", "c"]:
             await asyncio.sleep(1)
@@ -154,7 +154,7 @@ def test_parallel_async_generators(next_item_mode: str, resource_mode: str) -> N
             execution_order.append("one")
             yield {"letter": l_}
 
-    @dlt.resource(table_name="table2")
+    @data_load_tool.resource(table_name="table2")
     async def async_resource2():
         await asyncio.sleep(0.5)
         for l_ in ["e", "f", "g"]:
@@ -163,7 +163,7 @@ def test_parallel_async_generators(next_item_mode: str, resource_mode: str) -> N
             execution_order.append("two")
             yield {"letter": l_}
 
-    @dlt.source
+    @data_load_tool.source
     def source():
         if resource_mode == "both_sync":
             return [sync_resource1(), sync_resource2()]
@@ -174,7 +174,7 @@ def test_parallel_async_generators(next_item_mode: str, resource_mode: str) -> N
         elif resource_mode == "second_async":
             return [sync_resource1(), async_resource2()]
 
-    pipeline_1 = dlt.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
+    pipeline_1 = data_load_tool.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
     pipeline_1.run(source())
 
     with pipeline_1.sql_client() as c:
@@ -206,7 +206,7 @@ def test_parallel_async_generators(next_item_mode: str, resource_mode: str) -> N
 
 
 def test_limit_async_resource() -> None:
-    @dlt.resource(table_name="table1")
+    @data_load_tool.resource(table_name="table1")
     async def async_resource1():
         for l_ in range(20):
             print(l_)
@@ -223,7 +223,7 @@ def test_parallelized_resource(parallelized: bool) -> None:
     execution_order = []
     threads = set()
 
-    @dlt.resource(parallelized=parallelized)
+    @data_load_tool.resource(parallelized=parallelized)
     def resource1():
         for l_ in ["a", "b", "c"]:
             time.sleep(0.01)
@@ -231,7 +231,7 @@ def test_parallelized_resource(parallelized: bool) -> None:
             threads.add(threading.get_ident())
             yield {"letter": l_}
 
-    @dlt.resource(parallelized=parallelized)
+    @data_load_tool.resource(parallelized=parallelized)
     def resource2():
         for l_ in ["e", "f", "g"]:
             time.sleep(0.01)
@@ -239,11 +239,11 @@ def test_parallelized_resource(parallelized: bool) -> None:
             threads.add(threading.get_ident())
             yield {"letter": l_}
 
-    @dlt.source
+    @data_load_tool.source
     def source():
         return [resource1(), resource2()]
 
-    pipeline_1 = dlt.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
+    pipeline_1 = data_load_tool.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
     pipeline_1.run(source())
 
     # all records should be here
@@ -292,7 +292,7 @@ def test_parallelized_resource_extract_order(n_resources: int, next_item_mode: s
         end_range = start_range + n_items
         item_ranges.append(range(start_range, end_range))
 
-    @dlt.source
+    @data_load_tool.source
     def some_source():
         def some_data(resource_num: int):
             for item in item_ranges[resource_num]:
@@ -304,7 +304,7 @@ def test_parallelized_resource_extract_order(n_resources: int, next_item_mode: s
                 print(f"RESOURCE {resource_num}:", item)
 
         for i in range(n_resources):
-            yield dlt.resource(some_data, name=f"some_data_{i}", parallelized=True)(i)
+            yield data_load_tool.resource(some_data, name=f"some_data_{i}", parallelized=True)(i)
 
     source = some_source()
     result = list(source)
@@ -333,27 +333,27 @@ def test_test_parallelized_resource_transformers() -> None:
     threads = set()
     transformer_threads = set()
 
-    @dlt.resource(parallelized=True)
+    @data_load_tool.resource(parallelized=True)
     def pos_data():
         for i in range(1, item_count + 1):
             threads.add(threading.get_ident())
             time.sleep(0.1)
             yield i
 
-    @dlt.resource(parallelized=True)
+    @data_load_tool.resource(parallelized=True)
     def neg_data():
         for i in range(-1, -item_count - 1, -1):
             threads.add(threading.get_ident())
             time.sleep(0.1)
             yield i
 
-    @dlt.transformer(parallelized=True)
+    @data_load_tool.transformer(parallelized=True)
     def multiply(item):
         transformer_threads.add(threading.get_ident())
         time.sleep(0.05)
         yield item * 10
 
-    @dlt.source
+    @data_load_tool.source
     def some_source():
         return [
             neg_data | multiply.with_name("t_a"),
@@ -373,14 +373,14 @@ def test_test_parallelized_resource_transformers() -> None:
     threads = set()
     transformer_threads = set()
 
-    @dlt.transformer(parallelized=True)  # type: ignore[no-redef]
+    @data_load_tool.transformer(parallelized=True)  # type: ignore[no-redef]
     def multiply(item):
         # Transformer that is not a generator
         transformer_threads.add(threading.get_ident())
         time.sleep(0.05)
         return item * 10
 
-    @dlt.source  # type: ignore[no-redef]
+    @data_load_tool.source  # type: ignore[no-redef]
     def some_source():
         return [
             neg_data | multiply.with_name("t_a"),
@@ -415,12 +415,12 @@ def test_parallelized_resource_bare_generator() -> None:
             time.sleep(0.01)
             yield i
 
-    @dlt.source
+    @data_load_tool.source
     def some_source():
         return [
             # Resources created from generators directly (not generator functions) can be parallelized
-            dlt.resource(pos_data(), parallelized=True, name="pos_data"),
-            dlt.resource(neg_data(), parallelized=True, name="neg_data"),
+            data_load_tool.resource(pos_data(), parallelized=True, name="pos_data"),
+            data_load_tool.resource(neg_data(), parallelized=True, name="neg_data"),
         ]
 
     result = list(some_source())
@@ -445,12 +445,12 @@ def test_parallelized_resource_wrapped_generator() -> None:
             threads.add(threading.get_ident())
             yield i
 
-    @dlt.source
+    @data_load_tool.source
     def some_source():
         # Bound resources result in a wrapped generator function,
         return [
-            dlt.resource(some_data, parallelized=True, name="some_data")(),
-            dlt.resource(some_data2, parallelized=True, name="some_data2")(),
+            data_load_tool.resource(some_data, parallelized=True, name="some_data")(),
+            data_load_tool.resource(some_data2, parallelized=True, name="some_data2")(),
         ]
 
     source = some_source()
@@ -479,10 +479,10 @@ def test_parallelized_resource_exception_pool_is_closed() -> None:
             if i == 3:
                 raise RuntimeError("we have failed")
 
-    @dlt.source
+    @data_load_tool.source
     def some_source():
-        yield dlt.resource(some_data, parallelized=True, name="some_data")
-        yield dlt.resource(some_data2, parallelized=True, name="some_data2")
+        yield data_load_tool.resource(some_data, parallelized=True, name="some_data")
+        yield data_load_tool.resource(some_data2, parallelized=True, name="some_data2")
 
     source = some_source()
 

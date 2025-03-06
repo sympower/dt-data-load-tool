@@ -1,9 +1,9 @@
-import dlt
+import data_load_tool
 
 
-@dlt.source
+@data_load_tool.source
 def github():
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="issues__2",
         primary_key="id",
     )
@@ -20,7 +20,7 @@ def github():
 
 
 if __name__ == "__main__":
-    p = dlt.pipeline("dlt_github_pipeline", destination="duckdb", dataset_name="github_3")
+    p = data_load_tool.pipeline("dlt_github_pipeline", destination="duckdb", dataset_name="github_3")
     github_source = github()
     info = p.run(github_source)
     print(info)

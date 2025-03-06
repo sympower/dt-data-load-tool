@@ -1,7 +1,7 @@
 ---
 title: "🧪 Cache"
 description: Execute data transformations in your local cache
-keywords: ["dlt+", "cache", "transformations"]
+keywords: ["data_load_tool+", "cache", "transformations"]
 ---
 
 import Link from '../../_plus_admonition.md';
@@ -9,21 +9,21 @@ import Link from '../../_plus_admonition.md';
 <Link/>
 
 :::caution
-🚧 This feature is under development, and the interface may change in future releases. Interested in becoming an early tester? [Join dlt+ early access](https://info.dlthub.com/waiting-list)
+🚧 This feature is under development, and the interface may change in future releases. Interested in becoming an early tester? [Join data_load_tool+ early access](https://info.dlthub.com/waiting-list)
 :::
-The dlt+ Cache is a temporary local storage created by dlt+ to enhance development workflows. It allows you to efficiently run local transformations, materialize dbt models, and test your queries before deploying them to production.
+The data_load_tool+ Cache is a temporary local storage created by data_load_tool+ to enhance development workflows. It allows you to efficiently run local transformations, materialize dbt models, and test your queries before deploying them to production.
 
 ## How it works
 
-The dlt+ Cache is a powerful tool that enables users to shift parts of their data workflows earlier in the development process. Its primary use case today is [running transformations locally](../features/transformations/index.md), but we plan to support more use cases and workflows in the future.
+The data_load_tool+ Cache is a powerful tool that enables users to shift parts of their data workflows earlier in the development process. Its primary use case today is [running transformations locally](../features/transformations/index.md), but we plan to support more use cases and workflows in the future.
 
-The cache is powered by DuckDB, supporting the full DuckDB SQL dialect. You can manipulate cached data and push it back to any dlt destination.
+The cache is powered by DuckDB, supporting the full DuckDB SQL dialect. You can manipulate cached data and push it back to any data_load_tool destination.
 
-You specify which datasets you want to pass to the cache in your dlt manifest file (`dlt.yml`). The cache automatically discovers the source schema from the data and runs your transformations using the cache and DuckDB as a query engine. Currently, you can define your transformations in dbt or Python (pandas, arrows, polars, etc.). After running your transformations, the cache will sync the results to the output dataset in your destination. The output schema is also automatically discovered (when not explicitly declared).
+You specify which datasets you want to pass to the cache in your data_load_tool manifest file (`data_load_tool.yml`). The cache automatically discovers the source schema from the data and runs your transformations using the cache and DuckDB as a query engine. Currently, you can define your transformations in dbt or Python (pandas, arrows, polars, etc.). After running your transformations, the cache will sync the results to the output dataset in your destination. The output schema is also automatically discovered (when not explicitly declared).
 
 ## Define the cache
 
-To define a cache, you need to declare the name, inputs, and outputs in the `dlt.yml` file. For example, the following configuration defines a cache that retrieves data
+To define a cache, you need to declare the name, inputs, and outputs in the `data_load_tool.yml` file. For example, the following configuration defines a cache that retrieves data
 from `github_events_dataset`, processes it, and writes the transformed data to `github_reports_dataset`:
 
 ```yaml

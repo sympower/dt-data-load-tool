@@ -1,7 +1,7 @@
 import pytest
 from typing import Iterator, Any
 
-import dlt
+import data_load_tool
 from tests.pipeline.utils import load_table_counts
 from tests.load.utils import DestinationTestConfiguration, destinations_configs
 
@@ -17,7 +17,7 @@ pytestmark = pytest.mark.essential
 def test_dremio(destination_config: DestinationTestConfiguration) -> None:
     pipeline = destination_config.setup_pipeline("dremio-test", dataset_name="bar", dev_mode=True)
 
-    @dlt.resource(name="items", write_disposition="replace")
+    @data_load_tool.resource(name="items", write_disposition="replace")
     def items() -> Iterator[Any]:
         yield {
             "id": 1,

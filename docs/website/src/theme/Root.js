@@ -12,7 +12,7 @@ const overlays = {
         buttonTitle: "Create a pipeline with GPT-4",
         title: "Create a pipeline with GPT-4",
         loomId: "2afe43660dbc4ab9b633cd5fd5d81a1c",
-        text: "Create dlt pipeline using the data source of your liking and let the GPT-4 write the resource functions and help you to debug the code."
+        text: "Create data_load_tool pipeline using the data source of your liking and let the GPT-4 write the resource functions and help you to debug the code."
     }
 }
 

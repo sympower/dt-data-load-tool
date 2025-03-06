@@ -2,7 +2,7 @@ from typing import List
 import os
 import glob
 
-import dlt.cli.echo as fmt
+import data_load_tool.cli.echo as fmt
 
 
 DOCS_DIR = "../website/docs"

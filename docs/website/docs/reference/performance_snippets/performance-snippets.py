@@ -4,11 +4,11 @@ from utils import parse_toml_file
 def parallel_config_snippet() -> None:
     # @@@DLT_SNIPPET_START parallel_config
     import os
-    import dlt
+    import data_load_tool
     from itertools import islice
-    from dlt.common import pendulum
+    from data_load_tool.common import pendulum
 
-    @dlt.resource(name="table")
+    @data_load_tool.resource(name="table")
     def read_table(limit):
         rows = iter(range(limit))
         while item_slice := list(islice(rows, 1000)):
@@ -20,7 +20,7 @@ def parallel_config_snippet() -> None:
 
     # this prevents process pool to run the initialization code again
     if __name__ == "__main__" or "PYTEST_CURRENT_TEST" in os.environ:
-        pipeline = dlt.pipeline("parallel_load", destination="duckdb", dev_mode=True)
+        pipeline = data_load_tool.pipeline("parallel_load", destination="duckdb", dev_mode=True)
         pipeline.extract(read_table(1000000))
 
         load_id = pipeline.list_extracted_load_packages()[0]
@@ -43,11 +43,11 @@ def parallel_config_snippet() -> None:
 
 def parallel_extract_callables_snippet() -> None:
     # @@@DLT_SNIPPET_START parallel_extract_callables
-    import dlt
+    import data_load_tool
     import time
     from threading import currentThread
 
-    @dlt.resource(parallelized=True)
+    @data_load_tool.resource(parallelized=True)
     def list_users(n_users):
         for i in range(1, 1 + n_users):
             # Simulate network delay of a rest API call fetching a page of items
@@ -55,27 +55,27 @@ def parallel_extract_callables_snippet() -> None:
                 time.sleep(0.1)
             yield i
 
-    @dlt.transformer(parallelized=True)
+    @data_load_tool.transformer(parallelized=True)
     def get_user_details(user_id):
         # Transformer that fetches details for users in a page
         time.sleep(0.1)  # Simulate latency of a rest API call
         print(f"user_id {user_id} in thread {currentThread().name}")
         return {"entity": "user", "id": user_id}
 
-    @dlt.resource(parallelized=True)
+    @data_load_tool.resource(parallelized=True)
     def list_products(n_products):
         for i in range(1, 1 + n_products):
             if i % 10 == 0:
                 time.sleep(0.1)
             yield i
 
-    @dlt.transformer(parallelized=True)
+    @data_load_tool.transformer(parallelized=True)
     def get_product_details(product_id):
         time.sleep(0.1)
         print(f"product_id {product_id} in thread {currentThread().name}")
         return {"entity": "product", "id": product_id}
 
-    @dlt.source
+    @data_load_tool.source
     def api_data():
         return [
             list_users(24) | get_user_details,
@@ -90,7 +90,7 @@ def parallel_extract_callables_snippet() -> None:
     # @@@DLT_SNIPPET_START parallel_extract_awaitables
     import asyncio
 
-    @dlt.resource
+    @data_load_tool.resource
     async def a_list_items(start, limit):
         # simulate a slow REST API where you wait 0.3 sec for each item
         index = start
@@ -99,7 +99,7 @@ def parallel_extract_callables_snippet() -> None:
             yield index
             index += 1
 
-    @dlt.transformer
+    @data_load_tool.transformer
     async def a_get_details(item_id):
         # simulate a slow REST API where you wait 0.3 sec for each item
         await asyncio.sleep(0.3)
@@ -113,12 +113,12 @@ def parallel_extract_callables_snippet() -> None:
 
 def performance_chunking_snippet() -> None:
     # @@@DLT_SNIPPET_START performance_chunking
-    import dlt
+    import data_load_tool
 
     def get_rows(limit):
         yield from map(lambda n: {"row": n}, range(limit))
 
-    @dlt.resource
+    @data_load_tool.resource
     def database_cursor():
         # here we yield each row returned from database separately
         yield from get_rows(10000)
@@ -128,7 +128,7 @@ def performance_chunking_snippet() -> None:
     # @@@DLT_SNIPPET_START performance_chunking_chunk
     from itertools import islice
 
-    @dlt.resource
+    @data_load_tool.resource
     def database_cursor_chunked():
         # here we yield chunks of size 1000
         rows = get_rows(10000)
@@ -145,18 +145,18 @@ def performance_chunking_snippet() -> None:
 def parallel_pipelines_asyncio_snippet() -> None:
     # @@@DLT_SNIPPET_START parallel_pipelines
     import asyncio
-    import dlt
+    import data_load_tool
     from time import sleep
     from concurrent.futures import ThreadPoolExecutor
 
     # create both asyncio and thread parallel resources
-    @dlt.resource
+    @data_load_tool.resource
     async def async_table():
         for idx_ in range(10):
             await asyncio.sleep(0.1)
             yield {"async_gen": idx_}
 
-    @dlt.resource(parallelized=True)
+    @data_load_tool.resource(parallelized=True)
     def defer_table():
         for idx_ in range(5):
             sleep(0.1)
@@ -168,8 +168,8 @@ def parallel_pipelines_asyncio_snippet() -> None:
         return pipeline.run(gen_())
 
     # declare pipelines in main thread then run them "async"
-    pipeline_1 = dlt.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
-    pipeline_2 = dlt.pipeline("pipeline_2", destination="duckdb", dev_mode=True)
+    pipeline_1 = data_load_tool.pipeline("pipeline_1", destination="duckdb", dev_mode=True)
+    pipeline_2 = data_load_tool.pipeline("pipeline_2", destination="duckdb", dev_mode=True)
 
     async def _run_async():
         loop = asyncio.get_running_loop()

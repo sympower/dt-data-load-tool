@@ -4,14 +4,14 @@ import random
 from string import ascii_lowercase
 import pytest
 
-import dlt
-from dlt.common.destination import Destination
-from dlt.common.schema.schema import Schema
-from dlt.common.utils import uniq_id
+import data_load_tool
+from data_load_tool.common.destination import Destination
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations import filesystem, redshift
+from data_load_tool.destinations import filesystem, redshift
 
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 from tests.load.utils import (
     destinations_configs,
@@ -64,11 +64,11 @@ def test_postgres_encoded_binary(
 def test_pipeline_explicit_destination_credentials(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    from dlt.destinations import postgres
-    from dlt.destinations.impl.postgres.configuration import PostgresCredentials
+    from data_load_tool.destinations import postgres
+    from data_load_tool.destinations.impl.postgres.configuration import PostgresCredentials
 
     # explicit credentials resolved
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         destination=Destination.from_reference(
             "postgres",
             destination_name="mydest",
@@ -81,7 +81,7 @@ def test_pipeline_explicit_destination_credentials(
     # TODO: may want to clear the env completely and ignore/mock config files somehow to avoid side effects
     # explicit credentials resolved ignoring the config providers
     os.environ["DESTINATION__MYDEST__CREDENTIALS__HOST"] = "HOST"
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         destination=Destination.from_reference(
             "postgres",
             destination_name="mydest",
@@ -94,7 +94,7 @@ def test_pipeline_explicit_destination_credentials(
     # explicit partial credentials will use config providers
     os.environ["DESTINATION__MYDEST__CREDENTIALS__USERNAME"] = "UN"
     os.environ["DESTINATION__MYDEST__CREDENTIALS__PASSWORD"] = "PW"
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         destination=Destination.from_reference(
             "postgres",
             destination_name="mydest",
@@ -108,12 +108,12 @@ def test_pipeline_explicit_destination_credentials(
 
     # instance of credentials will be simply passed
     cred = PostgresCredentials("postgresql://user:pass@localhost/dlt_data")
-    p = dlt.pipeline(destination=postgres(credentials=cred))
+    p = data_load_tool.pipeline(destination=postgres(credentials=cred))
     inner_c = p.destination_client()
     assert inner_c.config.credentials is cred
 
     # with staging
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="postgres_pipeline",
         staging=filesystem("_storage"),
         destination=redshift(credentials="redshift://loader:password@localhost:5432/dlt_data"),
@@ -133,7 +133,7 @@ def test_pipeline_explicit_destination_credentials(
 #     ids=lambda x: x.name,
 # )
 # def test_postgres_encoding(destination_config: DestinationTestConfiguration):
-#     from dlt.destinations.impl.postgres.sql_client import Psycopg2SqlClient
+#     from data_load_tool.destinations.impl.postgres.sql_client import Psycopg2SqlClient
 #     pipeline = destination_config.setup_pipeline("postgres_" + uniq_id(), dev_mode=True)
 #     client: Psycopg2SqlClient = pipeline.sql_client()
 #     # client.credentials.query["encoding"] = "ru"

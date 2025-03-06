@@ -1,9 +1,9 @@
 import os
 from typing import Type, Optional
 
-from dlt.common.data_writers.buffered import BufferedDataWriter
-from dlt.common.data_writers.writers import TWriter, ALL_WRITERS
-from dlt.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.data_writers.buffered import BufferedDataWriter
+from data_load_tool.common.data_writers.writers import TWriter, ALL_WRITERS
+from data_load_tool.common.destination import DestinationCapabilitiesContext
 
 from tests.utils import TEST_STORAGE_ROOT
 

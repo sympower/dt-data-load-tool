@@ -5,15 +5,15 @@ import pytest
 import pyarrow.csv as acsv
 import pyarrow.parquet as pq
 
-from dlt.common import json
-from dlt.common.data_writers.exceptions import InvalidDataItem
-from dlt.common.data_writers.writers import (
+from data_load_tool.common import json
+from data_load_tool.common.data_writers.exceptions import InvalidDataItem
+from data_load_tool.common.data_writers.writers import (
     ArrowToCsvWriter,
     CsvWriter,
     DataWriter,
     ParquetDataWriter,
 )
-from dlt.common.libs.pyarrow import remove_columns
+from data_load_tool.common.libs.pyarrow import remove_columns
 
 from tests.common.data_writers.utils import get_writer
 from tests.cases import (

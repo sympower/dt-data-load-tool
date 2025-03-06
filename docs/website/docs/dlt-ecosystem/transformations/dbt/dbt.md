@@ -1,42 +1,42 @@
 ---
 title: Transforming data with dbt
-description: Transforming the data loaded by a dlt pipeline with dbt
+description: Transforming the data loaded by a data_load_tool pipeline with dbt
 keywords: [transform, dbt, runner]
 ---
 
 # Transforming data with dbt
 
-:::tip dlt+
-If you want to generate your dbt models automatically, check out [dlt+](../../../plus/features/transformations/dbt-transformations.md).
+:::tip data_load_tool+
+If you want to generate your dbt models automatically, check out [data_load_tool+](../../../plus/features/transformations/dbt-transformations.md).
 :::
 
 [dbt](https://github.com/dbt-labs/dbt-core) is a framework that allows for the simple structuring of your transformations into DAGs. The benefits of using dbt include:
 
-- End-to-end cross-db compatibility for dlt→dbt pipelines.
+- End-to-end cross-db compatibility for data_load_tool→dbt pipelines.
 - Ease of use by SQL analysts, with a low learning curve.
 - High flexibility and configurability in usage, supports templating, can run backfills, etc.
 - Support for testing and accelerated troubleshooting.
 
-## dbt runner in dlt
+## dbt runner in data_load_tool
 
-You can run dbt with `dlt` by using the dbt runner.
+You can run dbt with `data_load_tool` by using the dbt runner.
 
 The dbt runner:
 
 - Can create a virtual environment for dbt on the fly;
 - Can run a dbt package from online sources (e.g., GitHub) or from local files;
-- Passes configuration and credentials to dbt, so you do not need to handle them separately from `dlt`, enabling dbt to configure on the fly.
+- Passes configuration and credentials to dbt, so you do not need to handle them separately from `data_load_tool`, enabling dbt to configure on the fly.
 
 ## How to use the dbt runner
 
-For an example of how to use the dbt runner, see the [jaffle shop example](https://github.com/dlt-hub/dlt/blob/devel/docs/examples/archive/dbt_run_jaffle.py).
-Included below is another example where we run a `dlt` pipeline and then a dbt package via `dlt`:
+For an example of how to use the dbt runner, see the [jaffle shop example](https://github.com/dlt-hub/data_load_tool/blob/devel/docs/examples/archive/dbt_run_jaffle.py).
+Included below is another example where we run a `data_load_tool` pipeline and then a dbt package via `data_load_tool`:
 
 > 💡 Docstrings are available to read in your IDE.
 
 ```py
 # Load all Pipedrive endpoints to the pipedrive_raw dataset
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='pipedrive',
     destination='bigquery',
     dataset_name='pipedrive_raw'
@@ -49,7 +49,7 @@ print(load_info)
 # We created a local dbt package
 # and added pipedrive_raw to its sources.yml
 # The destination for the transformation is passed in the pipeline
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='pipedrive',
     destination='bigquery',
     dataset_name='pipedrive_dbt'
@@ -57,11 +57,11 @@ pipeline = dlt.pipeline(
 
 # Make or restore venv for dbt, using the latest dbt version
 # NOTE: If you have dbt installed in your current environment, just skip this line
-#       and the `venv` argument to dlt.dbt.package()
-venv = dlt.dbt.get_venv(pipeline)
+#       and the `venv` argument to data_load_tool.dbt.package()
+venv = data_load_tool.dbt.get_venv(pipeline)
 
 # Get runner, optionally pass the venv
-dbt = dlt.dbt.package(
+dbt = data_load_tool.dbt.package(
     pipeline,
     "pipedrive/dbt_pipedrive/pipedrive",
     venv=venv
@@ -82,7 +82,7 @@ for m in models:
 ```
 
 ## How to run dbt runner without pipeline
-You can use the dbt runner without a dlt pipeline. The example below will clone and run **jaffle shop** using a dbt profile that you supply.
+You can use the dbt runner without a data_load_tool pipeline. The example below will clone and run **jaffle shop** using a dbt profile that you supply.
 It assumes that dbt is installed in the current Python environment and the `profile.yml` is in the same folder as the Python script.
 <!--@@@DLT_SNIPPET ./dbt-snippets.py::run_dbt_standalone-->
 
@@ -111,6 +111,6 @@ You can run the example with dbt debug log: `RUNTIME__LOG_LEVEL=DEBUG python dbt
 
 If you want to transform your data before loading, you can use Python. If you want to transform your data after loading, you can use dbt or one of the following:
 
-1. [`dlt` SQL client.](../sql.md)
+1. [`data_load_tool` SQL client.](../sql.md)
 2. [Python with dataframes or arrow tables.](../python.md)
 

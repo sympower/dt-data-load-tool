@@ -11,7 +11,7 @@ You can use the REST API source to extract data from any REST API. Using a [decl
 * how to handle [pagination](./basic.md#pagination),
 * [authentication](./basic.md#authentication).
 
-dlt will take care of the rest: unnesting the data, inferring the schema, etc., and writing to the destination.
+data_load_tool will take care of the rest: unnesting the data, inferring the schema, etc., and writing to the destination.
 
 import DocCardList from '@theme/DocCardList';
 

@@ -5,22 +5,22 @@ from typing import Iterator, Any, Tuple, Type, Union
 from threading import Thread, Event
 from time import sleep
 
-from dlt.common import pendulum, Decimal
-from dlt.common.destination.exceptions import IdentifierTooLongException
-from dlt.common.schema.typing import LOADS_TABLE_NAME, VERSION_TABLE_NAME
-from dlt.common.storages import FileStorage
-from dlt.common.utils import uniq_id
+from data_load_tool.common import pendulum, Decimal
+from data_load_tool.common.destination.exceptions import IdentifierTooLongException
+from data_load_tool.common.schema.typing import LOADS_TABLE_NAME, VERSION_TABLE_NAME
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations.exceptions import (
+from data_load_tool.destinations.exceptions import (
     DatabaseException,
     DatabaseTerminalException,
     DatabaseTransientException,
     DatabaseUndefinedRelation,
 )
-from dlt.destinations.sql_client import DBApiCursor, SqlClientBase
-from dlt.destinations.job_client_impl import SqlJobClientBase
-from dlt.destinations.typing import TNativeConn
-from dlt.common.time import ensure_pendulum_datetime, to_py_datetime
+from data_load_tool.destinations.sql_client import DBApiCursor, SqlClientBase
+from data_load_tool.destinations.job_client_impl import SqlJobClientBase
+from data_load_tool.destinations.typing import TNativeConn
+from data_load_tool.common.time import ensure_pendulum_datetime, to_py_datetime
 
 from tests.utils import TEST_STORAGE_ROOT
 from tests.load.utils import (

@@ -2,8 +2,8 @@ from typing import Iterator, Any
 
 import pytest
 
-import dlt
-from dlt.sources.credentials import ConnectionStringCredentials
+import data_load_tool
+from data_load_tool.sources.credentials import ConnectionStringCredentials
 
 try:
     from tests.load.sources.sql_database.sql_source import SQLAlchemySourceDB
@@ -13,7 +13,7 @@ except ModuleNotFoundError:
 
 def _create_db(**kwargs) -> Iterator[SQLAlchemySourceDB]:
     # TODO: parametrize the fixture so it takes the credentials for all destinations
-    credentials = dlt.secrets.get(
+    credentials = data_load_tool.secrets.get(
         "destination.postgres.credentials", expected_type=ConnectionStringCredentials
     )
 

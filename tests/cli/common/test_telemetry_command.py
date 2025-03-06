@@ -5,16 +5,16 @@ import contextlib
 from typing import Any
 from unittest.mock import patch
 
-from dlt.common.configuration.container import Container
-from dlt.common.runtime.run_context import DOT_DLT
-from dlt.common.configuration.providers import ConfigTomlProvider, CONFIG_TOML
-from dlt.common.configuration.specs import PluggableRunContext
-from dlt.common.storages import FileStorage
-from dlt.common.typing import DictStrAny
-from dlt.common.utils import set_working_dir
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.runtime.run_context import DOT_DLT
+from data_load_tool.common.configuration.providers import ConfigTomlProvider, CONFIG_TOML
+from data_load_tool.common.configuration.specs import PluggableRunContext
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.typing import DictStrAny
+from data_load_tool.common.utils import set_working_dir
 
-from dlt.cli.utils import track_command
-from dlt.cli.telemetry_command import telemetry_status_command, change_telemetry_status_command
+from data_load_tool.cli.utils import track_command
+from data_load_tool.cli.telemetry_command import telemetry_status_command, change_telemetry_status_command
 
 from tests.utils import patch_random_home_dir, start_test_telemetry, test_storage
 
@@ -32,7 +32,7 @@ def test_main_telemetry_command(test_storage: FileStorage) -> None:
         return [ConfigTomlProvider(run_context.settings_dir, global_dir=run_context.global_dir)]
 
     with set_working_dir(test_storage.make_full_path("project")), patch(
-        "dlt.common.runtime.run_context.RunContext.initial_providers",
+        "data_load_tool.common.runtime.run_context.RunContext.initial_providers",
         _initial_providers,
     ):
         # no config files: status is ON
@@ -102,7 +102,7 @@ def test_command_instrumentation() -> None:
     def instrument_raises_2(in_raises_2: bool) -> int:
         raise Exception("failed")
 
-    with patch("dlt.common.runtime.anon_tracker.before_send", _mock_before_send):
+    with patch("data_load_tool.common.runtime.anon_tracker.before_send", _mock_before_send):
         start_test_telemetry()
 
         SENT_ITEMS.clear()
@@ -136,20 +136,20 @@ def test_command_instrumentation() -> None:
 
 
 def test_instrumentation_wrappers() -> None:
-    from dlt.cli.deploy_command import (
+    from data_load_tool.cli.deploy_command import (
         DeploymentMethods,
         COMMAND_DEPLOY_REPO_LOCATION,
     )
-    from dlt.cli.init_command import (
+    from data_load_tool.cli.init_command import (
         DEFAULT_VERIFIED_SOURCES_REPO,
     )
-    from dlt.cli.command_wrappers import (
+    from data_load_tool.cli.command_wrappers import (
         init_command_wrapper,
         deploy_command_wrapper,
         list_sources_command_wrapper,
     )
 
-    with patch("dlt.common.runtime.anon_tracker.before_send", _mock_before_send):
+    with patch("data_load_tool.common.runtime.anon_tracker.before_send", _mock_before_send):
         start_test_telemetry()
 
         SENT_ITEMS.clear()
@@ -159,7 +159,7 @@ def test_instrumentation_wrappers() -> None:
             except Exception:
                 pass
             # output = buf.getvalue()
-            # assert "is not one of the standard dlt destinations" in output
+            # assert "is not one of the standard data_load_tool destinations" in output
         msg = SENT_ITEMS[0]
         assert msg["event"] == "command_init"
         assert msg["properties"]["source_name"] == "instrumented_source"

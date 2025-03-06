@@ -5,8 +5,8 @@ from typing import List, Any
 import pytest
 import pyarrow as pa
 
-from dlt.common import pendulum
-from dlt.common.libs.pyarrow import (
+from data_load_tool.common import pendulum
+from data_load_tool.common.libs.pyarrow import (
     get_column_type_from_py_arrow,
     py_arrow_to_table_schema_columns,
     from_arrow_scalar,
@@ -20,7 +20,7 @@ from dlt.common.libs.pyarrow import (
     is_arrow_item,
     UnsupportedArrowTypeException,
 )
-from dlt.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.destination import DestinationCapabilitiesContext
 from tests.cases import TABLE_UPDATE_COLUMNS_SCHEMA
 
 
@@ -132,7 +132,7 @@ def test_arrow_type_coercion() -> None:
 
 
 def test_exception_for_unsupported_arrow_type() -> None:
-    # arrow type `duration` is currently unsupported by dlt
+    # arrow type `duration` is currently unsupported by data_load_tool
     obj = pa.duration("s")
     # error on type conversion
     with pytest.raises(UnsupportedArrowTypeException):

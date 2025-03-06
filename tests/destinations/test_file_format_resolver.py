@@ -1,8 +1,8 @@
 from typing import List, TYPE_CHECKING
 import pytest
 
-from dlt.common.destination.exceptions import DestinationIncompatibleLoaderFileFormatException
-from dlt.common.destination.capabilities import (
+from data_load_tool.common.destination.exceptions import DestinationIncompatibleLoaderFileFormatException
+from data_load_tool.common.destination.capabilities import (
     DestinationCapabilitiesContext,
     merge_caps_file_formats,
 )

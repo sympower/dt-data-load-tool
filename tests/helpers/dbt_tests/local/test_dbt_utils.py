@@ -1,14 +1,14 @@
 import os
 import shutil
 import pytest
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.configuration.utils import add_config_to_env
-from dlt.common.runners.synth_pickle import decode_obj
-from dlt.common.storages import FileStorage
-from dlt.common.utils import uniq_id
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.utils import add_config_to_env
+from data_load_tool.common.runners.synth_pickle import decode_obj
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations.impl.postgres.configuration import PostgresCredentials
-from dlt.helpers.dbt.dbt_utils import (
+from data_load_tool.destinations.impl.postgres.configuration import PostgresCredentials
+from data_load_tool.helpers.dbt.dbt_utils import (
     DBTProcessingError,
     initialize_dbt_logging,
     run_dbt_command,
@@ -43,7 +43,7 @@ def test_dbt_commands(test_storage: FileStorage) -> None:
 
     # extract postgres creds from env, parse and emit
     credentials = resolve_configuration(PostgresCredentials(), sections=("destination", "postgres"))
-    add_config_to_env(credentials, ("dlt",))
+    add_config_to_env(credentials, ("data_load_tool",))
 
     repo_path = clone_jaffle_repo(test_storage)
     # copy profile

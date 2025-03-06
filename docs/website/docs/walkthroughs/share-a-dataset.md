@@ -16,10 +16,10 @@ BigQuery:
 ## 1. Replace the "destination" argument with "bigquery"
 
 ```py
-import dlt
+import data_load_tool
 
 if __name__ == "__main__":
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="chess_pipeline",
         destination='bigquery',
         dataset_name="games_data"
@@ -33,12 +33,12 @@ if __name__ == "__main__":
     load_info = pipeline.run(data)
 ```
 
-And that's it regarding the code modifications! If you run the script, `dlt` will create an identical
+And that's it regarding the code modifications! If you run the script, `data_load_tool` will create an identical
 dataset to what you had in `duckdb` but in BigQuery.
 
 ## 2. Enable access to BigQuery and obtain credentials
 
-Please [follow these steps](../dlt-ecosystem/destinations/bigquery.md) to enable `dlt` to write data
+Please [follow these steps](../dlt-ecosystem/destinations/bigquery.md) to enable `data_load_tool` to write data
 to BigQuery.
 
 ## 3. Add credentials to secrets.toml
@@ -68,13 +68,13 @@ Head on to the next section if you see exceptions!
 
 ### Credentials missing: ConfigFieldMissingException
 
-You'll see this exception if `dlt` cannot find your BigQuery credentials. In the exception below, all
+You'll see this exception if `data_load_tool` cannot find your BigQuery credentials. In the exception below, all
 of them ('project_id', 'private_key', 'client_email') are missing. The exception also gives you the
 list of all lookups for configuration performed -
 [here we explain how to read such a list](run-a-pipeline.md#missing-secret-or-configuration-values).
 
 ```text
-dlt.common.configuration.exceptions.ConfigFieldMissingException: Following fields are missing: ['project_id', 'private_key', 'client_email'] in configuration with spec GcpServiceAccountCredentials
+data_load_tool.common.configuration.exceptions.ConfigFieldMissingException: Following fields are missing: ['project_id', 'private_key', 'client_email'] in configuration with spec GcpServiceAccountCredentials
     for field "project_id" config providers and keys were tried in the following order:
         In Environment Variables key CHESS__DESTINATION__BIGQUERY__CREDENTIALS__PROJECT_ID was not found.
         In Environment Variables key CHESS__DESTINATION__CREDENTIALS__PROJECT_ID was not found.
@@ -90,15 +90,15 @@ The most common cases for the exception:
   ```
 1. You run the pipeline script from a **different** folder from which it is saved. For example,
    `python chess_demo/chess_pipeline.py` will run the script from the `chess_demo` folder but the
-   current working directory is the folder above. This prevents `dlt` from finding
-   `chess_demo/.dlt/secrets.toml` and filling in credentials.
+   current working directory is the folder above. This prevents `data_load_tool` from finding
+   `chess_demo/.data_load_tool/secrets.toml` and filling in credentials.
 
 ### Placeholders still in secrets.toml
 
 Here, BigQuery complains that the format of the `private_key` is incorrect. This most often happens if you forgot to replace the placeholders in `secrets.toml` with real values:
 
 ```text
-<class 'dlt.destinations.exceptions.DestinationConnectionError'>
+<class 'data_load_tool.destinations.exceptions.DestinationConnectionError'>
 Connection with BigQuerySqlClient to dataset name games_data failed. Please check if you configured the credentials at all and provided the right credentials values. You can also be denied access, or your internet connection may be down. The actual reason given is: No key could be detected.
 ```
 
@@ -134,7 +134,7 @@ Add `BigQuery Data Editor` as described on the
 [destination page](../dlt-ecosystem/destinations/bigquery.md).
 
 ```text
-<class 'dlt.destinations.exceptions.DatabaseTransientException'>
+<class 'data_load_tool.destinations.exceptions.DatabaseTransientException'>
 403 Access Denied: Table bq-walkthrough:games_data._dlt_loads: User does not have permission to query table bq-walkthrough:games_data._dlt_loads, or perhaps it does not exist in location EU.
 
 Location: EU
@@ -143,17 +143,17 @@ Job ID: 299a92a3-7761-45dd-a433-79fdeb0c1a46
 
 ### Lack of billing / BigQuery in sandbox mode
 
-`dlt` does not support BigQuery when the project has no billing enabled. If you see a stack trace where the following warning appears:
+`data_load_tool` does not support BigQuery when the project has no billing enabled. If you see a stack trace where the following warning appears:
 
 ```text
-<class 'dlt.destinations.exceptions.DatabaseTransientException'>
+<class 'data_load_tool.destinations.exceptions.DatabaseTransientException'>
 403 Billing has not been enabled for this project. Enable billing at https://console.cloud.google.com/billing. DML queries are not allowed in the free tier. Set up a billing account to remove this restriction.
 ```
 
 or
 
 ```text
-2023-06-08 16:16:26,769|[WARNING]|8096|dlt|load.py|complete_jobs:198|Job for players_games_83b8ac9e98_4_jsonl retried in load 1686233775.932288 with message {"error_result":{"reason":"billingNotEnabled","message":"Billing has not been enabled for this project. Enable billing at https://console.cloud.google.com/billing. Table expiration time must be less than 60 days while in sandbox mode."},"errors":[{"reason":"billingNotEnabled","message":"Billing has not been enabled for this project. Enable billing at https://console.cloud.google.com/billing. Table expiration time must be less than 60 days while in sandbox mode."}],"job_start":"2023-06-08T14:16:26.850000Z","job_end":"2023-06-08T14:16:26.850000Z","job_id":"players_games_83b8ac9e98_4_jsonl"}
+2023-06-08 16:16:26,769|[WARNING]|8096|data_load_tool|load.py|complete_jobs:198|Job for players_games_83b8ac9e98_4_jsonl retried in load 1686233775.932288 with message {"error_result":{"reason":"billingNotEnabled","message":"Billing has not been enabled for this project. Enable billing at https://console.cloud.google.com/billing. Table expiration time must be less than 60 days while in sandbox mode."},"errors":[{"reason":"billingNotEnabled","message":"Billing has not been enabled for this project. Enable billing at https://console.cloud.google.com/billing. Table expiration time must be less than 60 days while in sandbox mode."}],"job_start":"2023-06-08T14:16:26.850000Z","job_end":"2023-06-08T14:16:26.850000Z","job_id":"players_games_83b8ac9e98_4_jsonl"}
 ```
 
 you must enable billing.

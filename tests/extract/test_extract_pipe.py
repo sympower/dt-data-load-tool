@@ -6,14 +6,14 @@ import time
 
 import pytest
 
-import dlt
-from dlt.common import sleep
-from dlt.common.typing import TDataItems
-from dlt.extract.exceptions import CreatePipeException, ResourceExtractionError, UnclosablePipe
-from dlt.extract.items import DataItemWithMeta
-from dlt.extract.items_transform import FilterItem, MapItem, YieldMapItem
-from dlt.extract.pipe import Pipe
-from dlt.extract.pipe_iterator import PipeIterator, ManagedPipeIterator, PipeItem
+import data_load_tool
+from data_load_tool.common import sleep
+from data_load_tool.common.typing import TDataItems
+from data_load_tool.extract.exceptions import CreatePipeException, ResourceExtractionError, UnclosablePipe
+from data_load_tool.extract.items import DataItemWithMeta
+from data_load_tool.extract.items_transform import FilterItem, MapItem, YieldMapItem
+from data_load_tool.extract.pipe import Pipe
+from data_load_tool.extract.pipe_iterator import PipeIterator, ManagedPipeIterator, PipeItem
 
 
 def test_next_item_mode() -> None:
@@ -377,7 +377,7 @@ def test_pipe_transformation_changes_meta() -> None:
     assert [pi.meta for pi in _l] == ["X1", "X2", "X3"]
 
     # also works for deferred transformations
-    @dlt.defer
+    @data_load_tool.defer
     def item_meta_step_defer(item: int, meta):
         assert _meta[item - 1] == meta
         sleep(item * 0.2)
@@ -739,7 +739,7 @@ def test_close_on_thread_pool_exception() -> None:
     def long_gen():
         global close_pipe_got_exit, close_pipe_yielding
 
-        @dlt.defer
+        @data_load_tool.defer
         def _next_item(p: int) -> int:
             return p
 
@@ -753,7 +753,7 @@ def test_close_on_thread_pool_exception() -> None:
             close_pipe_got_exit = True
 
     # execute in a thread
-    @dlt.defer
+    @data_load_tool.defer
     def raise_gen(item: int):
         if item == 10:
             raise RuntimeError("we fail")

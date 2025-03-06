@@ -3,11 +3,11 @@ import importlib.util
 from typing import Any, ClassVar, Dict, Iterator, List, Optional
 import pytest
 
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 try:
     from pydantic import BaseModel, AnyUrl
-    from dlt.common.libs.pydantic import DltConfig
+    from data_load_tool.common.libs.pydantic import DltConfig
 except ImportError:
     # mock pydantic with dataclasses. allow to run tests
     # not requiring pydantic
@@ -22,26 +22,26 @@ except ImportError:
         pass
 
 
-import dlt
-from dlt.common import json, pendulum
-from dlt.common.destination import DestinationCapabilitiesContext
-from dlt.common.destination.capabilities import TLoaderFileFormat
-from dlt.common.json import JsonSerializable, SupportsJson, _orjson, _simplejson, _custom_encoder
-from dlt.destinations.impl.filesystem.filesystem import FilesystemClient
-from dlt.common.runtime.collector import (
+import data_load_tool
+from data_load_tool.common import json, pendulum
+from data_load_tool.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.destination.capabilities import TLoaderFileFormat
+from data_load_tool.common.json import JsonSerializable, SupportsJson, _orjson, _simplejson, _custom_encoder
+from data_load_tool.destinations.impl.filesystem.filesystem import FilesystemClient
+from data_load_tool.common.runtime.collector import (
     AliveCollector,
     EnlightenCollector,
     LogCollector,
     TqdmCollector,
 )
-from dlt.common.storages import FileStorage
+from data_load_tool.common.storages import FileStorage
 
-from dlt.extract.storage import ExtractStorage
-from dlt.extract.validation import PydanticValidator
+from data_load_tool.extract.storage import ExtractStorage
+from data_load_tool.extract.validation import PydanticValidator
 
-from dlt.destinations import dummy
+from data_load_tool.destinations import dummy
 
-from dlt.pipeline import TCollectorArg
+from data_load_tool.pipeline import TCollectorArg
 
 from tests.utils import TEST_STORAGE_ROOT
 from tests.extract.utils import expect_extracted_file
@@ -65,7 +65,7 @@ DUMMY_COMPLETE = dummy(completed_prob=1)  # factory set up to complete jobs
 )
 def test_create_pipeline_all_destinations(destination_config: DestinationTestConfiguration) -> None:
     # create pipelines, extract and normalize. that should be possible without installing any dependencies
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name=destination_config.destination_type + "_pipeline",
         destination=destination_config.destination_type,
         staging=destination_config.staging,
@@ -94,14 +94,14 @@ def test_pipeline_progress(progress: TCollectorArg) -> None:
     os.environ["RAISE_ON_FAILED_JOBS"] = "false"
     os.environ["TIMEOUT"] = "3.0"
 
-    p = dlt.pipeline(destination="dummy", progress=progress)
+    p = data_load_tool.pipeline(destination="dummy", progress=progress)
     p.extract(many_delayed(5, 10))
     p.normalize()
 
     collector = p.collector
 
     # attach pipeline
-    p = dlt.attach(progress=collector)
+    p = data_load_tool.attach(progress=collector)
     p.extract(many_delayed(5, 10))
     p.run(dataset_name="dummy")
 
@@ -121,9 +121,9 @@ def test_pipeline_progress(progress: TCollectorArg) -> None:
 @pytest.mark.parametrize("method", ("extract", "run"))
 def test_column_argument_pydantic(method: str) -> None:
     """Test columns schema is created from pydantic model"""
-    p = dlt.pipeline(destination="duckdb")
+    p = data_load_tool.pipeline(destination="duckdb")
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data() -> Iterator[Dict[str, Any]]:
         yield {}
 
@@ -168,14 +168,14 @@ def test_pydantic_columns_with_contracts(yield_list: bool) -> None:
         user_labels=[UserLabel(label="l_l1"), UserLabel(label="l_l1")],
     )
 
-    @dlt.resource(columns=User)
+    @data_load_tool.resource(columns=User)
     def users(users_list: List[Any]) -> Iterator[Any]:
         if yield_list:
             yield users_list
         else:
             yield from users_list
 
-    pipeline = dlt.pipeline(destination="duckdb")
+    pipeline = data_load_tool.pipeline(destination="duckdb")
     info = pipeline.run(users([user.dict(), user.dict()]))
     assert_load_info(info)
     print(pipeline.last_trace.last_normalize_info)
@@ -208,13 +208,13 @@ def test_pydantic_columns_with_contracts(yield_list: bool) -> None:
 
 
 def test_extract_pydantic_models() -> None:
-    pipeline = dlt.pipeline(destination="duckdb")
+    pipeline = data_load_tool.pipeline(destination="duckdb")
 
     class User(BaseModel):
         user_id: int
         name: str
 
-    @dlt.resource
+    @data_load_tool.resource
     def users() -> Iterator[User]:
         yield User(user_id=1, name="a")
         yield User(user_id=2, name="b")
@@ -231,18 +231,18 @@ def test_extract_pydantic_models() -> None:
 
 
 def test_mark_hints_pydantic_columns() -> None:
-    pipeline = dlt.pipeline(destination="duckdb")
+    pipeline = data_load_tool.pipeline(destination="duckdb")
 
     class User(BaseModel):
         user_id: int
         name: str
 
     # this resource emits table schema with first item
-    @dlt.resource
+    @data_load_tool.resource
     def with_mark():
-        yield dlt.mark.with_hints(
+        yield data_load_tool.mark.with_hints(
             {"user_id": 1, "name": "zenek"},
-            dlt.mark.make_hints(columns=User, primary_key="user_id"),
+            data_load_tool.mark.make_hints(columns=User, primary_key="user_id"),
         )
 
     pipeline.run(with_mark)
@@ -263,16 +263,16 @@ def test_dump_trace_freeze_exception() -> None:
 
     # yield model in resource so incremental fails when looking for "id"
 
-    @dlt.resource(name="table_name", primary_key="id", write_disposition="replace")
+    @data_load_tool.resource(name="table_name", primary_key="id", write_disposition="replace")
     def generate_rows_incremental(
-        ts: dlt.sources.incremental[int] = dlt.sources.incremental(cursor_path="id"),
+        ts: data_load_tool.sources.incremental[int] = data_load_tool.sources.incremental(cursor_path="id"),
     ):
         for i in range(10):
             yield TestRow(id_=i, example_string="abc")
             if ts.end_out_of_range:
                 return
 
-    pipeline = dlt.pipeline(pipeline_name="test_dump_trace_freeze_exception", destination="duckdb")
+    pipeline = data_load_tool.pipeline(pipeline_name="test_dump_trace_freeze_exception", destination="duckdb")
 
     with pytest.raises(PipelineStepFailed):
         # must raise because incremental failed
@@ -286,11 +286,11 @@ def test_dump_trace_freeze_exception() -> None:
 
 @pytest.mark.parametrize("file_format", ("parquet", "insert_values", "jsonl"))
 def test_columns_hint_with_file_formats(file_format: TLoaderFileFormat) -> None:
-    @dlt.resource(write_disposition="replace", columns=[{"name": "text", "data_type": "text"}])
+    @data_load_tool.resource(write_disposition="replace", columns=[{"name": "text", "data_type": "text"}])
     def generic(start=8):
         yield [{"id": idx, "text": "A" * idx} for idx in range(start, start + 10)]
 
-    pipeline = dlt.pipeline(destination="duckdb")
+    pipeline = data_load_tool.pipeline(destination="duckdb")
     pipeline.run(generic(), loader_file_format=file_format)
 
 
@@ -313,7 +313,7 @@ def test_flattens_model_when_skip_nested_types_is_set() -> None:
         },
     }
 
-    p = dlt.pipeline("example", destination="duckdb")
+    p = data_load_tool.pipeline("example", destination="duckdb")
     p.run([example_data], table_name="items", columns=Parent)
 
     with p.sql_client() as client:
@@ -379,7 +379,7 @@ def test_considers_model_as_complex_when_skip_nested_types_is_not_set():
         },
     }
 
-    p = dlt.pipeline("example", destination="duckdb")
+    p = data_load_tool.pipeline("example", destination="duckdb")
     p.run([example_data], table_name="items", columns=Parent)
 
     with p.sql_client() as client:
@@ -436,7 +436,7 @@ def test_skips_complex_fields_when_skip_nested_types_is_true_and_field_is_not_a_
         },
     }
 
-    p = dlt.pipeline("example", destination="duckdb")
+    p = data_load_tool.pipeline("example", destination="duckdb")
     p.run([example_data], table_name="items", columns=Parent)
 
     table_names = [item["name"] for item in p.default_schema.data_tables()]
@@ -468,11 +468,11 @@ def test_arrow_no_pandas() -> None:
 
     table = pa.table(data)
 
-    @dlt.resource
-    def pandas_incremental(numbers=dlt.sources.incremental("Numbers")):
+    @data_load_tool.resource
+    def pandas_incremental(numbers=data_load_tool.sources.incremental("Numbers")):
         yield table
 
-    info = dlt.run(
+    info = data_load_tool.run(
         pandas_incremental(), write_disposition="merge", table_name="data", destination="duckdb"
     )
 
@@ -484,7 +484,7 @@ def test_arrow_no_pandas() -> None:
 
     table = pa.table(data)
 
-    info = dlt.run(
+    info = data_load_tool.run(
         pandas_incremental(), write_disposition="merge", table_name="data", destination="duckdb"
     )
 
@@ -495,16 +495,16 @@ def test_arrow_no_pandas() -> None:
 
 
 def test_empty_parquet(test_storage: FileStorage) -> None:
-    from dlt.destinations import filesystem
+    from data_load_tool.destinations import filesystem
     from tests.pipeline.utils import users_materialize_table_schema
 
     local = filesystem(os.path.abspath(TEST_STORAGE_ROOT))
 
-    # we have two options to materialize columns: add columns hint or use dlt.mark to emit schema
+    # we have two options to materialize columns: add columns hint or use data_load_tool.mark to emit schema
     # at runtime. below we use the second option
 
     # write parquet file to storage
-    info = dlt.run(
+    info = data_load_tool.run(
         users_materialize_table_schema,
         destination=local,
         loader_file_format="parquet",
@@ -526,8 +526,8 @@ def test_empty_parquet(test_storage: FileStorage) -> None:
 
 def test_parquet_with_flattened_columns() -> None:
     # normalize json, write parquet file to filesystem
-    pipeline = dlt.pipeline(
-        "test_parquet_with_flattened_columns", destination=dlt.destinations.filesystem("_storage")
+    pipeline = data_load_tool.pipeline(
+        "test_parquet_with_flattened_columns", destination=data_load_tool.destinations.filesystem("_storage")
     )
     info = pipeline.run(
         [load_json_case("github_events")], table_name="events", loader_file_format="parquet"
@@ -591,16 +591,16 @@ def test_resource_file_format() -> None:
         ]
 
     # preferred file format will use destination preferred format
-    jsonl_preferred = dlt.resource(jsonl_data, file_format="preferred", name="jsonl_preferred")
+    jsonl_preferred = data_load_tool.resource(jsonl_data, file_format="preferred", name="jsonl_preferred")
     assert jsonl_preferred.compute_table_schema()["file_format"] == "preferred"
 
-    jsonl_r = dlt.resource(jsonl_data, file_format="jsonl", name="jsonl_r")
+    jsonl_r = data_load_tool.resource(jsonl_data, file_format="jsonl", name="jsonl_r")
     assert jsonl_r.compute_table_schema()["file_format"] == "jsonl"
 
-    jsonl_pq = dlt.resource(jsonl_data, file_format="parquet", name="jsonl_pq")
+    jsonl_pq = data_load_tool.resource(jsonl_data, file_format="parquet", name="jsonl_pq")
     assert jsonl_pq.compute_table_schema()["file_format"] == "parquet"
 
-    info = dlt.pipeline("example", destination="duckdb").run([jsonl_preferred, jsonl_r, jsonl_pq])
+    info = data_load_tool.pipeline("example", destination="duckdb").run([jsonl_preferred, jsonl_r, jsonl_pq])
     # check file types on load jobs
     load_jobs = {
         job.job_file_info.table_name: job.job_file_info
@@ -611,9 +611,9 @@ def test_resource_file_format() -> None:
     assert load_jobs["jsonl_preferred"].file_format == "insert_values"
 
     # test not supported format
-    csv_r = dlt.resource(jsonl_data, file_format="csv", name="csv_r")
+    csv_r = data_load_tool.resource(jsonl_data, file_format="csv", name="csv_r")
     assert csv_r.compute_table_schema()["file_format"] == "csv"
-    info = dlt.pipeline("example", destination="duckdb").run(csv_r)
+    info = data_load_tool.pipeline("example", destination="duckdb").run(csv_r)
     # fallback to preferred
     load_jobs = {
         job.job_file_info.table_name: job.job_file_info
@@ -623,7 +623,7 @@ def test_resource_file_format() -> None:
 
 
 def test_pick_matching_file_format(test_storage: FileStorage) -> None:
-    from dlt.destinations import filesystem
+    from data_load_tool.destinations import filesystem
 
     local = filesystem(os.path.abspath(TEST_STORAGE_ROOT))
 
@@ -637,10 +637,10 @@ def test_pick_matching_file_format(test_storage: FileStorage) -> None:
     df = pa.table(data)
 
     # load arrow and object to filesystem. we should get a parquet and a jsonl file
-    info = dlt.run(
+    info = data_load_tool.run(
         [
-            dlt.resource([data], name="object"),
-            dlt.resource(df, name="arrow"),
+            data_load_tool.resource([data], name="object"),
+            data_load_tool.resource(df, name="arrow"),
         ],
         destination=local,
         dataset_name="user_data",
@@ -654,10 +654,10 @@ def test_pick_matching_file_format(test_storage: FileStorage) -> None:
     assert files[0].endswith("jsonl")
 
     # load as csv
-    info = dlt.run(
+    info = data_load_tool.run(
         [
-            dlt.resource([data], name="object"),
-            dlt.resource(df, name="arrow"),
+            data_load_tool.resource([data], name="object"),
+            data_load_tool.resource(df, name="arrow"),
         ],
         destination=local,
         dataset_name="user_data_csv",
@@ -679,7 +679,7 @@ def test_filesystem_column_hint_timezone() -> None:
     os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = "_storage"
 
     # talbe: events_timezone_off
-    @dlt.resource(
+    @data_load_tool.resource(
         columns={"event_tstamp": {"data_type": "timestamp", "timezone": False}},
         primary_key="event_id",
     )
@@ -691,7 +691,7 @@ def test_filesystem_column_hint_timezone() -> None:
         ]
 
     # talbe: events_timezone_on
-    @dlt.resource(
+    @data_load_tool.resource(
         columns={"event_tstamp": {"data_type": "timestamp", "timezone": True}},
         primary_key="event_id",
     )
@@ -703,7 +703,7 @@ def test_filesystem_column_hint_timezone() -> None:
         ]
 
     # talbe: events_timezone_unset
-    @dlt.resource(
+    @data_load_tool.resource(
         primary_key="event_id",
     )
     def events_timezone_unset():
@@ -713,7 +713,7 @@ def test_filesystem_column_hint_timezone() -> None:
             {"event_id": 3, "event_tstamp": "2024-07-30T10:00:00.123456"},
         ]
 
-    pipeline = dlt.pipeline(destination="filesystem")
+    pipeline = data_load_tool.pipeline(destination="filesystem")
 
     pipeline.run(
         [events_timezone_off(), events_timezone_on(), events_timezone_unset()],

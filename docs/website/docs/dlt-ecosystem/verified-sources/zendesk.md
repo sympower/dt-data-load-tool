@@ -1,6 +1,6 @@
 ---
 title: Zendesk
-description: dlt pipeline for Zendesk API
+description: data_load_tool pipeline for Zendesk API
 keywords: [zendesk api, zendesk pipeline, zendesk]
 ---
 import Header from './_source-info-header.md';
@@ -13,7 +13,7 @@ import Header from './_source-info-header.md';
 including ticket management, self-service options, knowledge base management, live chat, customer
 analytics, and talks.
 
-This Zendesk `dlt` verified source and
+This Zendesk `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/zendesk_pipeline.py)
 loads data using the “Zendesk Support API”, "Zendesk Chat API", and "Zendesk Talk API" to the destination
 of your choice.
@@ -158,7 +158,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init zendesk duckdb
+   data_load_tool init zendesk duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -176,7 +176,7 @@ For more information, read the guide on [how to add a verified source.](../../wa
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -226,7 +226,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the `pipeline_name` for the above pipeline example is `dlt_zendesk_pipeline`, you
@@ -236,7 +236,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `zendesk_talk`
@@ -244,9 +244,9 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 This function retrieves data from Zendesk Talk for phone calls and voicemails.
 
 ```py
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def zendesk_talk(
-    credentials: TZendeskCredentials = dlt.secrets.value,
+    credentials: TZendeskCredentials = data_load_tool.secrets.value,
     start_date: Optional[TAnyDateTime] = START_DATE,
     end_date: Optional[TAnyDateTime] = None,
 ) -> Iterable[DltResource]:
@@ -305,7 +305,7 @@ verified source.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="dlt_zendesk_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="sample_zendesk_data"  # Use a custom name if desired
@@ -329,7 +329,7 @@ verified source.
 1. To load data related to support, chat, and talk in incremental mode:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
         pipeline_name="dlt_zendesk_pipeline",  # Use a custom name if desired
         destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dev_mode=False,
@@ -343,7 +343,7 @@ verified source.
    ```
 
    > Supports incremental loading for Support, Chat, and Talk endpoints. By default, it fetches data
-   > from the last load time in the dlt state or from 1st Jan 2000 if no prior load. This approach
+   > from the last load time in the data_load_tool state or from 1st Jan 2000 if no prior load. This approach
    > ensures data retrieval since the specified date, while still updating the last load time.
 
 1. To load historical data in weekly ranges from Jan 1st, 2023, then switch to incremental loading

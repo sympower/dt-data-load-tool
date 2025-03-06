@@ -1,13 +1,13 @@
 import os
 import pytest
 
-from dlt.common.schema.exceptions import SchemaEngineNoUpgradePathException
-from dlt.common.schema.migrations import migrate_schema
-from dlt.common.schema.normalizers import DEFAULT_NAMING_MODULE
-from dlt.common.schema.schema import Schema
-from dlt.common.schema.typing import TStoredSchema
-from dlt.common.schema.utils import new_table
-from dlt.common.typing import DictStrAny
+from data_load_tool.common.schema.exceptions import SchemaEngineNoUpgradePathException
+from data_load_tool.common.schema.migrations import migrate_schema
+from data_load_tool.common.schema.normalizers import DEFAULT_NAMING_MODULE
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.schema.typing import TStoredSchema
+from data_load_tool.common.schema.utils import new_table
+from data_load_tool.common.typing import DictStrAny
 
 from tests.common.utils import load_json_case
 

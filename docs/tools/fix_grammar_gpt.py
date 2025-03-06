@@ -11,7 +11,7 @@ from typing import List
 from openai import OpenAI
 from dotenv import load_dotenv
 
-import dlt.cli.echo as fmt
+import data_load_tool.cli.echo as fmt
 
 from utils import collect_markdown_files
 
@@ -26,7 +26,7 @@ You will not change the markdown syntax. You will only fix the grammar. You will
 You will not modify the header section which is enclosed by two occurences of "---".
 Make sure all headings use the Sentence case.
 Never insert any codeblock start or end statements such as "```"
-Do not change the spelling or casing of these words: dlt, sdf, dbt
+Do not change the spelling or casing of these words: data_load_tool, sdf, dbt
 """
 
 if __name__ == "__main__":

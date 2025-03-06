@@ -3,16 +3,16 @@ import pytest
 from pathlib import Path
 from os.path import join
 
-import dlt
+import data_load_tool
 
-from dlt.common import sleep
-from dlt.common.schema import Schema
-from dlt.common.storages import PackageStorage, LoadStorage, ParsedLoadJobFileName
-from dlt.common.storages.exceptions import LoadPackageAlreadyCompleted, LoadPackageNotCompleted
-from dlt.common.utils import uniq_id
-from dlt.common.pendulum import pendulum
-from dlt.common.configuration.container import Container
-from dlt.common.storages.load_package import (
+from data_load_tool.common import sleep
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.storages import PackageStorage, LoadStorage, ParsedLoadJobFileName
+from data_load_tool.common.storages.exceptions import LoadPackageAlreadyCompleted, LoadPackageNotCompleted
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.pendulum import pendulum
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.storages.load_package import (
     LoadPackageStateInjectableContext,
     create_load_id,
     destination_state,
@@ -456,12 +456,12 @@ def add_new_jobs(
 def test_migrate_to_load_package_state() -> None:
     """
     Here we test that an existing load package without a state will not error
-    when the user upgrades to a dlt version with the state. we simulate it by
+    when the user upgrades to a data_load_tool version with the state. we simulate it by
     wiping the state after normalization and see wether anything breaks
     """
-    from dlt.destinations import dummy
+    from data_load_tool.destinations import dummy
 
-    p = dlt.pipeline(pipeline_name=uniq_id(), destination=dummy(completed_prob=1))
+    p = data_load_tool.pipeline(pipeline_name=uniq_id(), destination=dummy(completed_prob=1))
 
     p.extract([{"id": 1, "name": "dave"}], table_name="person")
     p.normalize()

@@ -2,10 +2,10 @@ from typing import Any, Iterator
 
 import pytest
 
-import dlt
-from dlt.common.destination.exceptions import UnsupportedDataType
-from dlt.common.utils import uniq_id
-from dlt.pipeline.exceptions import PipelineStepFailed
+import data_load_tool
+from data_load_tool.common.destination.exceptions import UnsupportedDataType
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 from tests.load.utils import destinations_configs, DestinationTestConfiguration
 from tests.cases import table_update_and_row, assert_all_data_types_row
 from tests.pipeline.utils import assert_load_info
@@ -25,12 +25,12 @@ def test_redshift_blocks_time_column(destination_config: DestinationTestConfigur
     column_schemas, data_types = table_update_and_row()
 
     # apply the exact columns definitions so we process nested and wei types correctly!
-    @dlt.resource(table_name="data_types", write_disposition="append", columns=column_schemas)
+    @data_load_tool.resource(table_name="data_types", write_disposition="append", columns=column_schemas)
     def my_resource() -> Iterator[Any]:
         nonlocal data_types
         yield [data_types] * 10
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def my_source() -> Any:
         return my_resource
 

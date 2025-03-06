@@ -8,7 +8,7 @@ import SetTheFormat from './_set_the_format.mdx';
 # CSV file format
 
 **CSV** is the most basic file format for storing tabular data, where all values are strings and are separated by a delimiter (typically a comma).
-`dlt` uses it for specific use cases - mostly for performance and compatibility reasons.
+`data_load_tool` uses it for specific use cases - mostly for performance and compatibility reasons.
 
 Internally, we use two implementations:
 - **pyarrow** CSV writer - a very fast, multithreaded writer for [Arrow tables](../verified-sources/arrow-pandas.md)
@@ -23,7 +23,7 @@ The CSV format is supported by the following destinations: **Postgres**, **Files
 <SetTheFormat file_type="csv"/>
 
 ## Default settings
-`dlt` attempts to make both writers generate similarly looking files:
+`data_load_tool` attempts to make both writers generate similarly looking files:
 * separators are commas
 * quotes are **"** and are escaped as **""**
 * `NULL` values are both empty strings and empty tokens as in the example below

@@ -6,16 +6,16 @@ import pyarrow as pa
 import pytest
 from numpy.testing import assert_equal
 
-from dlt.common import Decimal
-from dlt.common.data_types.type_helpers import json_to_str
-from dlt.common.schema.typing import TTableSchemaColumns
-from dlt.common.destination import DestinationCapabilitiesContext
-from dlt.common.libs.pyarrow import (
+from data_load_tool.common import Decimal
+from data_load_tool.common.data_types.type_helpers import json_to_str
+from data_load_tool.common.schema.typing import TTableSchemaColumns
+from data_load_tool.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.libs.pyarrow import (
     PyToArrowConversionException,
     transpose_rows_to_columns,
     convert_numpy_to_arrow,
 )
-from dlt.sources.sql_database.arrow_helpers import row_tuples_to_arrow
+from data_load_tool.sources.sql_database.arrow_helpers import row_tuples_to_arrow
 
 
 @pytest.mark.parametrize(
@@ -250,10 +250,10 @@ def test_row_tuples_to_arrow_error_for_decimals() -> None:
     precision: the number of significant digits; default=38, which is a 128 bytes decimal
     scale: the number of decimal digitsl; default=9
 
-    Currently, dlt has 3 behaviors when converting data to pyarrow:
+    Currently, data_load_tool has 3 behaviors when converting data to pyarrow:
     - pyarrow: pyarrow sets the precision, scale, and type (decimal128 vs. decimal256) based on the Python object
-    - destination: dlt applies the destination's settings, default is (38, 9)
-    - user: dlt applies the user specified decimal settings
+    - destination: data_load_tool applies the destination's settings, default is (38, 9)
+    - user: data_load_tool applies the user specified decimal settings
     """
     # the test assumes the following default values
     DEFAULT_PRECISION, DEFAULT_SCALE = (

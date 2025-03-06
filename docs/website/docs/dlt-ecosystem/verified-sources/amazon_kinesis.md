@@ -1,6 +1,6 @@
 ---
 title: Amazon Kinesis
-description: dlt verified source for Amazon Kinesis
+description: data_load_tool verified source for Amazon Kinesis
 keywords: [amazon kinesis, verified source]
 ---
 import Header from './_source-info-header.md';
@@ -48,7 +48,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init kinesis duckdb
+   data_load_tool init kinesis duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize [the pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/kinesis_pipeline.py) with Kinesis as the [source](../../general-usage/source) and [duckdb](../destinations/duckdb.md) as the [destination](../destinations).
@@ -61,7 +61,7 @@ For more information, read [Add a verified source.](../../walkthroughs/add-a-ver
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive information securely, like access tokens. Keep this file safe. Here's its format for service account authentication:
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive information securely, like access tokens. Keep this file safe. Here's its format for service account authentication:
 
    ```toml
    # Put your secret values and credentials here.
@@ -72,7 +72,7 @@ For more information, read [Add a verified source.](../../walkthroughs/add-a-ver
    region_name="please set me up!" # aws region name
    ```
 
-1. Optionally, you can configure `stream_name`. Update `.dlt/config.toml`:
+1. Optionally, you can configure `stream_name`. Update `.data_load_tool/config.toml`:
 
    ```toml
    [sources.kinesis]
@@ -99,7 +99,7 @@ For more information, read [Credentials](../../general-usage/credentials).
 3. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `kinesis_pipeline`. You may
    also use any custom name instead.
@@ -108,7 +108,7 @@ For more information, read [Run a pipeline.](../../walkthroughs/run-a-pipeline)
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Resource `kinesis_stream`
@@ -118,15 +118,15 @@ This resource reads a Kinesis stream and yields messages. It supports
 default.
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     name=lambda args: args["stream_name"],
     primary_key="_kinesis_msg_id",
     standalone=True,
 )
 def kinesis_stream(
-    stream_name: str = dlt.config.value,
-    credentials: AwsCredentials = dlt.secrets.value,
-    last_msg: Optional[dlt.sources.incremental[StrStr]] = dlt.sources.incremental(
+    stream_name: str = data_load_tool.config.value,
+    credentials: AwsCredentials = data_load_tool.secrets.value,
+    last_msg: Optional[data_load_tool.sources.incremental[StrStr]] = data_load_tool.sources.incremental(
         "_kinesis", last_value_func=max_sequence_by_shard
     ),
     initial_at_timestamp: TAnyDateTime = 0.0,
@@ -193,7 +193,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the [pipeline](../../general-usage/pipeline) by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="kinesis_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="kinesis"  # Use a custom name if desired
@@ -244,8 +244,8 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. To read Kinesis messages and send them somewhere without using a pipeline:
 
    ```py
-   from dlt.common.configuration.container import Container
-   from dlt.common.pipeline import StateInjectableContext
+   from data_load_tool.common.configuration.container import Container
+   from data_load_tool.common.pipeline import StateInjectableContext
 
    STATE_FILE = "kinesis_source_name.state.json"
 
@@ -260,7 +260,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    with Container().injectable_context(
        StateInjectableContext(state=state)
    ) as managed_state:
-       # dlt resources/source is just an iterator.
+       # data_load_tool resources/source is just an iterator.
        for message in kinesis_stream_data:
            # Here you can send the message somewhere.
            print(message)

@@ -2,11 +2,11 @@ import os
 from typing import List
 import pytest
 
-import dlt
-from dlt.common.data_writers.configuration import CsvFormatConfiguration
-from dlt.common.schema.typing import TColumnSchema
-from dlt.common.typing import TLoaderFileFormat
-from dlt.common.utils import uniq_id
+import data_load_tool
+from data_load_tool.common.data_writers.configuration import CsvFormatConfiguration
+from data_load_tool.common.schema.typing import TColumnSchema
+from data_load_tool.common.typing import TLoaderFileFormat
+from data_load_tool.common.utils import uniq_id
 
 from tests.cases import arrow_table_all_data_types, prepare_shuffled_tables
 from tests.pipeline.utils import (
@@ -83,12 +83,12 @@ def test_custom_csv_no_header(
         {"name": "ordered_at", "data_type": "date"},
         {"name": "price", "data_type": "decimal"},
     ]
-    hints = dlt.mark.make_hints(columns=columns)
+    hints = data_load_tool.mark.make_hints(columns=columns)
     import_file = "tests/load/cases/loading/csv_no_header.csv"
     if compression:
         import_file += ".gz"
     info = pipeline.run(
-        [dlt.mark.with_file_import(import_file, "csv", 2, hints=hints)],
+        [data_load_tool.mark.with_file_import(import_file, "csv", 2, hints=hints)],
         table_name="no_header",
         loader_file_format=file_format,
     )
@@ -131,11 +131,11 @@ def test_custom_wrong_header(destination_config: DestinationTestConfiguration) -
         {"name": "ordered_at", "data_type": "date"},
         {"name": "price", "data_type": "decimal"},
     ]
-    hints = dlt.mark.make_hints(columns=columns)
+    hints = data_load_tool.mark.make_hints(columns=columns)
     import_file = "tests/load/cases/loading/csv_header.csv"
     # snowflake will pass here because we do not match
     info = pipeline.run(
-        [dlt.mark.with_file_import(import_file, "csv", 2, hints=hints)],
+        [data_load_tool.mark.with_file_import(import_file, "csv", 2, hints=hints)],
         table_name="no_header",
     )
     assert info.has_failed_jobs

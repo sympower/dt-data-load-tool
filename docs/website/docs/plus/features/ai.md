@@ -1,7 +1,7 @@
 ---
 title: AI workflows
-description: Explore data in your dlt+ project with Claude Desktop using the Model Context Protocol
-keywords: [dlt+, Claude Desktop, MCP, Model Context Protocol]
+description: Explore data in your data_load_tool+ project with Claude Desktop using the Model Context Protocol
+keywords: [data_load_tool+, Claude Desktop, MCP, Model Context Protocol]
 ---
 
 import Link from '../../_plus_admonition.md';
@@ -10,13 +10,13 @@ import Link from '../../_plus_admonition.md';
 
 # AI workflows
 
-As part of dlt+, we are developing several tools to enhance development with AI workflows. The first of these is a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) plugin for Claude Desktop for data exploration.
+As part of data_load_tool+, we are developing several tools to enhance development with AI workflows. The first of these is a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) plugin for Claude Desktop for data exploration.
 
 ## Prerequisites
-- dlt+ installed in a virtual environment (see [installation guide](../getting-started/installation.md))
+- data_load_tool+ installed in a virtual environment (see [installation guide](../getting-started/installation.md))
 - [Claude Desktop](https://claude.ai/download) installed
 
-## Install dlt+ with MCP support
+## Install data_load_tool+ with MCP support
 
 Make sure your virtual environment is activated, then:
 
@@ -24,12 +24,12 @@ Make sure your virtual environment is activated, then:
 pip install dlt-plus[mcp]
 ```
 
-## Set up or use a dlt+ project
+## Set up or use a data_load_tool+ project
 
-You can either use your existing dlt+ project or create a simple test project to try out the MCP workflow.
+You can either use your existing data_load_tool+ project or create a simple test project to try out the MCP workflow.
 
 ### Using an existing project
-If you already have a dlt+ project, you can use it directly - just make sure you have run at least one pipeline so there's some data to explore. You can skip to [configure Claude Desktop](#configure-claude-desktop) if you have a project ready.
+If you already have a data_load_tool+ project, you can use it directly - just make sure you have run at least one pipeline so there's some data to explore. You can skip to [configure Claude Desktop](#configure-claude-desktop) if you have a project ready.
 
 ### Creating a test project
 If you don't have a project yet, here's how to create a simple one:
@@ -37,17 +37,17 @@ If you don't have a project yet, here's how to create a simple one:
 On Unix-based systems:
 
 ```sh
-touch dlt.yml
+touch data_load_tool.yml
 ```
 
-Alternatively, you can create an empty dlt.yml file in any text editor.
+Alternatively, you can create an empty data_load_tool.yml file in any text editor.
 
-Copy and paste the following configuration into the `dlt.yml` file:
+Copy and paste the following configuration into the `data_load_tool.yml` file:
 
 ```yaml
 sources:
   pokemon_api:
-    type: dlt.sources.rest_api.rest_api
+    type: data_load_tool.sources.rest_api.rest_api
     client:
       base_url: https://pokeapi.co/api/v2
     resource_defaults:
@@ -76,12 +76,12 @@ datasets:
       - pokemon_local
 ```
 
-This will create a dlt+ project with a single pipeline that loads data from the Pokemon API and stores it in a local directory.
+This will create a data_load_tool+ project with a single pipeline that loads data from the Pokemon API and stores it in a local directory.
 
 Validate the project configuration:
 
 ```sh
-dlt project config validate
+data_load_tool project config validate
 ```
 
 If the configuration is valid, you should see the following message:
@@ -93,7 +93,7 @@ Configuration validation successful!
 That means you can now run the pipeline to get some data:
 
 ```sh
-dlt pipeline pokemon run
+data_load_tool pipeline pokemon run
 ```
 
 If the pipeline runs successfully, you should see the following message:
@@ -104,8 +104,8 @@ The pokemon_local destination used file:///path/to/your/project/_data/dev/local/
 Load package 1739383145.0668569 is LOADED and contains no failed jobs
 ```
 
-Great, you have some data in your project. The next step is configuring Claude Desktop, but for this, you'll need to get a path to your `dlt` executable. When you are using a virtual environment, the `dlt` executable is typically located in its `bin` directory (on Unix-like systems). For example, if your virtual environment is located in a `.venv` directory, the path to the `dlt` executable is `.venv/bin/dlt`.
-Running `which dlt` in your terminal will give you the path to the `dlt` executable. Take note of it; we will use it in the next step.
+Great, you have some data in your project. The next step is configuring Claude Desktop, but for this, you'll need to get a path to your `data_load_tool` executable. When you are using a virtual environment, the `data_load_tool` executable is typically located in its `bin` directory (on Unix-like systems). For example, if your virtual environment is located in a `.venv` directory, the path to the `data_load_tool` executable is `.venv/bin/data_load_tool`.
+Running `which data_load_tool` in your terminal will give you the path to the `data_load_tool` executable. Take note of it; we will use it in the next step.
 
 ## Configure Claude Desktop
 
@@ -120,8 +120,8 @@ Open the file in a text editor and add the following configuration:
 ```json
 {
   "mcpServers": {
-    "dlt+ project": {
-      "command": "</path/to/your/project/.venv/bin/dlt>",
+    "data_load_tool+ project": {
+      "command": "</path/to/your/project/.venv/bin/data_load_tool>",
       "args": [
         "project",
         "--project",
@@ -133,10 +133,10 @@ Open the file in a text editor and add the following configuration:
 }
 ```
 
-Replace `</path/to/your/project/.venv/bin/dlt>` with the path to your `dlt` executable from the previous step and save the file.
+Replace `</path/to/your/project/.venv/bin/data_load_tool>` with the path to your `data_load_tool` executable from the previous step and save the file.
 
 :::warning
-If you are using [environment variables](../../general-usage/credentials/setup.md#available-config-providers) to configure dlt, make sure to include them as part of the command before the `dlt` executable.
+If you are using [environment variables](../../general-usage/credentials/setup.md#available-config-providers) to configure data_load_tool, make sure to include them as part of the command before the `data_load_tool` executable.
 :::
 
 ### Restart Claude desktop
@@ -161,7 +161,7 @@ When you click on the icon, you will see the "Available MCP Tools" popup with th
 
 ## Start chatting
 
-Now you can start chatting with Claude Desktop and ask it questions about the data in your dlt+ project.
+Now you can start chatting with Claude Desktop and ask it questions about the data in your data_load_tool+ project.
 
 For example, you may ask, "Which tables do I have in my pipeline?":
 
@@ -184,5 +184,5 @@ More examples of the queries you can ask:
 - "Transform the pokemon table to add a new column with the pokemon name length."
 - "What is the average height of the pokemon?"
 
-That's it! You can now explore your dlt+ project from Claude Desktop using the MCP.
+That's it! You can now explore your data_load_tool+ project from Claude Desktop using the MCP.
 

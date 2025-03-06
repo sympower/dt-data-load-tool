@@ -7,10 +7,10 @@ keywords: [data, dataset, sql]
 # The SQL client
 
 :::note
-This page contains technical details about the implementation of the SQL client as well as information on how to use low-level APIs. If you simply want to query your data, it's advised to read the pages in this section on accessing data via `dlt` datasets, Streamlit, or Ibis.
+This page contains technical details about the implementation of the SQL client as well as information on how to use low-level APIs. If you simply want to query your data, it's advised to read the pages in this section on accessing data via `data_load_tool` datasets, Streamlit, or Ibis.
 :::
 
-Most `dlt` destinations use an implementation of the `SqlClientBase` class to connect to the physical destination to which your data is loaded. DDL statements, data insert or update commands, as well as SQL merge and replace queries, are executed via a connection on this client. It also is used for reading data for the [Streamlit app](./streamlit.md) and [data access via `dlt` datasets](./dataset.md).
+Most `data_load_tool` destinations use an implementation of the `SqlClientBase` class to connect to the physical destination to which your data is loaded. DDL statements, data insert or update commands, as well as SQL merge and replace queries, are executed via a connection on this client. It also is used for reading data for the [Streamlit app](./streamlit.md) and [data access via `data_load_tool` datasets](./dataset.md).
 
 All SQL destinations make use of an SQL client; additionally, the filesystem has a special implementation of the SQL client which you can read about [below](#the-filesystem-sql-client).
 
@@ -19,7 +19,7 @@ All SQL destinations make use of an SQL client; additionally, the filesystem has
 You can access the SQL client of your destination via the `sql_client` method on your pipeline. The code below shows how to use the SQL client to execute a query.
 
 ```py
-pipeline = dlt.pipeline(destination="bigquery", dataset_name="crm")
+pipeline = data_load_tool.pipeline(destination="bigquery", dataset_name="crm")
 with pipeline.sql_client() as client:
     with client.execute_query(
         "SELECT id, name, email FROM customers WHERE id = %s",
@@ -36,7 +36,7 @@ The cursor returned by `execute_query` has several methods for retrieving the da
 The code below shows how to retrieve the data as a Pandas DataFrame and then manipulate it in memory:
 
 ```py
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 with pipeline.sql_client() as client:
     with client.execute_query(
         'SELECT "reactions__+1", "reactions__-1", reactions__laugh, reactions__hooray, reactions__rocket FROM issues'
@@ -58,17 +58,17 @@ counts = reactions.sum(0).sort_values(0, ascending=False)
 - `iter_arrow(chunk_size: int)`: iterates over the data in chunks of the given size as Arrow tables.
 
 :::info
-Which retrieval method you should use very much depends on your use case and the destination you are using. Some drivers for our destinations provided by their vendors natively support Arrow or Pandas DataFrames; in these cases, we will use that interface. If they do not, `dlt` will convert lists of tuples into these formats.
+Which retrieval method you should use very much depends on your use case and the destination you are using. Some drivers for our destinations provided by their vendors natively support Arrow or Pandas DataFrames; in these cases, we will use that interface. If they do not, `data_load_tool` will convert lists of tuples into these formats.
 :::
 
 ## The filesystem SQL client
 
-The filesystem destination implements a special but extremely useful version of the SQL client. While during a normal pipeline run, the filesystem does not make use of an SQL client but rather copies the files resulting from a load into the folder or bucket you have specified, it is possible to query this data using SQL via this client. For this to work, `dlt` uses an in-memory `DuckDB` database instance and makes your filesystem tables available as views on this database. For the most part, you can use the filesystem SQL client just like any other SQL client. `dlt` uses sqlglot to discover which tables you are trying to access and, as mentioned above, `DuckDB` to make them queryable.
+The filesystem destination implements a special but extremely useful version of the SQL client. While during a normal pipeline run, the filesystem does not make use of an SQL client but rather copies the files resulting from a load into the folder or bucket you have specified, it is possible to query this data using SQL via this client. For this to work, `data_load_tool` uses an in-memory `DuckDB` database instance and makes your filesystem tables available as views on this database. For the most part, you can use the filesystem SQL client just like any other SQL client. `data_load_tool` uses sqlglot to discover which tables you are trying to access and, as mentioned above, `DuckDB` to make them queryable.
 
 The code below shows how to use the filesystem SQL client to query the data:
 
 ```py
-pipeline = dlt.pipeline(destination="filesystem", dataset_name="my_dataset")
+pipeline = data_load_tool.pipeline(destination="filesystem", dataset_name="my_dataset")
 with pipeline.sql_client() as client:
     with client.execute_query("SELECT * FROM my_table") as cursor:
         print(cursor.fetchall())
@@ -79,6 +79,6 @@ A few things to know or keep in mind when using the filesystem SQL client:
 - The SQL database you are actually querying is an in-memory database, so if you do any kind of mutating queries, these will not be persisted to your folder or bucket.
 - You must have loaded your data as `JSONL` or `Parquet` files for this SQL client to work. For optimal performance, you should use `Parquet` files, as `DuckDB` is able to only read the bytes needed to execute your query from a folder or bucket in this case.
 - Keep in mind that if you do any filtering, sorting, or full table loading with the SQL client, the in-memory `DuckDB` instance will have to download and query a lot of data from your bucket or folder if you have a large table.
-- If you are accessing data on a bucket, `dlt` will temporarily store your credentials in `DuckDB` to let it connect to the bucket.
+- If you are accessing data on a bucket, `data_load_tool` will temporarily store your credentials in `DuckDB` to let it connect to the bucket.
 - Some combinations of buckets and table formats may not be fully supported at this time.
 

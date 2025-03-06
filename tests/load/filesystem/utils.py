@@ -12,14 +12,14 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.specs.config_section_context import ConfigSectionContext
-from dlt.common.destination.client import RunnableLoadJob
-from dlt.common.pendulum import timedelta, __utcnow
-from dlt.destinations import filesystem
-from dlt.destinations.impl.filesystem.filesystem import FilesystemClient
-from dlt.destinations.job_impl import FinalizedLoadJobWithFollowupJobs
-from dlt.load import Load
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.specs.config_section_context import ConfigSectionContext
+from data_load_tool.common.destination.client import RunnableLoadJob
+from data_load_tool.common.pendulum import timedelta, __utcnow
+from data_load_tool.destinations import filesystem
+from data_load_tool.destinations.impl.filesystem.filesystem import FilesystemClient
+from data_load_tool.destinations.job_impl import FinalizedLoadJobWithFollowupJobs
+from data_load_tool.load import Load
 from tests.load.utils import prepare_load_package
 
 

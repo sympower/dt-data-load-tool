@@ -22,18 +22,18 @@ Filesystem source loads data in two steps:
 ## Quick example
 
 ```py
-import dlt
-from dlt.sources.filesystem import filesystem, read_parquet
+import data_load_tool
+from data_load_tool.sources.filesystem import filesystem, read_parquet
 
 filesystem_resource = filesystem(
   bucket_url="file://Users/admin/Documents/parquet_files",
   file_glob="**/*.parquet"
 )
 filesystem_pipe = filesystem_resource | read_parquet()
-filesystem_pipe.apply_hints(incremental=dlt.sources.incremental("modification_date"))
+filesystem_pipe.apply_hints(incremental=data_load_tool.sources.incremental("modification_date"))
 
 # We load the data into the table_name table
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 load_info = pipeline.run(filesystem_pipe.with_name("table_name"))
 print(load_info)
 print(pipeline.last_trace.last_normalize_info)
@@ -43,7 +43,7 @@ print(pipeline.last_trace.last_normalize_info)
 
 ### Prerequisites
 
-Please make sure the `dlt` library is installed. Refer to the [installation guide](../../../intro).
+Please make sure the `data_load_tool` library is installed. Refer to the [installation guide](../../../intro).
 
 ### Initialize the filesystem source
 
@@ -52,10 +52,10 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init filesystem duckdb
+   data_load_tool init filesystem duckdb
    ```
 
-   The [dlt init command](../../../reference/command-line-interface) will initialize
+   The [data_load_tool init command](../../../reference/command-line-interface) will initialize
    [the pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/filesystem_pipeline.py)
    with the filesystem as the source and [duckdb](../../destinations/duckdb.md) as the destination.
 
@@ -128,7 +128,7 @@ For more info, see
 
 <TabItem value="sftp">
 
-dlt supports several authentication methods:
+data_load_tool supports several authentication methods:
 
 1. Key-based authentication
 2. SSH Agent-based authentication
@@ -144,10 +144,10 @@ You don't need any credentials for the local filesystem.
 
 </Tabs>
 
-### Add credentials to dlt pipeline
+### Add credentials to data_load_tool pipeline
 
-To provide credentials to the filesystem source, you can use [any method available](../../../general-usage/credentials/setup#available-config-providers) in dlt.
-One of the easiest ways is to use configuration files. The `.dlt` folder in your working directory contains two files: `config.toml` and `secrets.toml`. Sensitive information, like passwords and access tokens, should only be put into `secrets.toml`, while any other configuration, like the path to a bucket, can be specified in `config.toml`.
+To provide credentials to the filesystem source, you can use [any method available](../../../general-usage/credentials/setup#available-config-providers) in data_load_tool.
+One of the easiest ways is to use configuration files. The `.data_load_tool` folder in your working directory contains two files: `config.toml` and `secrets.toml`. Sensitive information, like passwords and access tokens, should only be put into `secrets.toml`, while any other configuration, like the path to a bucket, can be specified in `config.toml`.
 
 <Tabs
   groupId="filesystem-type"
@@ -258,7 +258,7 @@ export SOURCES__FILESYSTEM__CREDENTIALS__AWS_SECRET_ACCESS_KEY = "Please set me 
 ```
 
 :::tip
-dlt supports more ways of authorizing with cloud storage, including identity-based and default credentials. To learn more about adding credentials to your pipeline, please refer to the [Configuration and secrets section](../../../general-usage/credentials/complex_types#gcp-credentials).
+data_load_tool supports more ways of authorizing with cloud storage, including identity-based and default credentials. To learn more about adding credentials to your pipeline, please refer to the [Configuration and secrets section](../../../general-usage/credentials/complex_types#gcp-credentials).
 :::
 
 ## Usage
@@ -276,7 +276,7 @@ If you use just the `filesystem` resource, it will only list files in the storag
 
 All parameters of the resource can be specified directly in code:
 ```py
-from dlt.sources.filesystem import filesystem
+from data_load_tool.sources.filesystem import filesystem
 
 filesystem_source = filesystem(
   bucket_url="file://Users/admin/Documents/csv_files",
@@ -288,7 +288,7 @@ or taken from the config:
 * python code:
 
   ```py
-  from dlt.sources.filesystem import filesystem
+  from data_load_tool.sources.filesystem import filesystem
 
   filesystem_source = filesystem()
   ```
@@ -314,7 +314,7 @@ The current implementation of the filesystem source natively supports three file
 You can apply any of the above or [create your own transformer](advanced#create-your-own-transformer). To apply the selected transformer resource, use pipe notation `|`:
 
 ```py
-from dlt.sources.filesystem import filesystem, read_csv
+from data_load_tool.sources.filesystem import filesystem, read_csv
 
 filesystem_pipe = filesystem(
   bucket_url="file://Users/admin/Documents/csv_files",
@@ -336,11 +336,11 @@ We advise that you give each resource a [specific name](../../../general-usage/r
 ### 3. Create and run a pipeline
 
 ```py
-import dlt
-from dlt.sources.filesystem import filesystem, read_csv
+import data_load_tool
+from data_load_tool.sources.filesystem import filesystem, read_csv
 
 filesystem_pipe = filesystem(bucket_url="file://Users/admin/Documents/csv_files", file_glob="*.csv") | read_csv()
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 info = pipeline.run(filesystem_pipe)
 print(info)
 ```
@@ -350,15 +350,15 @@ For more information on how to create and run the pipeline, read the [Walkthroug
 ### 4. Apply hints
 
 ```py
-import dlt
-from dlt.sources.filesystem import filesystem, read_csv
+import data_load_tool
+from data_load_tool.sources.filesystem import filesystem, read_csv
 
 filesystem_pipe = filesystem(bucket_url="file://Users/admin/Documents/csv_files", file_glob="*.csv") | read_csv()
-# Tell dlt to merge on date
+# Tell data_load_tool to merge on date
 filesystem_pipe.apply_hints(write_disposition="merge", merge_key="date")
 
 # We load the data into the table_name table
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 load_info = pipeline.run(filesystem_pipe.with_name("table_name"))
 print(load_info)
 ```
@@ -367,7 +367,7 @@ print(load_info)
 
 Here are a few simple ways to load your data incrementally:
 
-1. [Load files based on modification date](#load-files-based-on-modification-date). Only load files that have been updated since the last time `dlt` processed them. `dlt` checks the files' metadata (like the modification date) and skips those that haven't changed.
+1. [Load files based on modification date](#load-files-based-on-modification-date). Only load files that have been updated since the last time `data_load_tool` processed them. `data_load_tool` checks the files' metadata (like the modification date) and skips those that haven't changed.
 2. [Load new records based on a specific column](#load-new-records-based-on-a-specific-column). You can load only the new or updated records by looking at a specific column, like `updated_at`. Unlike the first method, this approach would read all files every time and then filter the records which were updated.
 3. [Combine loading only updated files and records](#combine-loading-only-updated-files-and-records). Finally, you can combine both methods. It could be useful if new records could be added to existing files, so you not only want to filter the modified files, but also the modified records.
 
@@ -375,15 +375,15 @@ Here are a few simple ways to load your data incrementally:
 For example, to load only new CSV files with [incremental loading](../../../general-usage/incremental-loading), you can use the `apply_hints` method.
 
 ```py
-import dlt
-from dlt.sources.filesystem import filesystem, read_csv
+import data_load_tool
+from data_load_tool.sources.filesystem import filesystem, read_csv
 
 # This configuration will only consider new CSV files
 new_files = filesystem(bucket_url="s3://bucket_name", file_glob="directory/*.csv")
 # Add incremental on modification time
-new_files.apply_hints(incremental=dlt.sources.incremental("modification_date"))
+new_files.apply_hints(incremental=data_load_tool.sources.incremental("modification_date"))
 
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 load_info = pipeline.run((new_files | read_csv()).with_name("csv_files"))
 print(load_info)
 ```
@@ -394,16 +394,16 @@ In this example, we load only new records based on the field called `updated_at`
 filter files by modification date because, for example, all files are modified each time a new record appears.
 
 ```py
-import dlt
-from dlt.sources.filesystem import filesystem, read_csv
+import data_load_tool
+from data_load_tool.sources.filesystem import filesystem, read_csv
 
 # We consider all CSV files
 all_files = filesystem(bucket_url="s3://bucket_name", file_glob="directory/*.csv")
 
 # But filter out only updated records
 filesystem_pipe = (all_files | read_csv())
-filesystem_pipe.apply_hints(incremental=dlt.sources.incremental("updated_at"))
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+filesystem_pipe.apply_hints(incremental=data_load_tool.sources.incremental("updated_at"))
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 load_info = pipeline.run(filesystem_pipe)
 print(load_info)
 ```
@@ -411,17 +411,17 @@ print(load_info)
 #### Combine loading only updated files and records
 
 ```py
-import dlt
-from dlt.sources.filesystem import filesystem, read_csv
+import data_load_tool
+from data_load_tool.sources.filesystem import filesystem, read_csv
 
 # This configuration will only consider modified CSV files
 new_files = filesystem(bucket_url="s3://bucket_name", file_glob="directory/*.csv")
-new_files.apply_hints(incremental=dlt.sources.incremental("modification_date"))
+new_files.apply_hints(incremental=data_load_tool.sources.incremental("modification_date"))
 
 # And in each modified file, we filter out only updated records
 filesystem_pipe = (new_files | read_csv())
-filesystem_pipe.apply_hints(incremental=dlt.sources.incremental("updated_at"))
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+filesystem_pipe.apply_hints(incremental=data_load_tool.sources.incremental("updated_at"))
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 load_info = pipeline.run(filesystem_pipe)
 print(load_info)
 ```
@@ -434,15 +434,15 @@ Within your filtering function, you'll have access to [any field](advanced#filei
 #### Filter by name
 To filter only files that have `London` and `Berlin` in their names, you can do the following:
 ```py
-import dlt
-from dlt.sources.filesystem import filesystem, read_csv
+import data_load_tool
+from data_load_tool.sources.filesystem import filesystem, read_csv
 
 # Filter files accessing file_name field
 filtered_files = filesystem(bucket_url="s3://bucket_name", file_glob="directory/*.csv")
 filtered_files.add_filter(lambda item: ("London" in item["file_name"]) or ("Berlin" in item["file_name"]))
 
 filesystem_pipe = (filtered_files | read_csv())
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 load_info = pipeline.run(filesystem_pipe)
 print(load_info)
 ```
@@ -451,7 +451,7 @@ print(load_info)
 You could also use `file_glob` to filter files by names. It works very well in simple cases, for example, filtering by extension:
 
 ```py
-from dlt.sources.filesystem import filesystem
+from data_load_tool.sources.filesystem import filesystem
 
 filtered_files = filesystem(bucket_url="s3://bucket_name", file_glob="**/*.json")
 ```
@@ -462,8 +462,8 @@ filtered_files = filesystem(bucket_url="s3://bucket_name", file_glob="**/*.json"
 If for some reason you only want to load small files, you can also do that:
 
 ```py
-import dlt
-from dlt.sources.filesystem import filesystem, read_csv
+import data_load_tool
+from data_load_tool.sources.filesystem import filesystem, read_csv
 
 MAX_SIZE_IN_BYTES = 10
 
@@ -472,7 +472,7 @@ filtered_files = filesystem(bucket_url="s3://bucket_name", file_glob="directory/
 filtered_files.add_filter(lambda item: item["size_in_bytes"] < MAX_SIZE_IN_BYTES)
 
 filesystem_pipe = (filtered_files | read_csv())
-pipeline = dlt.pipeline(pipeline_name="my_pipeline", destination="duckdb")
+pipeline = data_load_tool.pipeline(pipeline_name="my_pipeline", destination="duckdb")
 load_info = pipeline.run(filesystem_pipe)
 print(load_info)
 ```
@@ -493,7 +493,7 @@ bucket_url = '\\?\C:\a\b\c'
 
 ### If you get an empty list of files
 
-If you are running a dlt pipeline with the filesystem source and get zero records, we recommend you check
+If you are running a data_load_tool pipeline with the filesystem source and get zero records, we recommend you check
 the configuration of `bucket_url` and `file_glob` parameters.
 
 For example, with Azure Blob Storage, people sometimes mistake the account name for the container name. Make sure you've set up a URL as `"az://<container name>/"`.

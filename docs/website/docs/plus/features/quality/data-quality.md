@@ -1,7 +1,7 @@
 ---
 title: "🧪 Data quality"
 description: Validate your data and control its quality
-keywords: ["dlt+", "data quality", "contracts"]
+keywords: ["data_load_tool+", "data quality", "contracts"]
 ---
 
 import Link from '../../../_plus_admonition.md';
@@ -9,10 +9,10 @@ import Link from '../../../_plus_admonition.md';
 <Link/>
 
 :::caution
-🚧 This feature is under development. Interested in becoming an early tester? [Join dlt+ early access](https://info.dlthub.com/waiting-list).
+🚧 This feature is under development. Interested in becoming an early tester? [Join data_load_tool+ early access](https://info.dlthub.com/waiting-list).
 :::
 
-dlt+ will allow you to define data validation rules at the YAML level or using Pydantic models. This ensures your data meets expected quality standards at the ingestion step.
+data_load_tool+ will allow you to define data validation rules at the YAML level or using Pydantic models. This ensures your data meets expected quality standards at the ingestion step.
 
 ## Example: Defining a quality contract in YAML
 
@@ -34,7 +34,7 @@ tables:
 ```
 
 ## Key features
-With dlt+, you will be able to:
+With data_load_tool+, you will be able to:
 
 * Define data tests and quality contracts using YAML configuration or Pydantic models.
 * Apply both row-level and batch-level validation.

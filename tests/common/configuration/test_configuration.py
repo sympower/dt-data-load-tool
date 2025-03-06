@@ -17,14 +17,14 @@ from typing import (
 )
 from typing_extensions import Annotated, TypeVar
 
-from dlt.common import json, pendulum, Decimal, Wei
-from dlt.common.configuration.providers.provider import ConfigProvider
-from dlt.common.configuration.specs.base_configuration import NotResolved, is_hint_not_resolvable
-from dlt.common.configuration.specs.gcp_credentials import (
+from data_load_tool.common import json, pendulum, Decimal, Wei
+from data_load_tool.common.configuration.providers.provider import ConfigProvider
+from data_load_tool.common.configuration.specs.base_configuration import NotResolved, is_hint_not_resolvable
+from data_load_tool.common.configuration.specs.gcp_credentials import (
     GcpServiceAccountCredentialsWithoutDefaults,
 )
-from dlt.common.utils import custom_environ, get_exception_trace, get_exception_trace_chain
-from dlt.common.typing import (
+from data_load_tool.common.utils import custom_environ, get_exception_trace, get_exception_trace_chain
+from data_load_tool.common.typing import (
     AnyType,
     CallableAny,
     ConfigValue,
@@ -35,7 +35,7 @@ from dlt.common.typing import (
     TSecretValue,
     extract_inner_type,
 )
-from dlt.common.configuration.exceptions import (
+from data_load_tool.common.configuration.exceptions import (
     ConfigFieldMissingTypeHintException,
     ConfigFieldTypeHintNotSupported,
     InvalidNativeValue,
@@ -43,7 +43,7 @@ from dlt.common.configuration.exceptions import (
     ValueNotSecretException,
     UnmatchedConfigHintResolversException,
 )
-from dlt.common.configuration import (
+from data_load_tool.common.configuration import (
     configspec,
     ConfigFieldMissingException,
     ConfigValueCannotBeCoercedException,
@@ -51,13 +51,13 @@ from dlt.common.configuration import (
     is_valid_hint,
     resolve_type,
 )
-from dlt.common.configuration.specs import (
+from data_load_tool.common.configuration.specs import (
     BaseConfiguration,
     RuntimeConfiguration,
     ConnectionStringCredentials,
 )
-from dlt.common.configuration.providers import environ as environ_provider, toml
-from dlt.common.configuration.utils import (
+from data_load_tool.common.configuration.providers import environ as environ_provider, toml
+from data_load_tool.common.configuration.utils import (
     get_resolved_traces,
     ResolvedValueTrace,
     serialize_value,
@@ -65,9 +65,9 @@ from dlt.common.configuration.utils import (
     add_config_dict_to_env,
     add_config_to_env,
 )
-from dlt.common.pipeline import TRefreshMode
+from data_load_tool.common.pipeline import TRefreshMode
 
-from dlt.destinations.impl.postgres.configuration import PostgresCredentials
+from data_load_tool.destinations.impl.postgres.configuration import PostgresCredentials
 from tests.utils import preserve_environ
 from tests.common.configuration.utils import (
     MockProvider,
@@ -1378,8 +1378,8 @@ def test_add_config_to_env(environment: Dict[str, str]) -> None:
             default="BUBA",
         )
     )
-    add_config_to_env(c, ("dlt",))
-    # must contain dlt prefix everywhere, INSTRUMENTED section taken from key and DLT_TEST taken from password
+    add_config_to_env(c, ("data_load_tool",))
+    # must contain data_load_tool prefix everywhere, INSTRUMENTED section taken from key and DLT_TEST taken from password
     assert (
         environment.items()
         >= {
@@ -1390,7 +1390,7 @@ def test_add_config_to_env(environment: Dict[str, str]) -> None:
             "DLT__DLT_TEST__PASSWORD": "PASS",
         }.items()
     )
-    # no dlt
+    # no data_load_tool
     environment.clear()
     add_config_to_env(c)
     assert (
@@ -1413,7 +1413,7 @@ def test_add_config_to_env(environment: Dict[str, str]) -> None:
     c_s = ConnectionStringCredentials(
         "mssql://loader:<password>@loader.database.windows.net/dlt_data?TrustServerCertificate=yes&Encrypt=yes&LongAsMax=yes"
     )
-    add_config_to_env(c_s, ("dlt",))
+    add_config_to_env(c_s, ("data_load_tool",))
     assert environment["DLT__CREDENTIALS__QUERY__ENCRYPT"] == "yes"
     assert environment["DLT__CREDENTIALS__QUERY__TRUSTSERVERCERTIFICATE"] == "yes"
 

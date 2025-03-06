@@ -2,14 +2,14 @@ import os
 from typing import Iterator
 import pytest
 
-from dlt.common import pendulum, Wei
-from dlt.common.configuration.resolve import resolve_configuration, ConfigFieldMissingException
-from dlt.common.storages import FileStorage
-from dlt.common.utils import uniq_id
+from data_load_tool.common import pendulum, Wei
+from data_load_tool.common.configuration.resolve import resolve_configuration, ConfigFieldMissingException
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations.impl.postgres.configuration import PostgresCredentials
-from dlt.destinations.impl.postgres.postgres import PostgresClient
-from dlt.destinations.impl.postgres.sql_client import psycopg2
+from data_load_tool.destinations.impl.postgres.configuration import PostgresCredentials
+from data_load_tool.destinations.impl.postgres.postgres import PostgresClient
+from data_load_tool.destinations.impl.postgres.sql_client import psycopg2
 
 from tests.utils import TEST_STORAGE_ROOT, delete_test_storage, skipifpypy
 from tests.load.utils import expect_load_file, prepare_table, yield_client_with_storage

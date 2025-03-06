@@ -1,5 +1,5 @@
-from dlt.common.typing import SupportsVariant
-from dlt.common.wei import Wei, Decimal
+from data_load_tool.common.typing import SupportsVariant
+from data_load_tool.common.wei import Wei, Decimal
 
 
 def test_init() -> None:

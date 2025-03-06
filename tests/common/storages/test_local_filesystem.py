@@ -4,17 +4,17 @@ import pathlib
 from urllib.parse import quote
 from typing import Tuple
 
-from dlt.common.configuration.exceptions import ConfigurationValueError
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.storages import fsspec_from_config, FilesystemConfiguration
-from dlt.common.storages.fsspec_filesystem import FileItemDict, glob_files
+from data_load_tool.common.configuration.exceptions import ConfigurationValueError
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.storages import fsspec_from_config, FilesystemConfiguration
+from data_load_tool.common.storages.fsspec_filesystem import FileItemDict, glob_files
 
 from tests.common.storages.utils import assert_sample_files, TEST_SAMPLE_FILES
 from tests.utils import skipifnotwindows, skipifwindows
 
 UNC_LOCAL_PATH = r"\\localhost\c$\tests\common\test.csv"
 UNC_LOCAL_EXT_PATH = r"\\?\UNC\localhost\c$\tests\common\test.csv"
-UNC_WSL_PATH = r"\\wsl.localhost\Ubuntu-18.04\home\rudolfix\ .dlt"
+UNC_WSL_PATH = r"\\wsl.localhost\Ubuntu-18.04\home\rudolfix\ .data_load_tool"
 
 
 @skipifnotwindows
@@ -252,7 +252,7 @@ if os.name == "nt":
         WIN_ABS_EXT_PATH,
         pathlib.Path(WIN_ABS_PATH).as_uri(),
         pathlib.Path(WIN_ABS_EXT_PATH).as_uri(),
-        # r"\\wsl.localhost\Ubuntu-18.04\home\rudolfix\src\dlt\tests\common\storages\samples"
+        # r"\\wsl.localhost\Ubuntu-18.04\home\rudolfix\src\data_load_tool\tests\common\storages\samples"
     )
 else:
     windows_local_files = ()

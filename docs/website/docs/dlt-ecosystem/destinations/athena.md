@@ -1,25 +1,25 @@
 ---
 title: AWS Athena / Glue Catalog
-description: AWS Athena `dlt` destination
+description: AWS Athena `data_load_tool` destination
 keywords: [aws, athena, glue catalog]
 ---
 
 # AWS Athena / Glue Catalog
 
-The Athena destination stores data as Parquet files in S3 buckets and creates [external tables in AWS Athena](https://docs.aws.amazon.com/athena/latest/ug/creating-tables.html). You can then query those tables with Athena SQL commands, which will scan the entire folder of Parquet files and return the results. This destination works very similarly to other SQL-based destinations, with the exception that the merge write disposition is not supported at this time. The `dlt` metadata will be stored in the same bucket as the Parquet files, but as iceberg tables. Athena also supports writing individual data tables as Iceberg tables, so they may be manipulated later. A common use case would be to strip GDPR data from them.
+The Athena destination stores data as Parquet files in S3 buckets and creates [external tables in AWS Athena](https://docs.aws.amazon.com/athena/latest/ug/creating-tables.html). You can then query those tables with Athena SQL commands, which will scan the entire folder of Parquet files and return the results. This destination works very similarly to other SQL-based destinations, with the exception that the merge write disposition is not supported at this time. The `data_load_tool` metadata will be stored in the same bucket as the Parquet files, but as iceberg tables. Athena also supports writing individual data tables as Iceberg tables, so they may be manipulated later. A common use case would be to strip GDPR data from them.
 
-## Install dlt with Athena
-**To install the dlt library with Athena dependencies:**
+## Install data_load_tool with Athena
+**To install the data_load_tool library with Athena dependencies:**
 ```sh
-pip install "dlt[athena]"
+pip install "data_load_tool[athena]"
 ```
 
 ## Setup guide
-### 1. Initialize the dlt project
+### 1. Initialize the data_load_tool project
 
-Let's start by initializing a new `dlt` project as follows:
+Let's start by initializing a new `data_load_tool` project as follows:
    ```sh
-   dlt init chess athena
+   data_load_tool init chess athena
    ```
    > 💡 This command will initialize your pipeline with chess as the source and AWS Athena as the destination using the filesystem staging destination.
 
@@ -30,13 +30,13 @@ First, install dependencies by running:
 ```sh
 pip install -r requirements.txt
 ```
-or with `pip install "dlt[athena]"`, which will install `s3fs`, `pyarrow`, `pyathena`, and `botocore` packages.
+or with `pip install "data_load_tool[athena]"`, which will install `s3fs`, `pyarrow`, `pyathena`, and `botocore` packages.
 
 :::caution
 
 You may also install the dependencies independently. Try
 ```sh
-pip install dlt
+pip install data_load_tool
 pip install s3fs
 pip install pyarrow
 pip install pyathena
@@ -44,7 +44,7 @@ pip install pyathena
 so pip does not fail on backtracking.
 :::
 
-To edit the `dlt` credentials file with your secret info, open `.dlt/secrets.toml`. You will need to provide a `bucket_url`, which holds the uploaded parquet files, a `query_result_bucket`, which Athena uses to write query results to, and credentials that have write and read access to these two buckets as well as the full Athena access AWS role.
+To edit the `data_load_tool` credentials file with your secret info, open `.data_load_tool/secrets.toml`. You will need to provide a `bucket_url`, which holds the uploaded parquet files, a `query_result_bucket`, which Athena uses to write query results to, and credentials that have write and read access to these two buckets as well as the full Athena access AWS role.
 
 The TOML file looks like this:
 
@@ -65,7 +65,7 @@ aws_secret_access_key="please set me up!" # same as credentials for filesystem
 region_name="please set me up!" # set your AWS region, for example "eu-central-1" for Frankfurt
 ```
 
-If you have your credentials stored in `~/.aws/credentials`, just remove the **[destination.filesystem.credentials]** and **[destination.athena.credentials]** sections above and `dlt` will fall back to your **default** profile in local credentials. If you want to switch the profile, pass the profile name as follows (here: `dlt-ci-user`):
+If you have your credentials stored in `~/.aws/credentials`, just remove the **[destination.filesystem.credentials]** and **[destination.athena.credentials]** sections above and `data_load_tool` will fall back to your **default** profile in local credentials. If you want to switch the profile, pass the profile name as follows (here: `dlt-ci-user`):
 ```toml
 [destination.filesystem.credentials]
 profile_name="dlt-ci-user"
@@ -93,7 +93,7 @@ The `athena` destination handles the write dispositions as follows:
 
 Data loading occurs by storing parquet files in an S3 bucket and defining a schema on Athena. If you query data via SQL queries on Athena, the returned data is read by scanning your bucket and reading all relevant parquet files in there.
 
-`dlt` internal tables are saved as Iceberg tables.
+`data_load_tool` internal tables are saved as Iceberg tables.
 
 ### Data types
 Athena tables store timestamps with millisecond precision, and with that precision, we generate parquet files. Keep in mind that Iceberg tables have microsecond precision.
@@ -101,12 +101,12 @@ Athena tables store timestamps with millisecond precision, and with that precisi
 Athena does not support JSON fields, so JSON is stored as a string.
 
 :::caution
-**Athena does not support TIME columns in parquet files**. `dlt` will fail such jobs permanently. Convert `datetime.time` objects to `str` or `datetime.datetime` to load them.
+**Athena does not support TIME columns in parquet files**. `data_load_tool` will fail such jobs permanently. Convert `datetime.time` objects to `str` or `datetime.datetime` to load them.
 :::
 
 ### Table and column identifiers
 
-Athena uses case-insensitive identifiers and **will lowercase all the identifiers** that are stored in the INFORMATION SCHEMA. Do not use [case-sensitive naming conventions](../../general-usage/naming-convention.md#case-sensitive-and-insensitive-destinations). Letter casing will be removed anyway, and you risk generating identifier collisions, which are detected by `dlt` and will fail the load process.
+Athena uses case-insensitive identifiers and **will lowercase all the identifiers** that are stored in the INFORMATION SCHEMA. Do not use [case-sensitive naming conventions](../../general-usage/naming-convention.md#case-sensitive-and-insensitive-destinations). Letter casing will be removed anyway, and you risk generating identifier collisions, which are detected by `data_load_tool` and will fail the load process.
 
 Under the hood, Athena uses different SQL engines for DDL (catalog) and DML/Queries:
 * DDL uses HIVE escaping with ``````
@@ -114,7 +114,7 @@ Under the hood, Athena uses different SQL engines for DDL (catalog) and DML/Quer
 
 ## Staging support
 
-Using a staging destination is mandatory when using the Athena destination. If you do not set staging to `filesystem`, `dlt` will automatically do this for you.
+Using a staging destination is mandatory when using the Athena destination. If you do not set staging to `filesystem`, `data_load_tool` will automatically do this for you.
 
 If you decide to change the [filename layout](./filesystem#files-layout) from the default value, keep the following in mind so that Athena can reliably build your tables:
  - You need to provide the `{table_name}` placeholder, and this placeholder needs to be followed by a forward slash.
@@ -128,7 +128,7 @@ If you decide to change the [filename layout](./filesystem#files-layout) from th
 You can save your tables as Iceberg tables to Athena. This will enable you, for example, to delete data from them later if you need to. To switch a resource to the Iceberg table format, supply the table_format argument like this:
 
 ```py
-@dlt.resource(table_format="iceberg")
+@data_load_tool.resource(table_format="iceberg")
 def data() -> Iterable[TDataItem]:
     ...
 ```
@@ -140,8 +140,8 @@ For every table created as an Iceberg table, the Athena destination will create 
 The `merge` write disposition is supported for Athena when using Iceberg tables.
 
 :::note
-1. There is a risk of tables ending up in an inconsistent state in case a pipeline run fails mid-flight because Athena doesn't support transactions, and `dlt` uses multiple DELETE/UPDATE/INSERT statements to implement `merge`.
-2. `dlt` creates additional helper tables called `insert_<table name>` and `delete_<table name>` in the staging schema to work around Athena's lack of temporary tables.
+1. There is a risk of tables ending up in an inconsistent state in case a pipeline run fails mid-flight because Athena doesn't support transactions, and `data_load_tool` uses multiple DELETE/UPDATE/INSERT statements to implement `merge`.
+2. `data_load_tool` creates additional helper tables called `insert_<table name>` and `delete_<table name>` in the staging schema to work around Athena's lack of temporary tables.
 :::
 
 ### dbt support
@@ -153,9 +153,9 @@ The Athena adapter requires that you set up **region_name** in the Athena config
 aws_data_catalog="awsdatacatalog"
 ```
 
-### Syncing of `dlt` state
+### Syncing of `data_load_tool` state
 
-- This destination fully supports [dlt state sync.](../../general-usage/state#syncing-state-with-destination). The state is saved in Athena Iceberg tables in your S3 bucket.
+- This destination fully supports [data_load_tool state sync.](../../general-usage/state#syncing-state-with-destination). The state is saved in Athena Iceberg tables in your S3 bucket.
 
 ## Supported file formats
 
@@ -181,8 +181,8 @@ Here is an example of how to use the adapter to partition a table:
 ```py
 from datetime import date
 
-import dlt
-from dlt.destinations.adapters import athena_partition, athena_adapter
+import data_load_tool
+from data_load_tool.destinations.adapters import athena_partition, athena_adapter
 
 data_items = [
     (1, "A", date(2021, 1, 1)),
@@ -197,7 +197,7 @@ data_items = [
     (10, "B", date(2021, 3, 2)),
 ]
 
-@dlt.resource(table_format="iceberg")
+@data_load_tool.resource(table_format="iceberg")
 def partitioned_data():
     yield [{"id": i, "category": c, "created_at": d} for i, c, d in data_items]
 
@@ -212,7 +212,7 @@ athena_adapter(
 )
 
 
-pipeline = dlt.pipeline("athena_example")
+pipeline = data_load_tool.pipeline("athena_example")
 pipeline.run(partitioned_data)
 ```
 <!--@@@DLT_TUBA athena-->

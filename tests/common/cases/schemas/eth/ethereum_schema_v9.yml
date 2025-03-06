@@ -457,9 +457,9 @@ settings:
     block_timestamp: timestamp
   schema_contract: {}
 normalizers:
-  names: dlt.common.normalizers.names.snake_case
+  names: data_load_tool.common.normalizers.names.snake_case
   json:
-    module: dlt.common.normalizers.json.relational
+    module: data_load_tool.common.normalizers.json.relational
     config:
       generate_dlt_id: true
       propagation:

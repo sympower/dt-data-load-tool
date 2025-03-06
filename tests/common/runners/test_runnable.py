@@ -7,8 +7,8 @@ import multiprocessing
 from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
 from typing import Any
 
-from dlt.normalize.configuration import SchemaStorageConfiguration
-from dlt.common.runners import Runnable
+from data_load_tool.normalize.configuration import SchemaStorageConfiguration
+from data_load_tool.common.runners import Runnable
 
 from tests.common.runners.utils import (
     _TestRunnableWorkerMethod,

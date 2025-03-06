@@ -1,6 +1,6 @@
 ---
 title: Profiles
-keywords: [dlt+, profiles]
+keywords: [data_load_tool+, profiles]
 ---
 
 import Link from '../../_plus_admonition.md';
@@ -9,7 +9,7 @@ import Link from '../../_plus_admonition.md';
 
 A profile is a set of configurations and secrets defined for a specific use case. Profiles provide a way to manage different configurations for different environments.
 
-They are defined in the `dlt.yml` under the `profiles` section.
+They are defined in the `data_load_tool.yml` under the `profiles` section.
 
 ```yaml
 profiles:
@@ -35,20 +35,20 @@ Every project includes two implicit profiles by default: `dev` and `tests`. If n
 All CLI commands that run on a project support the `--profile` option, allowing you to specify the desired profile. For example,
 
 ```sh
-dlt project --profile dev my_pipeline run
-dlt dataset --profile prod my_duckdb_destination_dataset row-counts
+data_load_tool project --profile dev my_pipeline run
+data_load_tool dataset --profile prod my_duckdb_destination_dataset row-counts
 ```
 
 ## Using config files with profiles
 
-All the configuration and secrets for profiles can also be placed in TOML files, as [described in dlt OSS documentation](../../general-usage/credentials/).
+All the configuration and secrets for profiles can also be placed in TOML files, as [described in data_load_tool OSS documentation](../../general-usage/credentials/).
 Each profile can have its own `secrets.toml` file, which is only loaded when that profile is active.
 
-For example, if you have two secrets files under `.dlt`:
+For example, if you have two secrets files under `.data_load_tool`:
 
 ```sh
 .
-├── .dlt/                 # your dlt settings including profile settings
+├── .data_load_tool/                 # your data_load_tool settings including profile settings
 │   ├── config.toml
 │   ├── dev.secrets.toml
 │   └── tests.secrets.toml
@@ -57,8 +57,8 @@ For example, if you have two secrets files under `.dlt`:
 You can run a pipeline with different profiles as follows:
 
 ```sh
-dlt pipeline --profile dev my_pipeline run
-dlt pipeline --profile tests my_pipeline run
+data_load_tool pipeline --profile dev my_pipeline run
+data_load_tool pipeline --profile tests my_pipeline run
 ```
 
 :::caution
@@ -71,13 +71,13 @@ Please note the following inconsistencies between the YAML and TOML files that w
 ## Pinning profiles
 You can pin a profile locally, making the given profile name the default one. This is useful, for example, when deploying your project in a production or staging environment.
 ```sh
-dlt profile prod pin
+data_load_tool profile prod pin
 ```
 will pin the `prod` profile and from now on all Python scripts and cli commands will see it as the default and switch to it automatically.
-The profile pin is kept in the `.dlt/profile-name` file. Remove this file to unpin. Note that our default `.gitignore` prevents this file from being added.
+The profile pin is kept in the `.data_load_tool/profile-name` file. Remove this file to unpin. Note that our default `.gitignore` prevents this file from being added.
 
-### Settings in the `dlt.yml` file vs TOML files
+### Settings in the `data_load_tool.yml` file vs TOML files
 
-For dlt+ Projects, it's best practice to keep all non-secret settings in `dlt.yml` and store secrets only in `.dlt/secrets.toml`. This ensures that sensitive data is only available in the necessary profiles or environments.
+For data_load_tool+ Projects, it's best practice to keep all non-secret settings in `data_load_tool.yml` and store secrets only in `.data_load_tool/secrets.toml`. This ensures that sensitive data is only available in the necessary profiles or environments.
 
-In the example above, some non-secret values were moved to `.dlt/secrets.toml` for demonstration purposes only - this is not the recommended approach.
+In the example above, some non-secret values were moved to `.data_load_tool/secrets.toml` for demonstration purposes only - this is not the recommended approach.

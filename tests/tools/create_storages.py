@@ -1,4 +1,4 @@
-from dlt.common.storages import (
+from data_load_tool.common.storages import (
     NormalizeStorage,
     LoadStorage,
     SchemaStorage,

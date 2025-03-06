@@ -1,6 +1,6 @@
 ---
 title: Full loading
-description: Full loading with dlt
+description: Full loading with data_load_tool
 keywords: [full loading, loading methods, replace]
 ---
 # Full loading
@@ -12,7 +12,7 @@ Full loading is the act of fully reloading the data of your tables. All existing
 To perform a full load on one or more of your resources, choose the `write_disposition='replace'` for this resource:
 
 ```py
-p = dlt.pipeline(destination="bigquery", dataset_name="github")
+p = data_load_tool.pipeline(destination="bigquery", dataset_name="github")
 issues = []
 reactions = ["%2B1", "-1", "smile", "tada", "thinking_face", "heart", "rocket", "eyes"]
 for reaction in reactions:
@@ -25,9 +25,9 @@ p.run(issues, write_disposition="replace", primary_key="id", table_name="issues"
 
 ## Choosing the correct replace strategy for your full load
 
-dlt implements three different strategies for doing a full load on your table: `truncate-and-insert`, `insert-from-staging`, and `staging-optimized`. The exact behavior of these strategies can also vary between the available destinations.
+data_load_tool implements three different strategies for doing a full load on your table: `truncate-and-insert`, `insert-from-staging`, and `staging-optimized`. The exact behavior of these strategies can also vary between the available destinations.
 
-You can select a strategy with a setting in your `config.toml` file. If you do not select a strategy, dlt will default to `truncate-and-insert`.
+You can select a strategy with a setting in your `config.toml` file. If you do not select a strategy, data_load_tool will default to `truncate-and-insert`.
 
 ```toml
 [destination]
@@ -54,5 +54,5 @@ The `staging-optimized` strategy has all the upsides of the `insert-from-staging
 * BigQuery: After loading the new data into the staging tables, the destination tables will be dropped and recreated with a [clone command](https://cloud.google.com/bigquery/docs/table-clones-create) from the staging tables. This is a low-cost and fast way to create a second independent table from the data of another. Learn more about [table cloning on BigQuery](https://cloud.google.com/bigquery/docs/table-clones-intro).
 * Snowflake: After loading the new data into the staging tables, the destination tables will be dropped and recreated with a [clone command](https://docs.snowflake.com/en/sql-reference/sql/create-clone) from the staging tables. This is a low-cost and fast way to create a second independent table from the data of another. Learn more about [table cloning on Snowflake](https://docs.snowflake.com/en/user-guide/object-clone).
 
-For all other [destinations](../dlt-ecosystem/destinations/index.md), please look at their respective documentation pages to see if and how the `staging-optimized` strategy is implemented. If it is not implemented, `dlt` will fall back to the `insert-from-staging` strategy.
+For all other [destinations](../dlt-ecosystem/destinations/index.md), please look at their respective documentation pages to see if and how the `staging-optimized` strategy is implemented. If it is not implemented, `data_load_tool` will fall back to the `insert-from-staging` strategy.
 

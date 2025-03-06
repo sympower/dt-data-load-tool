@@ -1,6 +1,6 @@
 ---
 title: Alerting
-description: How to set up alerting for dlt pipelines
+description: How to set up alerting for data_load_tool pipelines
 keywords: [alerting, alerts, slack]
 ---
 
@@ -35,7 +35,7 @@ information.
 
 ## Sentry
 
-Using `dlt` [tracing](./tracing.md), you can configure [Sentry](https://sentry.io) DSN to start
+Using `data_load_tool` [tracing](./tracing.md), you can configure [Sentry](https://sentry.io) DSN to start
 receiving rich information on executed pipelines, including encountered errors and exceptions.
 
 ## Slack
@@ -43,8 +43,8 @@ receiving rich information on executed pipelines, including encountered errors a
 Alerts can be sent to a Slack channel via Slack's incoming webhook URL. The code snippet below demonstrates automated Slack notifications for database table updates using the `send_slack_message` function.
 
 ```py
-# Import the send_slack_message function from the dlt library
-from dlt.common.runtime.slack import send_slack_message
+# Import the send_slack_message function from the data_load_tool library
+from data_load_tool.common.runtime.slack import send_slack_message
 
 # Define the URL for your Slack webhook
 hook = "https://hooks.slack.com/services/xxx/xxx/xxx"

@@ -1,6 +1,6 @@
 ---
 title: Chess.com
-description: dlt verified source for Chess.com API
+description: data_load_tool verified source for Chess.com API
 keywords: [chess.com api, chess.com verified source, verified source, chess.com, chess]
 ---
 import Header from './_source-info-header.md';
@@ -34,7 +34,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init chess duckdb
+   data_load_tool init chess duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -77,7 +77,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the `pipeline_name` for the above pipeline example is `chess_pipeline`, you may also
@@ -87,16 +87,16 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `source`
 
-This is a `dlt.source` function for the Chess.com API named "chess", which returns a sequence of
+This is a `data_load_tool.source` function for the Chess.com API named "chess", which returns a sequence of
 DltResource objects. We'll discuss these in subsequent sections as resources.
 
 ```py
-dlt.source(name="chess")
+data_load_tool.source(name="chess")
 def source(
     players: List[str], start_month: str = None, end_month: str = None
 ) -> Sequence[DltResource]:
@@ -115,13 +115,13 @@ to fetch game data (in "YYYY/MM" format).
 
 ### Resource `players_profiles`
 
-This is a `dlt.resource` function, which returns player profiles for a list of player usernames.
+This is a `data_load_tool.resource` function, which returns player profiles for a list of player usernames.
 
 ```py
-@dlt.resource(write_disposition="replace")
+@data_load_tool.resource(write_disposition="replace")
 def players_profiles(players: List[str]) -> Iterator[TDataItem]:
 
-    @dlt.defer
+    @data_load_tool.defer
     def _get_profile(username: str) -> TDataItem:
         return _get_path_with_retry(f"player/{username}")
     
@@ -131,14 +131,14 @@ def players_profiles(players: List[str]) -> Iterator[TDataItem]:
 
 `players`: This is a list of player usernames for which you want to fetch profile data.
 
-It uses the `@dlt.defer` decorator to enable parallel run in a thread pool.
+It uses the `@data_load_tool.defer` decorator to enable parallel run in a thread pool.
 
 ### Resource `players_archives`
 
-This is a `dlt.resource` function, which returns a URL to game archives for specified players.
+This is a `data_load_tool.resource` function, which returns a URL to game archives for specified players.
 
 ```py
-@dlt.resource(write_disposition="replace", selected=False)
+@data_load_tool.resource(write_disposition="replace", selected=False)
 def players_archives(players: List[str]) -> Iterator[List[TDataItem]]:
     ...
 ```
@@ -154,12 +154,12 @@ This incremental resource takes data from players and returns games for the last
 specified otherwise.
 
 ```py
-@dlt.resource(write_disposition="append")
+@data_load_tool.resource(write_disposition="append")
 def players_games(
     players: List[str], start_month: str = None, end_month: str = None
 ) -> Iterator[TDataItems]:
     # gets a list of already checked (loaded) archives.
-    checked_archives = dlt.current.resource_state().setdefault("archives", [])
+    checked_archives = data_load_tool.current.resource_state().setdefault("archives", [])
     yield {}  # return your retrieved data here
 ```
 
@@ -171,7 +171,7 @@ to initialize a list called "checked_archives" from the current resource
 
 ### Resource `players_online_status`
 
-The `players_online_status` is a `dlt.resource` function that checks the current online status of multiple chess players. It
+The `players_online_status` is a `data_load_tool.resource` function that checks the current online status of multiple chess players. It
 retrieves their username, status, last login date, and check time.
 
 ## Customization
@@ -187,7 +187,7 @@ To create your data loading pipeline for players and load data, follow these ste
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="chess_pipeline", # Use a custom name if desired
        destination="duckdb", # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="chess_players_games_data", # Use a custom name if desired

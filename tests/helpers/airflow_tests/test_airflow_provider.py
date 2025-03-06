@@ -10,11 +10,11 @@ from airflow.models.taskinstance import TaskInstance
 from airflow.utils.state import State, DagRunState
 from airflow.utils.types import DagRunType
 
-import dlt
-from dlt.common import pendulum
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.specs import PluggableRunContext
-from dlt.common.configuration.providers.vault import SECRETS_TOML_KEY
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.specs import PluggableRunContext
+from data_load_tool.common.configuration.providers.vault import SECRETS_TOML_KEY
 
 DEFAULT_DATE = pendulum.datetime(2023, 4, 18, tz="Europe/Berlin")
 
@@ -22,7 +22,7 @@ DEFAULT_DATE = pendulum.datetime(2023, 4, 18, tz="Europe/Berlin")
 def test_airflow_secrets_toml_provider() -> None:
     @dag(start_date=DEFAULT_DATE)
     def test_dag():
-        from dlt.common.configuration.providers.airflow import AirflowSecretsTomlProvider
+        from data_load_tool.common.configuration.providers.airflow import AirflowSecretsTomlProvider
 
         # make sure provider works while creating DAG
         provider = AirflowSecretsTomlProvider()
@@ -70,7 +70,7 @@ def test_airflow_secrets_toml_provider_import_dlt_dag() -> None:
 
     @dag(start_date=DEFAULT_DATE)
     def test_dag():
-        from dlt.common.configuration.accessors import secrets
+        from data_load_tool.common.configuration.accessors import secrets
 
         # this will initialize provider context
         api_key = secrets["sources.api_key"]
@@ -109,7 +109,7 @@ def test_airflow_secrets_toml_provider_import_dlt_task() -> None:
     def test_dag():
         @task()
         def test_task():
-            from dlt.common.configuration.accessors import secrets
+            from data_load_tool.common.configuration.accessors import secrets
 
             # this will initialize provider context
             api_key = secrets["sources.api_key"]
@@ -142,7 +142,7 @@ def test_airflow_secrets_toml_provider_is_loaded():
     dag = DAG(dag_id="test_dag", start_date=DEFAULT_DATE)
 
     def test_task():
-        from dlt.common.configuration.providers.airflow import AirflowSecretsTomlProvider
+        from data_load_tool.common.configuration.providers.airflow import AirflowSecretsTomlProvider
 
         providers_context = Container()[PluggableRunContext].providers
 
@@ -152,7 +152,7 @@ def test_airflow_secrets_toml_provider_is_loaded():
         )
 
         # get secret value using accessor
-        api_key = dlt.secrets["sources.api_key"]
+        api_key = data_load_tool.secrets["sources.api_key"]
 
         # There's no pytest context here in the task, so we need to return
         # the results as a dict and assert them in the test function.
@@ -186,8 +186,8 @@ def test_airflow_secrets_toml_provider_missing_variable():
     dag = DAG(dag_id="test_dag", start_date=DEFAULT_DATE)
 
     def test_task():
-        from dlt.common.configuration.specs import config_providers_context
-        from dlt.common.configuration.providers.airflow import AirflowSecretsTomlProvider
+        from data_load_tool.common.configuration.specs import config_providers_context
+        from data_load_tool.common.configuration.providers.airflow import AirflowSecretsTomlProvider
 
         # Make sure the variable is not set
         Variable.delete(SECRETS_TOML_KEY)
@@ -223,7 +223,7 @@ def test_airflow_secrets_toml_provider_invalid_content():
 
     def test_task():
         import tomlkit
-        from dlt.common.configuration.providers.airflow import AirflowSecretsTomlProvider
+        from data_load_tool.common.configuration.providers.airflow import AirflowSecretsTomlProvider
 
         Variable.set(SECRETS_TOML_KEY, "invalid_content")
 

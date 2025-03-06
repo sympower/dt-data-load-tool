@@ -1,10 +1,10 @@
 import base64
 import pytest
-from dlt.common import json
-from dlt.sources.helpers.requests import Response
-from dlt.sources.helpers.rest_client.exceptions import IgnoreResponseException
-from dlt.sources.rest_api import create_response_hooks, rest_api_source
-from dlt.extract.exceptions import ResourceExtractionError
+from data_load_tool.common import json
+from data_load_tool.sources.helpers.requests import Response
+from data_load_tool.sources.helpers.rest_client.exceptions import IgnoreResponseException
+from data_load_tool.sources.rest_api import create_response_hooks, rest_api_source
+from data_load_tool.extract.exceptions import ResourceExtractionError
 
 
 def make_mock_source_for_response_actions(dependent_endpoint_path, response_actions):

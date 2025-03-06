@@ -2,7 +2,7 @@ import os
 import pytest
 from importlib.metadata import PackageNotFoundError
 
-from dlt.version import get_installed_requirement_string
+from data_load_tool.version import get_installed_requirement_string
 
 
 def test_installed_requirement_string() -> None:

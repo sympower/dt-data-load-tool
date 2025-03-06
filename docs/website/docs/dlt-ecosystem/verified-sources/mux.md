@@ -1,6 +1,6 @@
 ---
 title: Mux
-description: dlt verified source for Mux
+description: data_load_tool verified source for Mux
 keywords: [mux api, mux verified source, mux]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 
 [Mux.com](http://mux.com/) is a video technology platform that provides infrastructure and tools for developers to build and stream high-quality video content.
 
-This Mux `dlt` verified source and
+This Mux `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/mux_pipeline.py)
 loads data using the “Mux API” to the destination of your choice.
 
@@ -50,7 +50,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init mux duckdb
+   data_load_tool init mux duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -69,7 +69,7 @@ For more information, read the guide on [how to add a verified source.](../../wa
 
 ### Add credentials
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe.
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe.
 
     Here's what the file looks like:
 
@@ -101,7 +101,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 3. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is
    `mux`, you may also use any custom name instead.
@@ -110,7 +110,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 
@@ -119,7 +119,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 This function yields resources "asset_resource" and "views_resource" to load video assets and views.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def mux_source() -> Iterable[DltResource]:
     yield assets_resource
     yield views_resource
@@ -132,18 +132,18 @@ The assets_resource function fetches metadata about video assets from the Mux AP
 ```py
 DEFAULT_LIMIT = 100
 
-@dlt.resource(write_disposition="merge")
+@data_load_tool.resource(write_disposition="merge")
 def assets_resource(
-    mux_api_access_token: str = dlt.secrets.value,
-    mux_api_secret_key: str = dlt.secrets.value,
+    mux_api_access_token: str = data_load_tool.secrets.value,
+    mux_api_secret_key: str = data_load_tool.secrets.value,
     limit: int = DEFAULT_LIMIT,
 ) -> Iterable[TDataItem]:
     ...
 ```
 
-`mux_api_access_token`: Mux API token for authentication, defaults to ".dlt/secrets.toml".
+`mux_api_access_token`: Mux API token for authentication, defaults to ".data_load_tool/secrets.toml".
 
-`mux_api_secret_key`: Mux API secret key for authentication, defaults to ".dlt/secrets.toml".
+`mux_api_secret_key`: Mux API secret key for authentication, defaults to ".data_load_tool/secrets.toml".
 
 `limit`: Sets the cap on the number of video assets fetched. "DEFAULT_LIMIT" set to 100.
 
@@ -152,10 +152,10 @@ def assets_resource(
 This function yields data about every video view from yesterday to be loaded.
 
 ```py
-@dlt.resource(write_disposition="append")
+@data_load_tool.resource(write_disposition="append")
 def views_resource(
-    mux_api_access_token: str = dlt.secrets.value,
-    mux_api_secret_key: str = dlt.secrets.value,
+    mux_api_access_token: str = data_load_tool.secrets.value,
+    mux_api_secret_key: str = data_load_tool.secrets.value,
     limit: int = DEFAULT_LIMIT,
 ) -> Iterable[DltResource]:
     ...
@@ -173,7 +173,7 @@ verified source.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
     ```py
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="mux_pipeline", # Use a custom name if desired
         destination="bigquery", # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dataset_name="mux_dataset" # Use a custom name if desired

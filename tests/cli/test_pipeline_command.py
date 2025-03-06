@@ -5,11 +5,11 @@ import pytest
 import logging
 from subprocess import CalledProcessError
 
-import dlt
-from dlt.common.runners.venv import Venv
-from dlt.common.storages.file_storage import FileStorage
+import data_load_tool
+from data_load_tool.common.runners.venv import Venv
+from data_load_tool.common.storages.file_storage import FileStorage
 
-from dlt.cli import echo, init_command, pipeline_command
+from data_load_tool.cli import echo, init_command, pipeline_command
 
 from tests.cli.utils import (
     echo_default_choice,
@@ -25,7 +25,7 @@ def test_pipeline_command_operations(repo_dir: str, project_files: FileStorage) 
     init_command.init_command("chess", "duckdb", repo_dir)
 
     try:
-        pipeline = dlt.attach(pipeline_name="chess_pipeline")
+        pipeline = data_load_tool.attach(pipeline_name="chess_pipeline")
         print(pipeline.working_dir)
         pipeline.drop()
     except Exception as e:
@@ -56,7 +56,7 @@ def test_pipeline_command_operations(repo_dir: str, project_files: FileStorage) 
         _out = buf.getvalue()
         # do we have duckdb destination
         assert "destination_name: None" in _out
-        assert "destination_type: dlt.destinations.duckdb" in _out
+        assert "destination_type: data_load_tool.destinations.duckdb" in _out
     print(_out)
 
     with io.StringIO() as buf, contextlib.redirect_stdout(buf):
@@ -133,7 +133,7 @@ def test_pipeline_command_operations(repo_dir: str, project_files: FileStorage) 
         assert "Selected resource(s): ['players_games']" in _out
 
         # Command was executed
-        pipeline = dlt.attach(pipeline_name="chess_pipeline")
+        pipeline = data_load_tool.attach(pipeline_name="chess_pipeline")
         assert "players_games" not in pipeline.default_schema.tables
 
     with io.StringIO() as buf, contextlib.redirect_stdout(buf):
@@ -155,7 +155,7 @@ def test_pipeline_command_operations(repo_dir: str, project_files: FileStorage) 
         assert "Selected resource(s): ['players_profiles']" in _out
 
         # Command was executed
-        pipeline = dlt.attach(pipeline_name="chess_pipeline")
+        pipeline = data_load_tool.attach(pipeline_name="chess_pipeline")
         assert "players_profiles" not in pipeline.default_schema.tables
 
 
@@ -163,7 +163,7 @@ def test_pipeline_command_failed_jobs(repo_dir: str, project_files: FileStorage)
     init_command.init_command("chess", "dummy", repo_dir)
 
     try:
-        pipeline = dlt.attach(pipeline_name="chess_pipeline")
+        pipeline = data_load_tool.attach(pipeline_name="chess_pipeline")
         pipeline.drop()
     except Exception as e:
         print(e)
@@ -201,7 +201,7 @@ def test_pipeline_command_drop_partial_loads(repo_dir: str, project_files: FileS
     os.environ["EXCEPTION_PROB"] = "1.0"
 
     try:
-        pipeline = dlt.attach(pipeline_name="chess_pipeline")
+        pipeline = data_load_tool.attach(pipeline_name="chess_pipeline")
         pipeline.drop()
     except Exception as e:
         print(e)
@@ -212,7 +212,7 @@ def test_pipeline_command_drop_partial_loads(repo_dir: str, project_files: FileS
     assert "PipelineStepFailed" in cpe.value.stdout
 
     # complete job manually to make a partial load
-    pipeline = dlt.attach(pipeline_name="chess_pipeline")
+    pipeline = data_load_tool.attach(pipeline_name="chess_pipeline")
     load_storage = pipeline._get_load_storage()
     load_id = load_storage.normalized_packages.list_packages()[0]
     job = load_storage.normalized_packages.list_new_jobs(load_id)[0]

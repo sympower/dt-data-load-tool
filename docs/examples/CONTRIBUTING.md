@@ -1,6 +1,6 @@
 # How to contribute your example
 
-Note: All paths in this guide are relative to the `dlt` repository directory.
+Note: All paths in this guide are relative to the `data_load_tool` repository directory.
 
 ## Add snippet
 

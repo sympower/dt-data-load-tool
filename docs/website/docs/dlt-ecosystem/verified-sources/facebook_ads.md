@@ -1,6 +1,6 @@
 ---
 title: Facebook Ads
-description: dlt verified source for Facebook Ads
+description: data_load_tool verified source for Facebook Ads
 keywords: [facebook ads api, verified source, facebook ads]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 Facebook Ads is the advertising platform that lets businesses and individuals create targeted ads on
 Facebook and its affiliated apps like Instagram and Messenger.
 
-This Facebook `dlt` verified source and
+This Facebook `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/facebook_ads_pipeline.py)
 loads data using the [Facebook Marketing API](https://developers.facebook.com/products/marketing-api/) to the destination of your choice.
 
@@ -40,7 +40,7 @@ To get a complete list of sub-endpoints that can be loaded, see
 1. Find your account ID, which is a long number. You can locate it by clicking on the Account
    Overview dropdown in Ads Manager or by checking the link address. For example,
    https://adsmanager.facebook.com/adsmanager/manage/accounts?act=10150974068878324.
-1. Note this account ID as it will further be used in configuring dlt.
+1. Note this account ID as it will further be used in configuring data_load_tool.
 
 #### Grab `Access_Token`
 
@@ -51,22 +51,22 @@ To get a complete list of sub-endpoints that can be loaded, see
 1. Enter the name of your app and select the associated business manager account.
 1. Go to the "Basic" settings in the left-hand side menu.
 1. Copy the "App ID" and "App secret" and paste them as "client_id" and "client_secret" in the
-   secrets.toml file in the .dlt folder.
+   secrets.toml file in the .data_load_tool folder.
 1. Next, obtain a short-lived access token at https://developers.facebook.com/tools/explorer/.
 1. Select the created app, add "ads_read" and "lead_retrieval" permissions, and generate a
    short-lived access token.
-1. Copy the access token and update it in the `.dlt/secrets.toml` file.
+1. Copy the access token and update it in the `.data_load_tool/secrets.toml` file.
 
 #### Exchange short-lived token for a long-lived token
 
-By default, Facebook access tokens have a short lifespan of one hour. To exchange a short-lived Facebook access token for a long-lived token, update the `.dlt/secrets.toml` with client_id and client_secret, and execute the provided Python code.
+By default, Facebook access tokens have a short lifespan of one hour. To exchange a short-lived Facebook access token for a long-lived token, update the `.data_load_tool/secrets.toml` with client_id and client_secret, and execute the provided Python code.
 
 ```py
 from facebook_ads import get_long_lived_token
 print(get_long_lived_token("your short-lived token"))
 ```
 
-Replace the `access_token` in the `.dlt/secrets.toml` file with the long-lived token obtained from the above code snippet.
+Replace the `access_token` in the `.data_load_tool/secrets.toml` file with the long-lived token obtained from the above code snippet.
 
 To retrieve the expiry date and the associated scopes of the token, you can use the following command:
 
@@ -92,7 +92,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init facebook_ads duckdb
+   data_load_tool init facebook_ads duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize [the pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/facebook_ads_pipeline.py) with Facebook Ads as the [source](../../general-usage/source) and [duckdb](../destinations/duckdb.md) as the [destination](../destinations).
@@ -105,7 +105,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credential
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
 
    ```toml
    # put your secret values and credentials here
@@ -120,7 +120,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 1. It is strongly recommended to add the token expiration timestamp to your `config.toml` or `secrets.toml` file.
 
-1. Next, store your pipeline configuration details in the `.dlt/config.toml`.
+1. Next, store your pipeline configuration details in the `.data_load_tool/config.toml`.
 
    Here's what the `config.toml` looks like:
 
@@ -147,7 +147,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 3. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `facebook_ads`. You may also
    use any custom name instead.
@@ -156,7 +156,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Default endpoints
@@ -171,10 +171,10 @@ This function returns a list of resources to load campaigns, ad sets, ads, creat
 data from the Facebook Marketing API.
 
 ```py
-@dlt.source(name="facebook_ads")
+@data_load_tool.source(name="facebook_ads")
 def facebook_ads_source(
-    account_id: str = dlt.config.value,
-    access_token: str = dlt.secrets.value,
+    account_id: str = data_load_tool.config.value,
+    access_token: str = data_load_tool.secrets.value,
     chunk_size: int = 50,
     request_timeout: float = 300.0,
     app_api_version: str = None,
@@ -201,7 +201,7 @@ The ads function fetches ad data. It retrieves ads from a specified account with
 states.
 
 ```py
-@dlt.resource(primary_key="id", write_disposition="replace")
+@data_load_tool.resource(primary_key="id", write_disposition="replace")
 def ads(
     fields: Sequence[str] = DEFAULT_AD_FIELDS,
     states: Sequence[str] = None,
@@ -225,7 +225,7 @@ Similar to resource `ads`, the following resources have been defined in the `__i
 | ------------ | -------------------------------------------------------------------- |
 | campaigns    | Fetches all `DEFAULT_CAMPAIGN_FIELDS`                                |
 | ad_sets      | Fetches all `DEFAULT_ADSET_FIELDS`                                   |
-| leads        | Fetches all `DEFAULT_LEAD_FIELDS`, uses `@dlt.transformer` decorator |
+| leads        | Fetches all `DEFAULT_LEAD_FIELDS`, uses `@data_load_tool.transformer` decorator |
 | ad_creatives | Fetches all `DEFAULT_ADCREATIVE_FIELDS`                              |
 
 The default fields are defined in
@@ -236,10 +236,10 @@ The default fields are defined in
 This function returns a list of resources to load facebook_insights.
 
 ```py
-@dlt.source(name="facebook_ads")
+@data_load_tool.source(name="facebook_ads")
 def facebook_insights_source(
-    account_id: str = dlt.config.value,
-    access_token: str = dlt.secrets.value,
+    account_id: str = data_load_tool.config.value,
+    access_token: str = data_load_tool.secrets.value,
     initial_load_past_days: int = 30,
     fields: Sequence[str] = DEFAULT_INSIGHT_FIELDS,
     attribution_window_days_lag: int = 7,
@@ -286,16 +286,16 @@ def facebook_insights_source(
 This function fetches Facebook insights data incrementally from a specified start date until the current date, in day steps.
 
 ```py
-@dlt.resource(primary_key=INSIGHTS_PRIMARY_KEY, write_disposition="merge")
+@data_load_tool.resource(primary_key=INSIGHTS_PRIMARY_KEY, write_disposition="merge")
 def facebook_insights(
-    date_start: dlt.sources.incremental[str] = dlt.sources.incremental(
+    date_start: data_load_tool.sources.incremental[str] = data_load_tool.sources.incremental(
         "date_start", initial_value=START_DATE_STRING
     )
 ) -> Iterator[TDataItems]:
    ...
 ```
 
-`date_start`: Parameter sets the initial value for the "date_start" parameter in dlt.sources.incremental. It is based on the last pipeline run or defaults to today's date minus the specified number of days in the "initial_load_past_days" parameter.
+`date_start`: Parameter sets the initial value for the "date_start" parameter in data_load_tool.sources.incremental. It is based on the last pipeline run or defaults to today's date minus the specified number of days in the "initial_load_past_days" parameter.
 
 ## Customization
 
@@ -306,7 +306,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="facebook_ads",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="facebook_ads_data"  # Use a custom name if desired

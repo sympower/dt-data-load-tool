@@ -9,55 +9,55 @@ import pytest
 import requests_mock
 import yaml
 
-import dlt
+import data_load_tool
 
-from dlt.common import json
-from dlt.common.configuration.specs import CredentialsConfiguration, RuntimeConfiguration
-from dlt.common.configuration.specs.config_providers_context import ConfigProvidersContainer
-from dlt.common.pipeline import ExtractInfo, NormalizeInfo, LoadInfo
-from dlt.common.schema import Schema
-from dlt.common.runtime.telemetry import stop_telemetry
-from dlt.common.typing import DictStrAny, DictStrStr, TSecretValue
-from dlt.common.utils import digest128
+from data_load_tool.common import json
+from data_load_tool.common.configuration.specs import CredentialsConfiguration, RuntimeConfiguration
+from data_load_tool.common.configuration.specs.config_providers_context import ConfigProvidersContainer
+from data_load_tool.common.pipeline import ExtractInfo, NormalizeInfo, LoadInfo
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.runtime.telemetry import stop_telemetry
+from data_load_tool.common.typing import DictStrAny, DictStrStr, TSecretValue
+from data_load_tool.common.utils import digest128
 
-from dlt.destinations import dummy, filesystem
+from data_load_tool.destinations import dummy, filesystem
 
-from dlt.pipeline.exceptions import PipelineStepFailed
-from dlt.pipeline.pipeline import Pipeline
-from dlt.pipeline.trace import (
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.pipeline.pipeline import Pipeline
+from data_load_tool.pipeline.trace import (
     PipelineTrace,
     SerializableResolvedValueTrace,
     load_trace,
 )
-from dlt.pipeline.track import slack_notify_load_success
-from dlt.extract import DltResource, DltSource
-from dlt.extract.extract import describe_extract_data
-from dlt.extract.pipe import Pipe
+from data_load_tool.pipeline.track import slack_notify_load_success
+from data_load_tool.extract import DltResource, DltSource
+from data_load_tool.extract.extract import describe_extract_data
+from data_load_tool.extract.pipe import Pipe
 
 from tests.pipeline.utils import PIPELINE_TEST_CASES_PATH
 from tests.utils import TEST_STORAGE_ROOT, start_test_telemetry, temporary_telemetry
 
 
 def test_create_trace(toml_providers: ConfigProvidersContainer, environment: Any) -> None:
-    dlt.secrets["load.delete_completed_jobs"] = True
+    data_load_tool.secrets["load.delete_completed_jobs"] = True
 
-    @dlt.source
+    @data_load_tool.source
     def inject_tomls(
-        api_type=dlt.config.value,
-        credentials: CredentialsConfiguration = dlt.secrets.value,
+        api_type=data_load_tool.config.value,
+        credentials: CredentialsConfiguration = data_load_tool.secrets.value,
         secret_value: TSecretValue = TSecretValue("123"),  # noqa: B008
     ):
-        @dlt.resource(write_disposition="replace", primary_key="id")
+        @data_load_tool.resource(write_disposition="replace", primary_key="id")
         def data():
             yield [{"id": 1}, {"id": 2}, {"id": 3}]
 
         return data()
 
-    p = dlt.pipeline(destination="dummy")
+    p = data_load_tool.pipeline(destination="dummy")
 
     # read from secrets and configs directly
     databricks_creds = "databricks+connector://token:<databricks_token>@<databricks_host>:443/<database_or_schema_name>?conn_timeout=15&search_path=a,b,c"
-    s = dlt.secrets["databricks.credentials"]
+    s = data_load_tool.secrets["databricks.credentials"]
     assert s == databricks_creds
 
     extract_info = p.extract(inject_tomls())
@@ -81,7 +81,7 @@ def test_create_trace(toml_providers: ConfigProvidersContainer, environment: Any
 
     # extract of data in the first one
     metrics = extract_info.metrics[load_id][0]
-    # inject tomls and dlt state
+    # inject tomls and data_load_tool state
     assert len(metrics["job_metrics"]) == 1
     assert "data" in metrics["table_metrics"]
     assert set(metrics["resource_metrics"].keys()) == {"data"}
@@ -91,7 +91,7 @@ def test_create_trace(toml_providers: ConfigProvidersContainer, environment: Any
     assert metrics["hints"]["data"] == {"write_disposition": "replace", "primary_key": "id"}
 
     metrics = extract_info.metrics[load_id][1]
-    # inject tomls and dlt state
+    # inject tomls and data_load_tool state
     assert len(metrics["job_metrics"]) == 1
     assert "_dlt_pipeline_state" in metrics["table_metrics"]
     assert set(metrics["resource_metrics"].keys()) == {"_dlt_pipeline_state"}
@@ -131,7 +131,7 @@ def test_create_trace(toml_providers: ConfigProvidersContainer, environment: Any
     p.activate()
 
     # extract with exception
-    @dlt.source
+    @data_load_tool.source
     def async_exception(max_range=1):
         async def get_val(v):
             await asyncio.sleep(0.1)
@@ -139,7 +139,7 @@ def test_create_trace(toml_providers: ConfigProvidersContainer, environment: Any
                 raise ValueError(v)
             return v
 
-        @dlt.resource
+        @data_load_tool.resource
         def data():
             yield from [get_val(v) for v in range(1, max_range)]
 
@@ -189,7 +189,7 @@ def test_create_trace(toml_providers: ConfigProvidersContainer, environment: Any
     # just one load package with single metrics
     assert len(norm_info.metrics[load_id]) == 1
     norm_metrics = norm_info.metrics[load_id][0]
-    # inject tomls and dlt state
+    # inject tomls and data_load_tool state
     assert len(norm_metrics["job_metrics"]) == 2
     assert "data" in norm_metrics["table_metrics"]
 
@@ -252,14 +252,14 @@ def test_trace_schema() -> None:
     os.environ["CIRCLECI"] = "1"
     os.environ["AWS_LAMBDA_FUNCTION_NAME"] = "lambda"
 
-    @dlt.source(section="many_hints")
+    @data_load_tool.source(section="many_hints")
     def many_hints(
-        api_type=dlt.config.value,
-        credentials: str = dlt.secrets.value,
+        api_type=data_load_tool.config.value,
+        credentials: str = data_load_tool.secrets.value,
         secret_value: TSecretValue = TSecretValue("123"),  # noqa: B008
     ):
         # TODO: create table / column schema from typed dicts, not explicitly
-        @dlt.resource(
+        @data_load_tool.resource(
             write_disposition="replace",
             primary_key="id",
             table_format="delta",
@@ -286,9 +286,9 @@ def test_trace_schema() -> None:
 
         return data()
 
-    @dlt.source
+    @data_load_tool.source
     def github():
-        @dlt.resource
+        @data_load_tool.resource
         def get_shuffled_events():
             for _ in range(1):
                 with open(
@@ -301,7 +301,7 @@ def test_trace_schema() -> None:
 
         return get_shuffled_events()
 
-    @dlt.source
+    @data_load_tool.source
     def async_exception(max_range=1):
         async def get_val(v):
             await asyncio.sleep(0.1)
@@ -309,7 +309,7 @@ def test_trace_schema() -> None:
                 raise ValueError(v)
             return v
 
-        @dlt.resource
+        @data_load_tool.resource
         def data():
             yield from [get_val(v) for v in range(1, max_range)]
 
@@ -317,7 +317,7 @@ def test_trace_schema() -> None:
 
     # create pipeline with staging to get remote_url in load step job_metrics
     dummy_dest = dummy(completed_prob=1.0)
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_trace_schema",
         destination=dummy_dest,
         staging=filesystem(os.path.abspath(os.path.join(TEST_STORAGE_ROOT, "_remote_filesystem"))),
@@ -333,8 +333,8 @@ def test_trace_schema() -> None:
     trace = pipeline.last_trace
     pipeline._schema_storage.storage.save("trace.json", json.dumps(trace, pretty=True))
 
-    schema = dlt.Schema("trace")
-    trace_pipeline = dlt.pipeline(
+    schema = data_load_tool.Schema("trace")
+    trace_pipeline = data_load_tool.pipeline(
         pipeline_name="test_trace_schema_traces", destination=dummy(completed_prob=1.0)
     )
     trace_pipeline.run([trace], table_name="trace", schema=schema)
@@ -354,7 +354,7 @@ def test_trace_schema() -> None:
 
     # NOTE: this saves actual inferred contract (schema) to schema storage, move it to test cases if you update
     # trace shapes
-    # TODO: create a proper schema for dlt trace and tables/columns
+    # TODO: create a proper schema for data_load_tool trace and tables/columns
     pipeline._schema_storage.storage.save("trace.schema.yaml", inferred_contract_str)
     # print(pipeline._schema_storage.storage.storage_path)
 
@@ -367,7 +367,7 @@ def test_trace_schema() -> None:
     # assert trace_contract.to_pretty_yaml() == inferred_contract_str
 
     # use trace contract to load data again
-    contract_trace_pipeline = dlt.pipeline(
+    contract_trace_pipeline = data_load_tool.pipeline(
         pipeline_name="test_trace_schema_traces_contract", destination=dummy(completed_prob=1.0)
     )
     contract_trace_pipeline.run(
@@ -388,8 +388,8 @@ def test_trace_schema() -> None:
 
 def test_save_load_trace() -> None:
     os.environ["COMPLETED_PROB"] = "1.0"
-    info = dlt.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
-    pipeline = dlt.pipeline()
+    info = data_load_tool.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
+    pipeline = data_load_tool.pipeline()
     # will get trace from working dir
     trace = pipeline.last_trace
     assert trace is not None
@@ -422,13 +422,13 @@ def test_save_load_trace() -> None:
     assert trace_dict == trace.asdict()
 
     # exception also saves trace
-    @dlt.resource
+    @data_load_tool.resource
     def data():
         raise NotImplementedError()
         yield
 
     with pytest.raises(PipelineStepFailed) as py_ex:
-        dlt.run(data(), destination="dummy")
+        data_load_tool.run(data(), destination="dummy")
     # there's the same pipeline in exception as in previous run
     assert py_ex.value.pipeline is info.pipeline
     trace = load_trace(py_ex.value.pipeline.working_dir)
@@ -449,7 +449,7 @@ def test_save_load_trace() -> None:
 def test_save_load_empty_trace() -> None:
     os.environ["COMPLETED_PROB"] = "1.0"
     os.environ["RESTORE_FROM_DESTINATION"] = "false"
-    pipeline = dlt.pipeline()
+    pipeline = data_load_tool.pipeline()
     pipeline.run([], table_name="data", destination="dummy")
     trace = pipeline.last_trace
     assert_trace_serializable(trace)
@@ -472,8 +472,8 @@ def test_save_load_empty_trace() -> None:
 def test_disable_trace(environment: DictStrStr) -> None:
     environment["ENABLE_RUNTIME_TRACE"] = "false"
     environment["COMPLETED_PROB"] = "1.0"
-    dlt.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
-    assert dlt.pipeline().last_trace is None
+    data_load_tool.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
+    assert data_load_tool.pipeline().last_trace is None
 
 
 def test_trace_on_restore_state(environment: DictStrStr) -> None:
@@ -491,22 +491,22 @@ def test_trace_on_restore_state(environment: DictStrStr) -> None:
         )
 
     with patch.object(Pipeline, "sync_destination", _sync_destination_patch):
-        dlt.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
-        assert len(dlt.pipeline().last_trace.steps) == 4
-        assert dlt.pipeline().last_trace.last_normalize_info.row_counts == {
+        data_load_tool.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
+        assert len(data_load_tool.pipeline().last_trace.steps) == 4
+        assert data_load_tool.pipeline().last_trace.last_normalize_info.row_counts == {
             "_dlt_pipeline_state": 1,
             "data": 3,
         }
 
 
 def test_load_none_trace() -> None:
-    p = dlt.pipeline()
+    p = data_load_tool.pipeline()
     assert load_trace(p.working_dir) is None
 
 
 def test_trace_telemetry(temporary_telemetry: RuntimeConfiguration) -> None:
-    with patch("dlt.common.runtime.sentry.before_send", _mock_sentry_before_send), patch(
-        "dlt.common.runtime.anon_tracker.before_send", _mock_anon_tracker_before_send
+    with patch("data_load_tool.common.runtime.sentry.before_send", _mock_sentry_before_send), patch(
+        "data_load_tool.common.runtime.anon_tracker.before_send", _mock_anon_tracker_before_send
     ):
         ANON_TRACKER_SENT_ITEMS.clear()
         SENTRY_SENT_ITEMS.clear()
@@ -514,7 +514,7 @@ def test_trace_telemetry(temporary_telemetry: RuntimeConfiguration) -> None:
         os.environ["FAIL_PROB"] = "1.0"
         # but do not raise exceptions
         os.environ["RAISE_ON_FAILED_JOBS"] = "false"
-        load_info = dlt.pipeline().run(
+        load_info = data_load_tool.pipeline().run(
             [1, 2, 3], table_name="data", destination="dummy", dataset_name="data_data"
         )
         # we should have 4 tracker items
@@ -524,7 +524,7 @@ def test_trace_telemetry(temporary_telemetry: RuntimeConfiguration) -> None:
             assert event["event"] == f"pipeline_{step}"
             assert event["properties"]["success"] is True
             assert event["properties"]["destination_name"] == "dummy"
-            assert event["properties"]["destination_type"] == "dlt.destinations.dummy"
+            assert event["properties"]["destination_type"] == "data_load_tool.destinations.dummy"
             assert event["properties"]["pipeline_name_hash"] == digest128(
                 load_info.pipeline.pipeline_name
             )
@@ -551,7 +551,7 @@ def test_trace_telemetry(temporary_telemetry: RuntimeConfiguration) -> None:
         # assert len(SENTRY_SENT_ITEMS) == 4
 
         # trace with exception
-        @dlt.resource
+        @data_load_tool.resource
         def data():
             raise NotImplementedError()
             yield
@@ -559,13 +559,13 @@ def test_trace_telemetry(temporary_telemetry: RuntimeConfiguration) -> None:
         ANON_TRACKER_SENT_ITEMS.clear()
         SENTRY_SENT_ITEMS.clear()
         with pytest.raises(PipelineStepFailed):
-            dlt.pipeline().run(data, destination="dummy")
+            data_load_tool.pipeline().run(data, destination="dummy")
         assert len(ANON_TRACKER_SENT_ITEMS) == 2
         event = ANON_TRACKER_SENT_ITEMS[0]
         assert event["event"] == "pipeline_extract"
         assert event["properties"]["success"] is False
         assert event["properties"]["destination_name"] == "dummy"
-        assert event["properties"]["destination_type"] == "dlt.destinations.dummy"
+        assert event["properties"]["destination_type"] == "data_load_tool.destinations.dummy"
         assert isinstance(event["properties"]["elapsed"], float)
         # check extract info
         if step == "extract":
@@ -576,7 +576,7 @@ def test_trace_telemetry(temporary_telemetry: RuntimeConfiguration) -> None:
         assert len(SENTRY_SENT_ITEMS) == 0
 
         # trace without destination and dataset
-        p = dlt.pipeline(pipeline_name="fresh").drop()
+        p = data_load_tool.pipeline(pipeline_name="fresh").drop()
         ANON_TRACKER_SENT_ITEMS.clear()
         SENTRY_SENT_ITEMS.clear()
         p.extract([1, 2, 3], table_name="data")
@@ -590,7 +590,7 @@ def test_trace_telemetry(temporary_telemetry: RuntimeConfiguration) -> None:
         assert event["properties"]["default_schema_name_hash"] == digest128(p.default_schema_name)
 
         # trace with dataset name
-        p = dlt.pipeline(pipeline_name="fresh", dataset_name="fresh_dataset").drop()
+        p = data_load_tool.pipeline(pipeline_name="fresh", dataset_name="fresh_dataset").drop()
         ANON_TRACKER_SENT_ITEMS.clear()
         SENTRY_SENT_ITEMS.clear()
         p.extract([1, 2, 3], table_name="data")
@@ -637,7 +637,7 @@ def test_slack_hook(environment: DictStrStr) -> None:
     environment["RUNTIME__SLACK_INCOMING_HOOK"] = hook_url
     with requests_mock.mock() as m:
         m.post(hook_url, json={})
-        load_info = dlt.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
+        load_info = data_load_tool.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
         assert slack_notify_load_success(load_info.pipeline.runtime_config.slack_incoming_hook, load_info, load_info.pipeline.last_trace) == 200  # type: ignore[attr-defined]
     assert m.called
     message = m.last_request.json()
@@ -648,10 +648,10 @@ def test_slack_hook(environment: DictStrStr) -> None:
 def test_broken_slack_hook(environment: DictStrStr) -> None:
     environment["COMPLETED_PROB"] = "1.0"
     environment["RUNTIME__SLACK_INCOMING_HOOK"] = "http://localhost:22"
-    load_info = dlt.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
+    load_info = data_load_tool.pipeline().run([1, 2, 3], table_name="data", destination="dummy")
     # connection error
     assert slack_notify_load_success(load_info.pipeline.runtime_config.slack_incoming_hook, load_info, load_info.pipeline.last_trace) == -1  # type: ignore[attr-defined]
-    # pipeline = dlt.pipeline()
+    # pipeline = data_load_tool.pipeline()
     # assert pipeline.last_trace is not None
     # assert pipeline._trace is None
     # trace = load_trace(info.pipeline.working_dir)
@@ -696,9 +696,9 @@ def assert_trace_serializable(trace: PipelineTrace) -> None:
     json.dumps(trace)
 
     # load trace to duckdb
-    from dlt.destinations import duckdb
+    from data_load_tool.destinations import duckdb
 
-    trace_pipeline = dlt.pipeline("trace", destination=duckdb(":pipeline:")).drop()
+    trace_pipeline = data_load_tool.pipeline("trace", destination=duckdb(":pipeline:")).drop()
     trace_pipeline.run([trace], table_name="trace_data")
 
     # print(trace_pipeline.default_schema.to_pretty_yaml())

@@ -23,13 +23,13 @@ from typing_extensions import Annotated, get_args
 from uuid import UUID
 
 
-from dlt import TSecretValue
-from dlt.common.configuration.specs.base_configuration import (
+from data_load_tool import TSecretValue
+from data_load_tool.common.configuration.specs.base_configuration import (
     BaseConfiguration,
     get_config_if_union_hint,
 )
-from dlt.common.configuration.specs import GcpServiceAccountCredentialsWithoutDefaults
-from dlt.common.typing import (
+from data_load_tool.common.configuration.specs import GcpServiceAccountCredentialsWithoutDefaults
+from data_load_tool.common.typing import (
     StrAny,
     TSecretStrValue,
     extract_inner_type,
@@ -246,7 +246,7 @@ def test_extract_annotated_inner_type() -> None:
 
 
 def test_is_subclass() -> None:
-    from dlt.extract import Incremental
+    from data_load_tool.extract import Incremental
 
     assert is_subclass(Incremental, BaseConfiguration) is True
     assert is_subclass(Incremental[float], Incremental[int]) is True
@@ -262,7 +262,7 @@ def test_is_subclass() -> None:
 
 
 def test_get_all_types_of_class_in_union() -> None:
-    from dlt.extract import Incremental
+    from data_load_tool.extract import Incremental
 
     # optional is an union
     assert get_all_types_of_class_in_union(Optional[str], str) == [str]

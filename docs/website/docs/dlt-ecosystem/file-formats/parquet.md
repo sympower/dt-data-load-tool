@@ -7,12 +7,12 @@ import SetTheFormat from './_set_the_format.mdx';
 
 # Parquet file format
 
-[Apache Parquet](https://en.wikipedia.org/wiki/Apache_Parquet) is a free and open-source column-oriented data storage format in the Apache Hadoop ecosystem. `dlt` is capable of storing data in this format when configured to do so.
+[Apache Parquet](https://en.wikipedia.org/wiki/Apache_Parquet) is a free and open-source column-oriented data storage format in the Apache Hadoop ecosystem. `data_load_tool` is capable of storing data in this format when configured to do so.
 
-To use this format, you need the `pyarrow` package. You can get this package as a `dlt` extra as well:
+To use this format, you need the `pyarrow` package. You can get this package as a `data_load_tool` extra as well:
 
 ```sh
-pip install "dlt[parquet]"
+pip install "data_load_tool[parquet]"
 ```
 
 ## Supported destinations
@@ -24,13 +24,13 @@ Supported by: **BigQuery**, **DuckDB**, **Snowflake**, **Filesystem**, **Athena*
 <SetTheFormat file_type="parquet"/>
 
 ## Destination autoconfig
-`dlt` uses [destination capabilities](../../walkthroughs/create-new-destination.md#3-set-the-destination-capabilities) to configure the parquet writer:
+`data_load_tool` uses [destination capabilities](../../walkthroughs/create-new-destination.md#3-set-the-destination-capabilities) to configure the parquet writer:
 * It uses decimal and wei precision to pick the right **decimal type** and sets precision and scale.
 * It uses timestamp precision to pick the right **timestamp type** resolution (seconds, micro, or nano).
 
 ## Writer settings
 
-Under the hood, `dlt` uses the [pyarrow parquet writer](https://arrow.apache.org/docs/python/generated/pyarrow.parquet.ParquetWriter.html) to create the files. The following options can be used to change the behavior of the writer:
+Under the hood, `data_load_tool` uses the [pyarrow parquet writer](https://arrow.apache.org/docs/python/generated/pyarrow.parquet.ParquetWriter.html) to create the files. The following options can be used to change the behavior of the writer:
 
 - `flavor`: Sanitize schema or set other compatibility options to work with various target systems. Defaults to None, which is the **pyarrow** default.
 - `version`: Determine which Parquet logical types are available for use, whether the reduced set from the Parquet 1.x.x format or the expanded logical types added in later format versions. Defaults to "2.6".
@@ -41,7 +41,7 @@ Under the hood, `dlt` uses the [pyarrow parquet writer](https://arrow.apache.org
 - `allow_truncated_timestamps` - will raise if precision is lost on truncated timestamps.
 
 :::tip
-The default parquet version used by `dlt` is 2.4. It coerces timestamps to microseconds and truncates nanoseconds silently. Such a setting
+The default parquet version used by `data_load_tool` is 2.4. It coerces timestamps to microseconds and truncates nanoseconds silently. Such a setting
 provides the best interoperability with database systems, including loading panda frames which have nanosecond resolution by default.
 :::
 
@@ -68,7 +68,7 @@ NORMALIZE__DATA_WRITER__TIMESTAMP_TIMEZONE
 ```
 
 ### Timestamps and timezones
-`dlt` adds timezone (UTC adjustment) to all timestamps regardless of the precision (from seconds to nanoseconds). `dlt` will also create TZ-aware timestamp columns in
+`data_load_tool` adds timezone (UTC adjustment) to all timestamps regardless of the precision (from seconds to nanoseconds). `data_load_tool` will also create TZ-aware timestamp columns in
 the destinations. [DuckDB is an exception here](../destinations/duckdb.md#supported-file-formats).
 
 ### Disable timezones / UTC adjustment flags
@@ -81,14 +81,14 @@ To our best knowledge, Arrow will convert your timezone-aware DateTime(s) to UTC
 
 ### Row group size
 
-The `pyarrow` parquet writer writes each item, i.e., table or record batch, in a separate row group. This may lead to many small row groups, which may not be optimal for certain query engines. For example, `duckdb` parallelizes on a row group. `dlt` allows controlling the size of the row group by [buffering and concatenating tables](../../reference/performance.md#controlling-in-memory-buffers) and batches before they are written. The concatenation is done as a zero-copy to save memory. You can control the size of the row group by setting the maximum number of rows kept in the buffer.
+The `pyarrow` parquet writer writes each item, i.e., table or record batch, in a separate row group. This may lead to many small row groups, which may not be optimal for certain query engines. For example, `duckdb` parallelizes on a row group. `data_load_tool` allows controlling the size of the row group by [buffering and concatenating tables](../../reference/performance.md#controlling-in-memory-buffers) and batches before they are written. The concatenation is done as a zero-copy to save memory. You can control the size of the row group by setting the maximum number of rows kept in the buffer.
 
 ```toml
 [extract.data_writer]
 buffer_max_items=10e6
 ```
 
-Keep in mind that `dlt` holds the tables in memory. Thus, 1,000,000 rows in the example above may consume a significant amount of RAM.
+Keep in mind that `data_load_tool` holds the tables in memory. Thus, 1,000,000 rows in the example above may consume a significant amount of RAM.
 
 The `row_group_size` configuration setting has limited utility with the `pyarrow` writer. It may be useful when you write single very large pyarrow tables or when your in-memory buffer is really large.
 

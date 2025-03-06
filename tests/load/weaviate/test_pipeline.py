@@ -2,20 +2,20 @@ import os
 import pytest
 from typing import Iterator
 
-import dlt
-from dlt.common import json
-from dlt.common.schema.exceptions import (
+import data_load_tool
+from data_load_tool.common import json
+from data_load_tool.common.schema.exceptions import (
     SchemaCorruptedException,
     SchemaIdentifierNormalizationCollision,
 )
-from dlt.common.utils import uniq_id
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations.adapters import weaviate_adapter
-from dlt.destinations.impl.weaviate.exceptions import PropertyNameConflict
-from dlt.destinations.impl.weaviate.weaviate_adapter import VECTORIZE_HINT, TOKENIZATION_HINT
-from dlt.destinations.impl.weaviate.weaviate_client import WeaviateClient
+from data_load_tool.destinations.adapters import weaviate_adapter
+from data_load_tool.destinations.impl.weaviate.exceptions import PropertyNameConflict
+from data_load_tool.destinations.impl.weaviate.weaviate_adapter import VECTORIZE_HINT, TOKENIZATION_HINT
+from data_load_tool.destinations.impl.weaviate.weaviate_client import WeaviateClient
 
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 from tests.pipeline.utils import assert_load_info
 from .utils import assert_class, drop_active_pipeline_data
 from tests.load.utils import sequence_generator
@@ -33,7 +33,7 @@ def drop_weaviate_schema() -> Iterator[None]:
 def test_adapter_and_hints() -> None:
     generator_instance1 = sequence_generator()
 
-    @dlt.resource(columns=[{"name": "content", "data_type": "text"}])
+    @data_load_tool.resource(columns=[{"name": "content", "data_type": "text"}])
     def some_data():
         yield from next(generator_instance1)
 
@@ -50,7 +50,7 @@ def test_adapter_and_hints() -> None:
 def test_basic_state_and_schema() -> None:
     generator_instance1 = sequence_generator()
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield from next(generator_instance1)
 
@@ -59,7 +59,7 @@ def test_basic_state_and_schema() -> None:
         vectorize=["content"],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_append",
         destination="weaviate",
         dataset_name="TestPipelineAppendDataset" + uniq_id(),
@@ -82,7 +82,7 @@ def test_pipeline_append() -> None:
     generator_instance1 = sequence_generator()
     generator_instance2 = sequence_generator()
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield from next(generator_instance1)
 
@@ -91,7 +91,7 @@ def test_pipeline_append() -> None:
         vectorize=["content"],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_append",
         destination="weaviate",
         dataset_name="TestPipelineAppendDataset" + uniq_id(),
@@ -121,7 +121,7 @@ def test_explicit_append() -> None:
         {"doc_id": 3, "content": "3"},
     ]
 
-    @dlt.resource(primary_key="doc_id")
+    @data_load_tool.resource(primary_key="doc_id")
     def some_data():
         yield data
 
@@ -130,7 +130,7 @@ def test_explicit_append() -> None:
         vectorize=["content"],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_append",
         destination="weaviate",
         dataset_name="TestPipelineAppendDataset" + uniq_id(),
@@ -155,7 +155,7 @@ def test_pipeline_replace() -> None:
     generator_instance1 = sequence_generator()
     generator_instance2 = sequence_generator()
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield from next(generator_instance1)
 
@@ -166,7 +166,7 @@ def test_pipeline_replace() -> None:
 
     uid = uniq_id()
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_replace",
         destination="weaviate",
         dataset_name="test_pipeline_replace_dataset" + uid,  # normalized internally
@@ -219,13 +219,13 @@ def test_pipeline_merge() -> None:
     ]
 
     # @weaviate_adapter(vectorize=["description"])  # TODO: make it work
-    @dlt.resource(primary_key="doc_id")
+    @data_load_tool.resource(primary_key="doc_id")
     def movies_data():
         yield data
 
     weaviate_adapter(movies_data, vectorize=["description"])
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="movies",
         destination="weaviate",
         dataset_name="MoviesDataset" + uniq_id(),
@@ -261,14 +261,14 @@ def test_pipeline_with_schema_evolution(vectorized: bool):
         },
     ]
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def some_data():
         yield data
 
     if vectorized:
         weaviate_adapter(some_data, vectorize=["content"])
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_append",
         destination="weaviate",
         dataset_name="TestSchemaEvolutionDataset" + uniq_id(),
@@ -316,7 +316,7 @@ def test_pipeline_with_schema_evolution(vectorized: bool):
 
 
 def test_merge_github_nested() -> None:
-    p = dlt.pipeline(destination="weaviate", dataset_name="github1", dev_mode=True)
+    p = data_load_tool.pipeline(destination="weaviate", dataset_name="github1", dev_mode=True)
     assert p.dataset_name.startswith("github1_202")
 
     with open(
@@ -365,7 +365,7 @@ def test_merge_github_nested() -> None:
 
 def test_empty_dataset_allowed() -> None:
     # weaviate dataset_name is optional so dataset name won't be autogenerated when not explicitly passed
-    p = dlt.pipeline(destination="weaviate", dev_mode=True)
+    p = data_load_tool.pipeline(destination="weaviate", dev_mode=True)
     # check if we use localhost
     client: WeaviateClient = p.destination_client()  # type: ignore[assignment]
     if "localhost" not in client.config.credentials.url:
@@ -389,7 +389,7 @@ def test_vectorize_property_without_data() -> None:
     # we request to vectorize "content" but property with this name does not appear in the data
     # an incomplete column was created and it can't be created at destination
     dataset_name = "without_data_" + uniq_id()
-    p = dlt.pipeline(destination="weaviate", dataset_name=dataset_name)
+    p = data_load_tool.pipeline(destination="weaviate", dataset_name=dataset_name)
 
     info = p.run(weaviate_adapter(["a", "b", "c"], vectorize=["content"]))
     # dataset in load info is empty
@@ -407,8 +407,8 @@ def test_vectorize_property_without_data() -> None:
     assert isinstance(pipe_ex.value.__context__, SchemaIdentifierNormalizationCollision)
 
     # set the naming convention to case insensitive
-    os.environ["SCHEMA__NAMING"] = "dlt.destinations.impl.weaviate.ci_naming"
-    # dlt.config["schema.naming"] = "dlt.destinations.impl.weaviate.ci_naming"
+    os.environ["SCHEMA__NAMING"] = "data_load_tool.destinations.impl.weaviate.ci_naming"
+    # data_load_tool.config["schema.naming"] = "data_load_tool.destinations.impl.weaviate.ci_naming"
     # create new schema with changed naming convention
     p = p.drop()
     info = p.run(

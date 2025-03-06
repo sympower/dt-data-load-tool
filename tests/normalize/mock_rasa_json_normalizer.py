@@ -1,7 +1,7 @@
-from dlt.common.normalizers.json import TNormalizedRowIterator
-from dlt.common.normalizers.json.relational import DataItemNormalizer as RelationalNormalizer
-from dlt.common.schema import Schema
-from dlt.common.typing import TDataItem
+from data_load_tool.common.normalizers.json import TNormalizedRowIterator
+from data_load_tool.common.normalizers.json.relational import DataItemNormalizer as RelationalNormalizer
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.typing import TDataItem
 
 
 class DataItemNormalizer(RelationalNormalizer):

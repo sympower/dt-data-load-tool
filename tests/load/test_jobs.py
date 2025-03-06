@@ -1,8 +1,8 @@
 import pytest
 
-from dlt.common.destination.client import RunnableLoadJob
-from dlt.common.destination.exceptions import DestinationTerminalException
-from dlt.destinations.job_impl import FinalizedLoadJob
+from data_load_tool.common.destination.client import RunnableLoadJob
+from data_load_tool.common.destination.exceptions import DestinationTerminalException
+from data_load_tool.destinations.job_impl import FinalizedLoadJob
 
 
 def test_instantiate_job() -> None:

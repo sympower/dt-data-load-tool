@@ -9,7 +9,7 @@ process.exit(0)
 const REPO_DIR = ".dlt-repo"
 const REPO_DOCS_DIR = REPO_DIR + "/docs/website"
 const REPO_PREPROCESSED_FILES_DIR = REPO_DOCS_DIR + "/docs_processed"
-const REPO_URL = "https://github.com/dlt-hub/dlt.git"
+const REPO_URL = "https://github.com/dlt-hub/data_load_tool.git"
 const VERSIONED_DOCS_FOLDER = "versioned_docs"
 const VERSIONED_SIDEBARS_FOLDER = "versioned_sidebars"
 const ENV_FILE = '.env'
@@ -21,7 +21,7 @@ const MINIMUM_SEMVER_VERSION = "0.5.0"
 fs.rmSync(REPO_DIR, { recursive: true, force: true })
 
 // checkout fresh
-console.log("Checking out dlt repo")
+console.log("Checking out data_load_tool repo")
 fs.rmSync(REPO_DIR, {force: true, recursive: true})
 proc.execSync(`git clone ${REPO_URL} ${REPO_DIR}`)
 

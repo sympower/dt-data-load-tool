@@ -1,10 +1,10 @@
 from typing import Any
-import dlt
+import data_load_tool
 import pytest
-from dlt.sources.rest_api.typing import RESTAPIConfig
-from dlt.sources.helpers.rest_client.paginators import SinglePagePaginator
+from data_load_tool.sources.rest_api.typing import RESTAPIConfig
+from data_load_tool.sources.helpers.rest_client.paginators import SinglePagePaginator
 
-from dlt.sources.rest_api import rest_api_source
+from data_load_tool.sources.rest_api import rest_api_source
 from tests.pipeline.utils import assert_load_info, load_table_counts
 from tests.load.utils import (
     destinations_configs,
@@ -13,7 +13,7 @@ from tests.load.utils import (
 
 
 def _make_pipeline(destination_name: str):
-    return dlt.pipeline(
+    return data_load_tool.pipeline(
         pipeline_name="rest_api",
         destination=destination_name,
         dataset_name="rest_api_data",

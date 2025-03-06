@@ -20,6 +20,6 @@ Provide any additional context about the PR here.
 
 <!--
 Please ensure that
-    - you have read the [Contributing to dlt](../CONTRIBUTING.md) guide.
+    - you have read the [Contributing to data_load_tool](../CONTRIBUTING.md) guide.
     - you have run the tests locally and they have passed before submitting your PR.
 -->

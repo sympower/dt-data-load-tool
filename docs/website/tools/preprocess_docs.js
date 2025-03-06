@@ -337,7 +337,7 @@ function syncExamples() {
 
     // add tip
     output.push(":::info")
-    const url = `https://github.com/dlt-hub/dlt/tree/devel/docs/examples/${exampleName}`
+    const url = `https://github.com/dlt-hub/data_load_tool/tree/devel/docs/examples/${exampleName}`
     output.push(`The source code for this example can be found in our repository at: `)
     output.push(url);
     output.push(":::")

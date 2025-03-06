@@ -1,10 +1,10 @@
 import itertools
 from typing import Iterator, List, Sequence, Union
 
-import dlt
-from dlt.common import json
-from dlt.common.configuration.specs import BaseConfiguration
-from dlt.common.typing import StrAny, StrOrBytesPath
+import data_load_tool
+from data_load_tool.common import json
+from data_load_tool.common.configuration.specs import BaseConfiguration
+from data_load_tool.common.typing import StrAny, StrOrBytesPath
 
 
 def chunk_jsonl(
@@ -26,10 +26,10 @@ def chunk_jsonl(
                     break
 
 
-jsonl_file = dlt.resource(chunk_jsonl, name="jsonl", spec=BaseConfiguration)
+jsonl_file = data_load_tool.resource(chunk_jsonl, name="jsonl", spec=BaseConfiguration)
 
 
-@dlt.resource(name="jsonl")
+@data_load_tool.resource(name="jsonl")
 def jsonl_files(
     paths: Sequence[StrOrBytesPath], chunk_size: int = 20
 ) -> Union[Iterator[StrAny], Iterator[List[StrAny]]]:

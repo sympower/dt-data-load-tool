@@ -6,13 +6,13 @@ import datetime  # noqa: 251
 import time
 import math
 
-from dlt.common import pendulum, Decimal, json
-from dlt.common.configuration import inject_section
-from dlt.common.data_writers.writers import ArrowToParquetWriter, ParquetDataWriter
-from dlt.common.destination import DestinationCapabilitiesContext
-from dlt.common.schema.utils import new_column
-from dlt.common.configuration.specs.config_section_context import ConfigSectionContext
-from dlt.common.time import ensure_pendulum_datetime
+from data_load_tool.common import pendulum, Decimal, json
+from data_load_tool.common.configuration import inject_section
+from data_load_tool.common.data_writers.writers import ArrowToParquetWriter, ParquetDataWriter
+from data_load_tool.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.schema.utils import new_column
+from data_load_tool.common.configuration.specs.config_section_context import ConfigSectionContext
+from data_load_tool.common.time import ensure_pendulum_datetime
 
 from tests.common.data_writers.utils import get_writer
 from tests.cases import (

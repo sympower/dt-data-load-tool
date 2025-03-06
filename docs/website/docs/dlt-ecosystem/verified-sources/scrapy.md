@@ -1,6 +1,6 @@
 ---
 title: Scrapy
-description: dlt verified source for Scraping using scrapy
+description: data_load_tool verified source for Scraping using scrapy
 keywords: [scraping, scraping verified source, scrapy]
 ---
 
@@ -18,7 +18,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init scraping duckdb
+   data_load_tool init scraping duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -47,7 +47,7 @@ For more information, read the guide on
    > When both `start_urls` and `start_urls_file` are provided, they will be merged and deduplicated
    > to ensure Scrapy gets a unique set of start URLs.
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can securely
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can securely
    store your access tokens and other sensitive information. It's important to handle this
    file with care and keep it safe.
 
@@ -122,7 +122,7 @@ If you wish to create your data pipeline, follow these steps:
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="scrapy_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., bigquery, redshift)
        dataset_name="scrapy_data",  # Use a custom name if desired

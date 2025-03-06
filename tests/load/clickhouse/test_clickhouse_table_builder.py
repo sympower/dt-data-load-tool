@@ -2,13 +2,13 @@ from copy import deepcopy
 
 import pytest
 
-from dlt.common.configuration import resolve_configuration
-from dlt.common.schema import Schema
-from dlt.common.utils import custom_environ, digest128
-from dlt.common.utils import uniq_id
-from dlt.destinations import clickhouse
-from dlt.destinations.impl.clickhouse.clickhouse import ClickHouseClient
-from dlt.destinations.impl.clickhouse.configuration import (
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.utils import custom_environ, digest128
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations import clickhouse
+from data_load_tool.destinations.impl.clickhouse.clickhouse import ClickHouseClient
+from data_load_tool.destinations.impl.clickhouse.configuration import (
     ClickHouseCredentials,
     ClickHouseClientConfiguration,
 )

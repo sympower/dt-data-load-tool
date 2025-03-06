@@ -6,19 +6,19 @@ keywords: [how to, deploy a pipeline, Cloud Run]
 
 # Deploy a pipeline with Google Cloud Run
 
-This guide explains how to deploy a pipeline using the gcloud shell and dlt CLI commands. To deploy a pipeline using this method, you must have a working knowledge of GCP and its associated services, such as Cloud Run jobs, IAM and permissions, and GCP service accounts.
+This guide explains how to deploy a pipeline using the gcloud shell and data_load_tool CLI commands. To deploy a pipeline using this method, you must have a working knowledge of GCP and its associated services, such as Cloud Run jobs, IAM and permissions, and GCP service accounts.
 
 Deploy the pipeline using Google Cloud Run jobs. First, navigate to the directory on your local machine or cloud repository (e.g., GitHub, Bitbucket) where you want to create the function code for deployment.
 
 ## 1. Setup pipeline
 
-1. In this guide, we set up the dlt
+1. In this guide, we set up the data_load_tool
    [Notion verified source](../../dlt-ecosystem/verified-sources/notion). However, you can use any verified source or create a custom one.
 
 1. Run the following command to initialize the verified source with Notion and create a pipeline example with BigQuery as the target.
 
      ```sh
-     dlt init notion bigquery
+     data_load_tool init notion bigquery
      ```
 
    - After the command executes, new files and folders with the necessary configurations are created in the main directory.
@@ -86,5 +86,5 @@ Environment variables can be set in Cloud Run in two ways:
 
 To manually trigger the job, click "EXECUTE". You can also set up a scheduled trigger to automate runs.
 
-That's it! Have fun using dlt in Google Cloud Run!
+That's it! Have fun using data_load_tool in Google Cloud Run!
 

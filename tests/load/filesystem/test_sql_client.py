@@ -4,14 +4,14 @@
 from typing import Optional
 
 import pytest
-import dlt
+import data_load_tool
 import os
 import shutil
 
 
-from dlt import Pipeline
-from dlt.common.utils import uniq_id
-from dlt.common.schema.typing import TTableFormat
+from data_load_tool import Pipeline
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema.typing import TTableFormat
 
 from tests.load.utils import (
     destinations_configs,
@@ -20,10 +20,10 @@ from tests.load.utils import (
     SFTP_BUCKET,
     MEMORY_BUCKET,
 )
-from dlt.destinations import filesystem
+from data_load_tool.destinations import filesystem
 from tests.utils import TEST_STORAGE_ROOT
 from tests.cases import arrow_table_all_data_types
-from dlt.destinations.exceptions import DatabaseUndefinedRelation
+from data_load_tool.destinations.exceptions import DatabaseUndefinedRelation
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -54,9 +54,9 @@ def _run_dataset_checks(
 
     unsupported_persistent_secrets = destination_config.bucket_url.startswith("gs")
 
-    @dlt.source()
+    @data_load_tool.source()
     def source():
-        @dlt.resource(
+        @data_load_tool.resource(
             table_format=table_format,
             write_disposition="replace",
         )
@@ -69,7 +69,7 @@ def _run_dataset_checks(
                 for i in range(total_records)
             ]
 
-        @dlt.resource(
+        @data_load_tool.resource(
             table_format=table_format,
             write_disposition="replace",
         )
@@ -82,7 +82,7 @@ def _run_dataset_checks(
                 for i in range(total_records)
             ]
 
-        @dlt.resource(table_format=table_format)
+        @data_load_tool.resource(table_format=table_format)
         def arrow_all_types():
             yield arrow_table_all_data_types("arrow-table", num_rows=total_records)[0]
 
@@ -97,7 +97,7 @@ def _run_dataset_checks(
 
     import duckdb
     from duckdb import HTTPException, IOException, InvalidInputException
-    from dlt.destinations.impl.filesystem.sql_client import (
+    from data_load_tool.destinations.impl.filesystem.sql_client import (
         FilesystemSqlClient,
         DuckDbCredentials,
     )
@@ -365,7 +365,7 @@ def test_evolving_filesystem(
             f"Test only works for jsonl and parquet, given: {destination_config.file_format}"
         )
 
-    @dlt.resource(table_name="items")
+    @data_load_tool.resource(table_name="items")
     def items():
         yield from [{"id": i} for i in range(20)]
 
@@ -380,7 +380,7 @@ def test_evolving_filesystem(
     df = pipeline.dataset().items.df()
     assert len(df.index) == 20
 
-    @dlt.resource(table_name="items")
+    @data_load_tool.resource(table_name="items")
     def items2():
         yield from [{"id": i, "other_value": "Blah"} for i in range(20, 50)]
 

@@ -1,6 +1,6 @@
 ---
 title: Notion
-description: dlt pipeline for Notion API
+description: data_load_tool pipeline for Notion API
 keywords: [notion api, notion pipeline, notion]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 [Notion](https://www.notion.so/) is a flexible workspace tool for organizing personal and
 professional tasks, offering customizable notes, documents, databases, and more.
 
-This Notion `dlt` verified source and
+This Notion `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/notion_pipeline.py)
 loads data using the “Notion API” to the destination of your choice.
 
@@ -54,7 +54,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init notion duckdb
+   data_load_tool init notion duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -72,7 +72,7 @@ For more information, read the guide on [how to add a verified source.](../../wa
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -106,7 +106,7 @@ For more information, read the [General usage: Credentials.](../../general-usage
 3. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `notion`, you may also use any
    custom name instead.
@@ -115,7 +115,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `notion_databases`
@@ -123,10 +123,10 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 This function loads notion databases from Notion into the destination.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def notion_databases(
     database_ids: Optional[List[Dict[str, str]]] = None,
-    api_key: str = dlt.secrets.value,
+    api_key: str = data_load_tool.secrets.value,
 ) -> Iterator[DltResource]:
    ...
 ```
@@ -151,7 +151,7 @@ verified source.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
       pipeline_name="notion",  # Use a custom name if desired
       destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
       dataset_name="notion_database"  # Use a custom name if desired

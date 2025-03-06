@@ -1,10 +1,10 @@
 import pytest
 
-from dlt.common.schema import TColumnSchema, Schema
+from data_load_tool.common.schema import TColumnSchema, Schema
 
-from dlt.destinations import dremio
-from dlt.destinations.impl.dremio.configuration import DremioClientConfiguration, DremioCredentials
-from dlt.destinations.impl.dremio.dremio import DremioClient
+from data_load_tool.destinations import dremio
+from data_load_tool.destinations.impl.dremio.configuration import DremioClientConfiguration, DremioCredentials
+from data_load_tool.destinations.impl.dremio.dremio import DremioClient
 from tests.load.utils import empty_schema
 
 
@@ -21,7 +21,7 @@ def dremio_client(empty_schema: Schema) -> DremioClient:
 
 
 def test_dremio_factory() -> None:
-    from dlt.destinations import dremio
+    from data_load_tool.destinations import dremio
 
     dest = dremio(
         "grpc://username:password@host:1111/data_source", staging_data_source="s3_dlt_stage"

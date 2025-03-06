@@ -1,5 +1,5 @@
 import pytest
-from dlt.helpers.dbt_cloud import run_dbt_cloud_job, get_dbt_cloud_run_status
+from data_load_tool.helpers.dbt_cloud import run_dbt_cloud_job, get_dbt_cloud_run_status
 
 
 @pytest.mark.parametrize("wait_outcome", [False, True])

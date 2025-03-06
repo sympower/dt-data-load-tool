@@ -2,12 +2,12 @@ from typing import Any, Iterator
 
 import pytest
 
-import dlt
-from dlt.common.destination.client import DestinationClientDwhConfiguration
-from dlt.common.schema.schema import Schema
-from dlt.common.typing import TDataItem
-from dlt.common.utils import uniq_id
-from dlt.destinations.exceptions import DatabaseUndefinedRelation
+import data_load_tool
+from data_load_tool.common.destination.client import DestinationClientDwhConfiguration
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.typing import TDataItem
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations.exceptions import DatabaseUndefinedRelation
 from tests.load.utils import destinations_configs, DestinationTestConfiguration
 from tests.pipeline.utils import load_table_counts
 from tests.utils import TEST_STORAGE_ROOT, assert_load_info
@@ -26,7 +26,7 @@ def test_clickhouse_destination_append(destination_config: DestinationTestConfig
 
     try:
 
-        @dlt.resource(name="items", write_disposition="append")
+        @data_load_tool.resource(name="items", write_disposition="append")
         def items() -> Iterator[TDataItem]:
             yield {
                 "id": 1,
@@ -51,7 +51,7 @@ def test_clickhouse_destination_append(destination_config: DestinationTestConfig
         assert table_counts["_dlt_loads"] == 1
 
         # Load again with schema evolution.
-        @dlt.resource(name="items", write_disposition="append")
+        @data_load_tool.resource(name="items", write_disposition="append")
         def items2() -> Iterator[TDataItem]:
             yield {
                 "id": 1,
@@ -94,7 +94,7 @@ def test_clickhouse_destination_append(destination_config: DestinationTestConfig
 )
 def test_clickhouse_no_dataset_name(destination_config: DestinationTestConfiguration) -> None:
     # add staging to cover staging dataset name that must be present
-    destination_config.staging = dlt.destinations.filesystem(TEST_STORAGE_ROOT)
+    destination_config.staging = data_load_tool.destinations.filesystem(TEST_STORAGE_ROOT)
     # create explicitly empty dataset
     # NOTE: we use empty string here but when creating pipeline directly you can just skip
     # the dataset_name argument
@@ -113,7 +113,7 @@ def test_clickhouse_no_dataset_name(destination_config: DestinationTestConfigura
     if dest_client.config.credentials.host != "localhost":  # type: ignore[attr-defined]
         pytest.skip("Empty dataset may be tested only on a localhost clickhouse")
 
-    @dlt.resource(name="items", write_disposition="merge", primary_key="id")
+    @data_load_tool.resource(name="items", write_disposition="merge", primary_key="id")
     def items() -> Iterator[Any]:
         yield {
             "id": 1,

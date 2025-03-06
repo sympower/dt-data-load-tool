@@ -7,21 +7,21 @@ import Header from '../_source-info-header.md';
 
 <Header/>
 
-This is a dlt source you can use to extract data from any REST API. It uses [declarative configuration](#source-configuration) to define the API endpoints, their [relationships](#define-resource-relationships), how to handle [pagination](#pagination), and [authentication](#authentication).
+This is a data_load_tool source you can use to extract data from any REST API. It uses [declarative configuration](#source-configuration) to define the API endpoints, their [relationships](#define-resource-relationships), how to handle [pagination](#pagination), and [authentication](#authentication).
 
 ### Quick example
 
 Here's an example of how to configure the REST API source to load posts and related comments from a hypothetical blog API:
 
 ```py
-import dlt
-from dlt.sources.rest_api import rest_api_source
+import data_load_tool
+from data_load_tool.sources.rest_api import rest_api_source
 
 source = rest_api_source({
     "client": {
         "base_url": "https://api.example.com/",
         "auth": {
-            "token": dlt.secrets["your_api_token"],
+            "token": data_load_tool.secrets["your_api_token"],
         },
         "paginator": {
             "type": "json_link",
@@ -48,7 +48,7 @@ source = rest_api_source({
     ],
 })
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="rest_api_example",
     destination="duckdb",
     dataset_name="rest_api_data",
@@ -63,23 +63,23 @@ Running this pipeline will create two tables in DuckDB: `posts` and `comments` w
 
 ### Prerequisites
 
-Please make sure the `dlt` library is installed. Refer to the [installation guide](../../../intro).
+Please make sure the `data_load_tool` library is installed. Refer to the [installation guide](../../../intro).
 
 ### Initialize the REST API source
 
 Enter the following command in your terminal:
 
 ```sh
-dlt init rest_api duckdb
+data_load_tool init rest_api duckdb
 ```
 
-[dlt init](../../../reference/command-line-interface) will initialize the pipeline examples for REST API as the [source](../../../general-usage/source) and [duckdb](../../destinations/duckdb.md) as the [destination](../../destinations).
+[data_load_tool init](../../../reference/command-line-interface) will initialize the pipeline examples for REST API as the [source](../../../general-usage/source) and [duckdb](../../destinations/duckdb.md) as the [destination](../../destinations).
 
-Running `dlt init` creates the following in the current folder:
+Running `data_load_tool init` creates the following in the current folder:
 - `rest_api_pipeline.py` file with a sample pipelines definition:
     - GitHub API example
     - Pokemon API example
-- `.dlt` folder with:
+- `.data_load_tool` folder with:
      - `secrets.toml` file to store your access tokens and other sensitive information
      - `config.toml` file to store the configuration settings
 - `requirements.txt` file with the required dependencies
@@ -94,7 +94,7 @@ This source is based on the [RESTClient class](../../../general-usage/http/rest-
 
 ### Add credentials
 
-In the `.dlt` folder, you'll find a file called `secrets.toml`, where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe.
+In the `.data_load_tool` folder, you'll find a file called `secrets.toml`, where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe.
 
 The GitHub API [requires an access token](https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28) to access some of its endpoints and to increase the rate limit for the API calls. To get a GitHub token, follow the GitHub documentation on [managing your personal access tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
@@ -122,7 +122,7 @@ github_token = "your_github_token"
 3. Verify that everything loaded correctly by using the following command:
 
    ```sh
-   dlt pipeline rest_api show
+   data_load_tool pipeline rest_api show
    ```
 
 ## Source configuration
@@ -132,13 +132,13 @@ github_token = "your_github_token"
 Let's take a look at the GitHub example in the `rest_api_pipeline.py` file:
 
 ```py
-from dlt.sources.rest_api import RESTAPIConfig, rest_api_resources
+from data_load_tool.sources.rest_api import RESTAPIConfig, rest_api_resources
 
-@dlt.source
-def github_source(github_token=dlt.secrets.value):
+@data_load_tool.source
+def github_source(github_token=data_load_tool.secrets.value):
     config: RESTAPIConfig = {
         "client": {
-            "base_url": "https://api.github.com/repos/dlt-hub/dlt/",
+            "base_url": "https://api.github.com/repos/dlt-hub/data_load_tool/",
             "auth": {
                 "token": github_token,
             },
@@ -182,7 +182,7 @@ def github_source(github_token=dlt.secrets.value):
     yield from rest_api_resources(config)
 
 def load_github() -> None:
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="rest_api_github",
         destination="duckdb",
         dataset_name="rest_api_data",
@@ -211,7 +211,7 @@ Let's break down the configuration in more detail.
 Import the `RESTAPIConfig` type from the `rest_api` module to have convenient hints in your editor/IDE and use it to define the configuration object.
 
 ```py
-from dlt.sources.rest_api import RESTAPIConfig
+from data_load_tool.sources.rest_api import RESTAPIConfig
 ```
 :::
 
@@ -242,7 +242,7 @@ The `client` configuration is used to connect to the API's endpoints. It include
 
 #### `resource_defaults` (optional)
 
-`resource_defaults` contains the default values to [configure the dlt resources](#resource-configuration). This configuration is applied to all resources unless overridden by the resource-specific configuration.
+`resource_defaults` contains the default values to [configure the data_load_tool resources](#resource-configuration). This configuration is applied to all resources unless overridden by the resource-specific configuration.
 
 For example, you can set the primary key, write disposition, and other default settings here:
 
@@ -286,7 +286,7 @@ This is a list of resource configurations that define the API endpoints to be lo
 
 ### Resource configuration
 
-A resource configuration is used to define a [dlt resource](../../../general-usage/resource.md) for the data to be loaded from an API endpoint. It contains the following key fields:
+A resource configuration is used to define a [data_load_tool resource](../../../general-usage/resource.md) for the data to be loaded from an API endpoint. It contains the following key fields:
 
 - `endpoint`: The endpoint configuration for the resource. It can be a string or a dict representing the endpoint settings. See the [endpoint configuration](#endpoint-configuration) section for more details.
 - `write_disposition`: The write disposition for the resource.
@@ -296,13 +296,13 @@ A resource configuration is used to define a [dlt resource](../../../general-usa
 - `selected`: A flag to indicate if the resource is selected for loading. This could be useful when you want to load data only from child resources and not from the parent resource.
 - `auth`: An optional `AuthConfig` instance. If passed, is used over the one defined in the [client](#client) definition. Example:
 ```py
-from dlt.sources.helpers.rest_client.auth import HttpBasicAuth
+from data_load_tool.sources.helpers.rest_client.auth import HttpBasicAuth
 
 config = {
     "client": {
         "auth": {
             "type": "bearer",
-            "token": dlt.secrets["your_api_token"],
+            "token": data_load_tool.secrets["your_api_token"],
         }
     },
     "resources": [
@@ -311,7 +311,7 @@ config = {
             "name": "my-resource-with-special-auth",
             "endpoint": {
                 # ...
-                "auth": HttpBasicAuth("user", dlt.secrets["your_basic_auth_password"])
+                "auth": HttpBasicAuth("user", data_load_tool.secrets["your_basic_auth_password"])
             },
             # ...
         }
@@ -321,7 +321,7 @@ config = {
 ```
 This would use `Bearer` auth as defined in the `client` for `resource-using-bearer-auth` and `Http Basic` auth for `my-resource-with-special-auth`.
 
-You can also pass additional resource parameters that will be used to configure the dlt resource. See [dlt resource API reference](../../../api_reference/dlt/extract/decorators#resource) for more details.
+You can also pass additional resource parameters that will be used to configure the data_load_tool resource. See [data_load_tool resource API reference](../../../api_reference/data_load_tool/extract/decorators#resource) for more details.
 
 ### Endpoint configuration
 
@@ -397,7 +397,7 @@ You can configure the pagination for the `posts` resource like this:
 Alternatively, you can use the paginator instance directly:
 
 ```py
-from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 
 # ...
 
@@ -430,7 +430,7 @@ For more complex pagination methods, you can implement a [custom paginator](../.
 Alternatively, you can use the dictionary configuration syntax also for custom paginators. For this, you need to register your custom paginator:
 
 ```py
-from dlt.sources.rest_api.config_setup import register_paginator
+from data_load_tool.sources.rest_api.config_setup import register_paginator
 
 class CustomPaginator(SinglePagePaginator):
     # custom implementation of SinglePagePaginator
@@ -513,7 +513,7 @@ Here's how to configure authentication using a bearer token:
         # ...
         "auth": {
             "type": "bearer",
-            "token": dlt.secrets["your_api_token"],
+            "token": data_load_tool.secrets["your_api_token"],
         },
         # ...
     },
@@ -523,11 +523,11 @@ Here's how to configure authentication using a bearer token:
 Alternatively, you can use the authentication class directly:
 
 ```py
-from dlt.sources.helpers.rest_client.auth import BearerTokenAuth
+from data_load_tool.sources.helpers.rest_client.auth import BearerTokenAuth
 
 config = {
     "client": {
-        "auth": BearerTokenAuth(dlt.secrets["your_api_token"]),
+        "auth": BearerTokenAuth(data_load_tool.secrets["your_api_token"]),
     },
     "resources": [
     ]
@@ -542,7 +542,7 @@ Since token-based authentication is one of the most common methods, you can use 
     "client": {
         # ...
         "auth": {
-            "token": dlt.secrets["your_api_token"],
+            "token": data_load_tool.secrets["your_api_token"],
         },
         # ...
     },
@@ -582,7 +582,7 @@ For more complex authentication methods, you can implement a [custom authenticat
 You can use the dictionary configuration syntax also for custom authentication classes after registering them as follows:
 
 ```py
-from dlt.sources.rest_api.config_setup import register_auth
+from data_load_tool.sources.rest_api.config_setup import register_auth
 
 class CustomAuth(AuthConfigBase):
     pass
@@ -593,7 +593,7 @@ register_auth("custom_auth", CustomAuth)
     # ...
     "auth": {
         "type": "custom_auth",
-        "api_key": dlt.secrets["sources.my_source.my_api_key"],
+        "api_key": data_load_tool.secrets["sources.my_source.my_api_key"],
     }
 }
 ```
@@ -832,18 +832,18 @@ This will include the `id`, `title`, and `created_at` fields from the `issues` r
 ### Define a resource which is not a REST endpoint
 
 Sometimes, we want to request endpoints with specific values that are not returned by another endpoint.
-Thus, you can also include arbitrary dlt resources in your `RESTAPIConfig` instead of defining a resource for every path!
+Thus, you can also include arbitrary data_load_tool resources in your `RESTAPIConfig` instead of defining a resource for every path!
 
 In the following example, we want to load the issues belonging to three repositories.
-Instead of defining three different issues resources, one for each of the paths `dlt-hub/dlt/issues/`, `dlt-hub/verified-sources/issues/`, `dlt-hub/dlthub-education/issues/`, we have a resource `repositories` which yields a list of repository names that will be fetched by the dependent resource `issues`.
+Instead of defining three different issues resources, one for each of the paths `dlt-hub/data_load_tool/issues/`, `dlt-hub/verified-sources/issues/`, `dlt-hub/dlthub-education/issues/`, we have a resource `repositories` which yields a list of repository names that will be fetched by the dependent resource `issues`.
 
 ```py
-from dlt.sources.rest_api import RESTAPIConfig
+from data_load_tool.sources.rest_api import RESTAPIConfig
 
-@dlt.resource()
+@data_load_tool.resource()
 def repositories() -> Generator[List[Dict[str, Any]], Any, Any]:
     """A seed list of repositories to fetch"""
-    yield [{"name": "dlt"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
+    yield [{"name": "data_load_tool"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
 
 
 config: RESTAPIConfig = {
@@ -870,10 +870,10 @@ config: RESTAPIConfig = {
 Be careful that the parent resource needs to return `Generator[List[Dict[str, Any]]]`. Thus, the following will NOT work:
 
 ```py
-@dlt.resource
+@data_load_tool.resource
 def repositories() -> Generator[Dict[str, Any], Any, Any]:
     """Not working seed list of repositories to fetch"""
-    yield from [{"name": "dlt"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
+    yield from [{"name": "data_load_tool"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
 ```
 
 ### Processing steps: filter and transform data
@@ -979,7 +979,7 @@ You can combine multiple processing steps to achieve complex transformations:
 Some APIs provide a way to fetch only new or changed data (most often by using a timestamp field like `updated_at`, `created_at`, or incremental IDs).
 This is called [incremental loading](../../../general-usage/incremental-loading.md) and is very useful as it allows you to reduce the load time and the amount of data transferred.
 
-When the API endpoint supports incremental loading, you can configure dlt to load only the new or changed data using these two methods:
+When the API endpoint supports incremental loading, you can configure data_load_tool to load only the new or changed data using these two methods:
 
 1. Defining a special parameter in the `params` section of the [endpoint configuration](#endpoint-configuration).
 2. Specifying the `incremental` field in the endpoint configuration.
@@ -1020,12 +1020,12 @@ To enable incremental loading for this endpoint, you can use the following endpo
 }
 ```
 
-After you run the pipeline, dlt will keep track of the last `created_at` from all the posts fetched and use it as the `created_since` parameter in the next request.
+After you run the pipeline, data_load_tool will keep track of the last `created_at` from all the posts fetched and use it as the `created_since` parameter in the next request.
 So in our case, the next request will be made to `https://api.example.com/posts?created_since=2024-01-28` to fetch only the new posts created after `2024-01-28`.
 
 Let's break down the configuration.
 
-1. We explicitly set `data_selector` to `"results"` to select the list of posts from the response. This is optional; if not set, dlt will try to auto-detect the data location.
+1. We explicitly set `data_selector` to `"results"` to select the list of posts from the response. This is optional; if not set, data_load_tool will try to auto-detect the data location.
 2. We define the `created_since` parameter as an incremental parameter with the following fields:
 
 ```py
@@ -1167,7 +1167,7 @@ config: RESTAPIConfig = {
 You will get an error like this:
 
 ```sh
-dlt.common.exceptions.DictValidationException: In path .: field 'resources[0]'
+data_load_tool.common.exceptions.DictValidationException: In path .: field 'resources[0]'
 expects the following types: str, EndpointResource. Provided value {'name': 'issues', 'params': {'sort': 'updated'},
 'endpoint': {'path': 'issues', ... }} with type 'dict' is invalid with the following errors:
 For EndpointResource: In path ./resources[0]: following fields are unexpected {'params'}
@@ -1179,7 +1179,7 @@ It means that in the first resource configuration (`resources[0]`), the `params`
 Import the `RESTAPIConfig` type from the `rest_api` module to have convenient hints in your editor/IDE and use it to define the configuration object.
 
 ```py
-from dlt.sources.rest_api import RESTAPIConfig
+from data_load_tool.sources.rest_api import RESTAPIConfig
 ```
 :::
 

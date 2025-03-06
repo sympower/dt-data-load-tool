@@ -1,6 +1,6 @@
 ---
 title: Inbox
-description: dlt verified source for Mail Inbox
+description: data_load_tool verified source for Mail Inbox
 keywords: [inbox, inbox verified source, inbox mail, email]
 ---
 import Header from './_source-info-header.md';
@@ -9,9 +9,9 @@ import Header from './_source-info-header.md';
 
 <Header/>
 
-This source collects inbox emails, retrieves attachments, and stores relevant email data. It uses the imaplib library for IMAP interactions and the dlt library for data processing.
+This source collects inbox emails, retrieves attachments, and stores relevant email data. It uses the imaplib library for IMAP interactions and the data_load_tool library for data processing.
 
-This Inbox `dlt` verified source and
+This Inbox `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/inbox_pipeline.py)
 load data using the “Inbox” verified source to the destination of your choice.
 
@@ -65,7 +65,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init inbox duckdb
+   data_load_tool init inbox duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -84,7 +84,7 @@ For more information, read the
 
 ### Add credential
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
 
    ```toml
    # put your secret values and credentials here
@@ -119,7 +119,7 @@ For more information, read the
 
 2. Once the pipeline has finished running, you can verify that everything loaded correctly by using the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `standard_inbox`, you may also use any custom name instead.
 
@@ -127,18 +127,18 @@ For more information, read the [Walkthrough: Run a pipeline.](../../walkthroughs
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
 
 ### Source `inbox_source`
 
 This function fetches inbox emails, saves attachments locally, and returns uids, messages, and attachments as resources.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def inbox_source(
-    host: str = dlt.secrets.value,
-    email_account: str = dlt.secrets.value,
-    password: str = dlt.secrets.value,
+    host: str = data_load_tool.secrets.value,
+    email_account: str = data_load_tool.secrets.value,
+    password: str = data_load_tool.secrets.value,
     folder: str = "INBOX",
     gmail_group: Optional[str] = GMAIL_GROUP,
     start_date: pendulum.DateTime = START_DATE,
@@ -149,11 +149,11 @@ def inbox_source(
    ...
 ```
 
-`host` : IMAP server hostname. Default: 'dlt.secrets.value'.
+`host` : IMAP server hostname. Default: 'data_load_tool.secrets.value'.
 
-`email_account`: Email login. Default: 'dlt.secrets.value'.
+`email_account`: Email login. Default: 'data_load_tool.secrets.value'.
 
-`password`:  Email App password. Default: 'dlt.secrets.value'.
+`password`:  Email App password. Default: 'data_load_tool.secrets.value'.
 
 `folder`: Mailbox folder for collecting emails. Default: 'INBOX'.
 
@@ -172,11 +172,11 @@ def inbox_source(
 This resource collects email message UIDs (Unique IDs) from the mailbox.
 
 ```py
-@dlt.resource(name="uids")
+@data_load_tool.resource(name="uids")
 def get_messages_uids(
     initial_message_num: Optional[
-        dlt.sources.incremental[int]
-    ] = dlt.sources.incremental("message_uid", initial_value=1),
+        data_load_tool.sources.incremental[int]
+    ] = data_load_tool.sources.incremental("message_uid", initial_value=1),
 ) -> TDataItem:
    ...
 ```
@@ -188,7 +188,7 @@ def get_messages_uids(
 This resource retrieves emails by UID (Unique IDs), yielding a dictionary with metadata like UID, ID, sender, subject, dates, content type, and body.
 
 ```py
-@dlt.transformer(name="messages", primary_key="message_uid")
+@data_load_tool.transformer(name="messages", primary_key="message_uid")
 def get_messages(
     items: TDataItems,
     include_body: bool = True,
@@ -206,7 +206,7 @@ Similar to the previous resources, resource `get_attachments` extracts email att
 It yields file items with attachments in the file_content field and the original email in the message field.
 
 ```py
-@dlt.transformer(
+@data_load_tool.transformer(
     name="attachments",
     primary_key="file_hash",
 )
@@ -229,7 +229,7 @@ verified source.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="standard_inbox",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="standard_inbox_data"  # Use a custom name if desired

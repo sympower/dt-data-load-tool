@@ -1,6 +1,6 @@
 import pytest
 
-from dlt.common import jsonpath as jp
+from data_load_tool.common import jsonpath as jp
 
 
 @pytest.mark.parametrize("compiled", [True, False])

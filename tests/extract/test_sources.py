@@ -6,20 +6,20 @@ from typing import Any, Dict, Iterator
 import pytest
 import asyncio
 
-import dlt, os
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.specs import BaseConfiguration
-from dlt.common.exceptions import DictValidationException, PipelineStateNotAvailable
-from dlt.common.pipeline import StateInjectableContext, source_state
-from dlt.common.schema import Schema
-from dlt.common.schema.typing import TColumnProp, TColumnSchema
-from dlt.common.schema import utils
-from dlt.common.typing import TDataItems
+import data_load_tool, os
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.specs import BaseConfiguration
+from data_load_tool.common.exceptions import DictValidationException, PipelineStateNotAvailable
+from data_load_tool.common.pipeline import StateInjectableContext, source_state
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.schema.typing import TColumnProp, TColumnSchema
+from data_load_tool.common.schema import utils
+from data_load_tool.common.typing import TDataItems
 
-from dlt.extract import DltResource, DltSource, Incremental
-from dlt.extract.items import TableNameMeta
-from dlt.extract.source import DltResourceDict
-from dlt.extract.exceptions import (
+from data_load_tool.extract import DltResource, DltSource, Incremental
+from data_load_tool.extract.items import TableNameMeta
+from data_load_tool.extract.source import DltResourceDict
+from data_load_tool.extract.exceptions import (
     DataItemRequiredForDynamicTableHints,
     InconsistentTableTemplate,
     InvalidParentResourceDataType,
@@ -31,7 +31,7 @@ from dlt.extract.exceptions import (
     ResourceNotATransformer,
     ResourcesNotFoundError,
 )
-from dlt.extract.pipe import Pipe
+from data_load_tool.extract.pipe import Pipe
 
 
 @pytest.fixture(autouse=True)
@@ -143,53 +143,53 @@ def test_parametrized_transformer() -> None:
     def bad_transformer_3(*, item):
         yield 2
 
-    r = dlt.resource(["itemX", "itemY"], name="items")
+    r = data_load_tool.resource(["itemX", "itemY"], name="items")
 
     # transformer must be created on a callable with at least one argument
     with pytest.raises(InvalidTransformerDataTypeGeneratorFunctionRequired):
-        dlt.transformer(data_from=r)("a")  # type: ignore[arg-type]
+        data_load_tool.transformer(data_from=r)("a")  # type: ignore[arg-type]
     with pytest.raises(InvalidTransformerDataTypeGeneratorFunctionRequired):
-        dlt.transformer(data_from=r)(bad_transformer())
+        data_load_tool.transformer(data_from=r)(bad_transformer())
 
     # transformer must take at least one arg
     with pytest.raises(InvalidTransformerGeneratorFunction) as py_ex:
-        dlt.transformer(data_from=r)(bad_transformer)  # type: ignore[arg-type]
+        data_load_tool.transformer(data_from=r)(bad_transformer)  # type: ignore[arg-type]
     assert py_ex.value.code == 1
     # transformer may have only one positional argument and it must be first
     with pytest.raises(InvalidTransformerGeneratorFunction) as py_ex:
-        dlt.transformer(data_from=r)(bad_transformer_2)
+        data_load_tool.transformer(data_from=r)(bad_transformer_2)
     assert py_ex.value.code == 2
     # first argument cannot be kw only
     with pytest.raises(InvalidTransformerGeneratorFunction) as py_ex:
-        dlt.transformer(data_from=r)(bad_transformer_3)  # type: ignore[arg-type]
+        data_load_tool.transformer(data_from=r)(bad_transformer_3)  # type: ignore[arg-type]
     assert py_ex.value.code == 3
 
     # transformer must take data from a resource
     with pytest.raises(InvalidParentResourceIsAFunction):
-        dlt.transformer(data_from=bad_transformer)(good_transformer)
+        data_load_tool.transformer(data_from=bad_transformer)(good_transformer)
     with pytest.raises(InvalidParentResourceDataType):
-        dlt.transformer(data_from=bad_transformer())(good_transformer)
+        data_load_tool.transformer(data_from=bad_transformer())(good_transformer)
 
     # transformer is unbound
-    r = dlt.resource(["itemX", "itemY"], name="items")
-    t = dlt.transformer(data_from=r)(good_transformer)
+    r = data_load_tool.resource(["itemX", "itemY"], name="items")
+    t = data_load_tool.transformer(data_from=r)(good_transformer)
     with pytest.raises(ParametrizedResourceUnbound):
         list(t)
 
     # pass wrong arguments
-    r = dlt.resource(["itemX", "itemY"], name="items")
-    t = dlt.transformer(data_from=r)(good_transformer)
+    r = data_load_tool.resource(["itemX", "itemY"], name="items")
+    t = data_load_tool.transformer(data_from=r)(good_transformer)
     with pytest.raises(TypeError):
         list(t("p1", 1, 2, 3, 4))
 
     # pass arguments that fully bind the item
-    r = dlt.resource(["itemX", "itemY"], name="items")
-    t = dlt.transformer(data_from=r)(good_transformer)
+    r = data_load_tool.resource(["itemX", "itemY"], name="items")
+    t = data_load_tool.transformer(data_from=r)(good_transformer)
     with pytest.raises(TypeError):
         t(item={}, p1="p2", p2=1)
 
-    r = dlt.resource(["itemX", "itemY"], name="items")
-    t = dlt.transformer(data_from=r)(good_transformer)
+    r = data_load_tool.resource(["itemX", "itemY"], name="items")
+    t = data_load_tool.transformer(data_from=r)(good_transformer)
     items = list(t(p1="p1", p2=2))
 
     def assert_items(_items: TDataItems) -> None:
@@ -201,14 +201,14 @@ def test_parametrized_transformer() -> None:
     assert_items(items)
 
     # parameters passed as args
-    r = dlt.resource(["itemX", "itemY"], name="items")
-    t = dlt.transformer(data_from=r)(good_transformer)
+    r = data_load_tool.resource(["itemX", "itemY"], name="items")
+    t = data_load_tool.transformer(data_from=r)(good_transformer)
     items = list(t("p1", 2))
     assert_items(items)
 
 
 def test_resource_bind_when_in_source() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     def parametrized(_range: int):
         yield list(range(_range))
 
@@ -219,7 +219,7 @@ def test_resource_bind_when_in_source() -> None:
     assert r1.source_name is r2.source_name is None
 
     # add parametrized to source
-    @dlt.source
+    @data_load_tool.source
     def test_source():
         return parametrized
 
@@ -244,17 +244,17 @@ def test_resource_bind_when_in_source() -> None:
 
 
 def test_resource_bind_call_forms() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     def returns_res(_input):
         # resource returning resource
-        return dlt.resource(_input, name="internal_res")
+        return data_load_tool.resource(_input, name="internal_res")
 
-    @dlt.resource
+    @data_load_tool.resource
     def returns_pipe(_input):
         # returns pipe
         return Pipe.from_data("internal_pipe", _input)
 
-    @dlt.resource
+    @data_load_tool.resource
     def regular(_input):
         yield from _input
 
@@ -284,7 +284,7 @@ def test_resource_bind_call_forms() -> None:
     b_returns_pipe = returns_pipe("ABCA")
     assert len(b_returns_pipe._pipe) == 1
 
-    @dlt.source
+    @data_load_tool.source
     def test_source():
         return returns_res, returns_pipe, regular
 
@@ -333,33 +333,33 @@ def test_call_clone_separate_pipe() -> None:
         all_yields.append(param)
         yield param
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data(param: str):
         yield from some_data_gen(param)
 
     # create two resource instances and extract in single ad hoc resource
     data1 = some_data("state1")
     data1._pipe.name = "state1_data"
-    dlt.pipeline(dev_mode=True).extract([data1, some_data("state2")], schema=Schema("default"))
+    data_load_tool.pipeline(dev_mode=True).extract([data1, some_data("state2")], schema=Schema("default"))
     # both should be extracted. what we test here is the combination of binding the resource by calling it that clones the internal pipe
     # and then creating a source with both clones. if we keep same pipe id when cloning on call, a single pipe would be created shared by two resources
     assert all_yields == ["state1", "state2"]
 
 
 def test_resource_bind_lazy_eval() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     def needs_param(param):
         yield from range(param)
 
-    @dlt.transformer(data_from=needs_param(3))
+    @data_load_tool.transformer(data_from=needs_param(3))
     def tx_form(item, multi):
         yield item * multi
 
-    @dlt.transformer(data_from=tx_form(2))
+    @data_load_tool.transformer(data_from=tx_form(2))
     def tx_form_fin(item, div):
         yield item / div
 
-    @dlt.transformer(data_from=needs_param)
+    @data_load_tool.transformer(data_from=needs_param)
     def tx_form_dir(item, multi):
         yield item * multi
 
@@ -388,17 +388,17 @@ def test_transformer_preliminary_step() -> None:
         yield item.upper()
         yield item.upper()
 
-    tx_stage = dlt.transformer()(yield_twice)()
+    tx_stage = data_load_tool.transformer()(yield_twice)()
     # filter out small caps and insert this before the head
     tx_stage.add_filter(lambda letter: letter.isupper(), 0)
     # be got filtered out before duplication
-    assert list(dlt.resource(["A", "b", "C"], name="data") | tx_stage) == ["A", "A", "C", "C"]
+    assert list(data_load_tool.resource(["A", "b", "C"], name="data") | tx_stage) == ["A", "A", "C", "C"]
 
     # filter after duplication
-    tx_stage = dlt.transformer()(yield_twice)()
+    tx_stage = data_load_tool.transformer()(yield_twice)()
     tx_stage.add_filter(lambda letter: letter.isupper())
     # nothing is filtered out: on duplicate we also capitalize so filter does not trigger
-    assert list(dlt.resource(["A", "b", "C"], name="data") | tx_stage) == [
+    assert list(data_load_tool.resource(["A", "b", "C"], name="data") | tx_stage) == [
         "A",
         "A",
         "B",
@@ -409,7 +409,7 @@ def test_transformer_preliminary_step() -> None:
 
 
 def test_set_table_name() -> None:
-    r = dlt.resource(["A", "b", "C"], name="data")
+    r = data_load_tool.resource(["A", "b", "C"], name="data")
     assert r.table_name == "data"
     r.table_name = "letters"
     assert r.table_name == "letters"
@@ -418,10 +418,10 @@ def test_set_table_name() -> None:
 
 
 def test_select_resources() -> None:
-    @dlt.source
+    @data_load_tool.source
     def test_source(no_resources):
         for i in range(no_resources):
-            yield dlt.resource(["A"] * i, name="resource_" + str(i))
+            yield data_load_tool.resource(["A"] * i, name="resource_" + str(i))
 
     s = test_source(10)
     all_resource_names = ["resource_" + str(i) for i in range(10)]
@@ -463,13 +463,13 @@ def test_select_resources() -> None:
 
 
 def test_clone_source() -> None:
-    @dlt.source
+    @data_load_tool.source
     def test_source(no_resources):
         def _gen(i):
             yield "A" * i
 
         for i in range(no_resources):
-            yield dlt.resource(_gen(i), name="resource_" + str(i))
+            yield data_load_tool.resource(_gen(i), name="resource_" + str(i))
 
     s = test_source(4)
     all_resource_names = ["resource_" + str(i) for i in range(4)]
@@ -489,13 +489,13 @@ def test_clone_source() -> None:
 
     # clone parametrized generators
 
-    @dlt.source  # type: ignore[no-redef]
+    @data_load_tool.source  # type: ignore[no-redef]
     def test_source(no_resources):
         def _gen(i):
             yield "A" * i
 
         for i in range(no_resources):
-            yield dlt.resource(_gen, name="resource_" + str(i))
+            yield data_load_tool.resource(_gen, name="resource_" + str(i))
 
     s = test_source(4)
     clone_s = s.clone()
@@ -510,17 +510,17 @@ def test_clone_source() -> None:
 
 
 def test_multiple_parametrized_transformers() -> None:
-    @dlt.source
+    @data_load_tool.source
     def _source(test_set: int = 1):
-        @dlt.resource(selected=False)
+        @data_load_tool.resource(selected=False)
         def _r1():
             yield ["a", "b", "c"]
 
-        @dlt.transformer(data_from=_r1, selected=False)
+        @data_load_tool.transformer(data_from=_r1, selected=False)
         def _t1(items, suffix):
             yield list(map(lambda i: i + "_" + suffix, items))
 
-        @dlt.transformer(data_from=_t1)
+        @data_load_tool.transformer(data_from=_t1)
         def _t2(items, mul):
             yield items * mul
 
@@ -594,17 +594,17 @@ def test_multiple_parametrized_transformers() -> None:
 
 
 def test_extracted_resources_selector() -> None:
-    @dlt.source
+    @data_load_tool.source
     def _source(test_set: int = 1):
-        @dlt.resource(selected=False, write_disposition="append")
+        @data_load_tool.resource(selected=False, write_disposition="append")
         def _r1():
             yield ["a", "b", "c"]
 
-        @dlt.transformer(data_from=_r1, selected=False, write_disposition="replace")
+        @data_load_tool.transformer(data_from=_r1, selected=False, write_disposition="replace")
         def _t1(items, suffix):
             yield list(map(lambda i: i + "_" + suffix, items))
 
-        @dlt.transformer(data_from=_r1, write_disposition="merge")
+        @data_load_tool.transformer(data_from=_r1, write_disposition="merge")
         def _t2(items, mul):
             yield items * mul
 
@@ -644,36 +644,36 @@ def test_extracted_resources_selector() -> None:
 
 
 def test_source_decompose() -> None:
-    @dlt.source
+    @data_load_tool.source
     def _source():
-        @dlt.resource(selected=True)
+        @data_load_tool.resource(selected=True)
         def _r_init():
             yield ["-", "x", "!"]
 
-        @dlt.resource(selected=False)
+        @data_load_tool.resource(selected=False)
         def _r1():
             yield ["a", "b", "c"]
 
-        @dlt.transformer(data_from=_r1, selected=True)
+        @data_load_tool.transformer(data_from=_r1, selected=True)
         def _t1(items, suffix):
             yield list(map(lambda i: i + "_" + suffix, items))
 
-        @dlt.transformer(data_from=_r1)
+        @data_load_tool.transformer(data_from=_r1)
         def _t2(items, mul):
             yield items * mul
 
-        @dlt.transformer(data_from=_r1)
+        @data_load_tool.transformer(data_from=_r1)
         def _t3(items, mul):
             for item in items:
                 yield item.upper() * mul
 
         # add something to init
-        @dlt.transformer(data_from=_r_init)
+        @data_load_tool.transformer(data_from=_r_init)
         def _t_init_post(items):
             for item in items:
                 yield item * 2
 
-        @dlt.resource
+        @data_load_tool.resource
         def _r_isolee():
             yield from ["AX", "CV", "ED"]
 
@@ -717,7 +717,7 @@ def test_source_decompose() -> None:
 
 
 def test_illegal_double_bind() -> None:
-    @dlt.resource()
+    @data_load_tool.resource()
     def _r1():
         yield ["a", "b", "c"]
 
@@ -732,7 +732,7 @@ def test_illegal_double_bind() -> None:
         _r1.bind().bind()
     assert "Parametrized resource" in str(py_ex.value)
 
-    bound_r = dlt.resource([1, 2, 3], name="rx")
+    bound_r = data_load_tool.resource([1, 2, 3], name="rx")
     assert bound_r.args_bound is True
     with pytest.raises(TypeError):
         _r1()
@@ -740,19 +740,19 @@ def test_illegal_double_bind() -> None:
     def _gen():
         yield from [1, 2, 3]
 
-    assert dlt.resource(_gen()).args_bound is True
+    assert data_load_tool.resource(_gen()).args_bound is True
 
 
-@dlt.resource
+@data_load_tool.resource
 def res_in_res(table_name, w_d):
     def _gen(s):
         yield from s
 
-    return dlt.resource(_gen, name=table_name, write_disposition=w_d)
+    return data_load_tool.resource(_gen, name=table_name, write_disposition=w_d)
 
 
 def test_resource_returning_resource() -> None:
-    @dlt.source
+    @data_load_tool.source
     def source_r_in_r():
         yield res_in_res
 
@@ -768,10 +768,10 @@ def test_resource_returning_resource() -> None:
 def test_source_dynamic_resource_attrs() -> None:
     # resources are also types
 
-    @dlt.source
+    @data_load_tool.source
     def test_source(no_resources):
         for i in range(no_resources):
-            yield dlt.resource(["A"] * i, name="resource_" + str(i))
+            yield data_load_tool.resource(["A"] * i, name="resource_" + str(i))
 
     s = test_source(10)
     assert s.resource_1.name == s.resources["resource_1"].name
@@ -782,13 +782,13 @@ def test_source_dynamic_resource_attrs() -> None:
 
 def test_source_resource_attrs_with_conflicting_attrs() -> None:
     """Resource names that conflict with DltSource attributes do not work with attribute access"""
-    dlt.pipeline(dev_mode=True)  # Create pipeline so state property can be accessed
+    data_load_tool.pipeline(dev_mode=True)  # Create pipeline so state property can be accessed
     names = ["state", "resources", "schema", "name", "clone"]
 
-    @dlt.source
+    @data_load_tool.source
     def test_source() -> Iterator[DltResource]:
         for name in names:
-            yield dlt.resource(["A"], name=name)
+            yield data_load_tool.resource(["A"], name=name)
 
     s = test_source()
 
@@ -802,7 +802,7 @@ def test_add_transform_steps() -> None:
     # add all step types, using indexes. final steps
     # gen -> map that converts to str and multiplies character -> filter str of len 2 -> yield all characters in str separately
     r = (
-        dlt.resource([1, 2, 3, 4], name="all")
+        data_load_tool.resource([1, 2, 3, 4], name="all")
         .add_limit(3)
         .add_yield_map(lambda i: (yield from i))
         .add_map(lambda i: str(i) * i, 1)
@@ -812,42 +812,42 @@ def test_add_transform_steps() -> None:
 
 
 def test_add_transform_steps_pipe() -> None:
-    r = dlt.resource([1, 2, 3], name="all") | (lambda i: str(i) * i) | (lambda i: (yield from i))
+    r = data_load_tool.resource([1, 2, 3], name="all") | (lambda i: str(i) * i) | (lambda i: (yield from i))
     assert list(r) == ["1", "2", "2", "3", "3", "3"]
 
 
 def test_add_transformer_right_pipe() -> None:
     # def tests right hand pipe
-    r = [1, 2, 3] | dlt.transformer(lambda i: i * 2, name="lambda")
+    r = [1, 2, 3] | data_load_tool.transformer(lambda i: i * 2, name="lambda")
     # resource was created for a list
     assert r._pipe.parent.name.startswith("iter")
     assert list(r) == [2, 4, 6]
 
     # works for iterators
-    r = iter([1, 2, 3]) | dlt.transformer(lambda i: i * 3, name="lambda")
+    r = iter([1, 2, 3]) | data_load_tool.transformer(lambda i: i * 3, name="lambda")
     assert list(r) == [3, 6, 9]
 
     # must be a transformer
     with pytest.raises(ResourceNotATransformer):
-        iter([1, 2, 3]) | dlt.resource(lambda i: i * 3, name="lambda")
+        iter([1, 2, 3]) | data_load_tool.resource(lambda i: i * 3, name="lambda")
 
 
 def test_limit_infinite_counter() -> None:
-    r = dlt.resource(itertools.count(), name="infinity").add_limit(10)
+    r = data_load_tool.resource(itertools.count(), name="infinity").add_limit(10)
     assert list(r) == list(range(10))
 
 
 @pytest.mark.parametrize("limit", (None, -1, 0, 10))
 def test_limit_edge_cases(limit: int) -> None:
-    r = dlt.resource(range(20), name="resource").add_limit(limit)  # type: ignore
+    r = data_load_tool.resource(range(20), name="resource").add_limit(limit)  # type: ignore
 
-    @dlt.resource()
+    @data_load_tool.resource()
     async def r_async():
         for i in range(20):
             await asyncio.sleep(0.01)
             yield i
 
-    @dlt.resource(parallelized=True)
+    @data_load_tool.resource(parallelized=True)
     def parallelized_resource():
         for i in range(20):
             yield i
@@ -871,12 +871,12 @@ def test_limit_edge_cases(limit: int) -> None:
 
 def test_various_limit_setups() -> None:
     # basic test
-    r = dlt.resource([1, 2, 3, 4, 5], name="test").add_limit(3)
+    r = data_load_tool.resource([1, 2, 3, 4, 5], name="test").add_limit(3)
     assert list(r) == [1, 2, 3]
 
     # yield map test
     r = (
-        dlt.resource([1, 2, 3, 4, 5], name="test")
+        data_load_tool.resource([1, 2, 3, 4, 5], name="test")
         .add_map(lambda i: str(i) * i, 1)
         .add_yield_map(lambda i: (yield from i))
         .add_limit(3)
@@ -885,12 +885,12 @@ def test_various_limit_setups() -> None:
     assert list(r) == ["1", "2", "2"]  # "3" ,"3" ,"3" ,"4" ,"4" ,"4" ,"4", ...]
 
     # nested lists test (limit only applied to yields, not actual items)
-    r = dlt.resource([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]], name="test").add_limit(3)
+    r = data_load_tool.resource([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]], name="test").add_limit(3)
     assert list(r) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     # transformer test
-    r = dlt.resource([1, 2, 3, 4, 5], name="test").add_limit(4)
-    t = dlt.transformer(lambda i: i * 2, name="test")
+    r = data_load_tool.resource([1, 2, 3, 4, 5], name="test").add_limit(4)
+    t = data_load_tool.transformer(lambda i: i * 2, name="test")
     assert list(r) == [1, 2, 3, 4]
     assert list(r | t) == [2, 4, 6, 8]
 
@@ -899,7 +899,7 @@ def test_various_limit_setups() -> None:
     assert list(r | t) == [2, 4, 6, 8]
 
     # limits are fully replaced (more genereous limit applied later takes precedence)
-    r = dlt.resource([1, 2, 3, 4, 5], name="test").add_limit(3).add_limit(4)
+    r = data_load_tool.resource([1, 2, 3, 4, 5], name="test").add_limit(3).add_limit(4)
     assert list(r) == [1, 2, 3, 4]
 
 
@@ -907,25 +907,25 @@ def test_limit_source() -> None:
     def mul_c(item):
         yield from "A" * (item + 2)
 
-    @dlt.source
+    @data_load_tool.source
     def infinite_source():
         for idx in range(3):
-            r = dlt.resource(itertools.count(), name=f"infinity_{idx}").add_limit(10)
+            r = data_load_tool.resource(itertools.count(), name=f"infinity_{idx}").add_limit(10)
             yield r
-            yield r | dlt.transformer(name=f"mul_c_{idx}")(mul_c)
+            yield r | data_load_tool.transformer(name=f"mul_c_{idx}")(mul_c)
 
     # transformer is not limited to 2 elements, infinite resource is, we have 3 resources
     assert list(infinite_source().add_limit(2)) == ["A", "A", 0, "A", "A", "A", 1] * 3
 
 
 def test_limit_max_time() -> None:
-    @dlt.resource()
+    @data_load_tool.resource()
     def r():
         for i in range(100):
             time.sleep(0.1)
             yield i
 
-    @dlt.resource()
+    @data_load_tool.resource()
     async def r_async():
         for i in range(100):
             await asyncio.sleep(0.1)
@@ -945,7 +945,7 @@ def test_limit_max_time() -> None:
 def test_limit_yield_cleanup() -> None:
     state: Dict[str, Any] = {}
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def r():
         for i in range(100):
             time.sleep(0.1)
@@ -963,7 +963,7 @@ def test_limit_yield_cleanup() -> None:
 
     state.clear()
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def r_exit():
         try:
             for i in range(100):
@@ -985,7 +985,7 @@ def test_limit_yield_cleanup() -> None:
     # if we forward a generator
     state.clear()
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def r_from():
         try:
             for i in range(100):
@@ -1009,7 +1009,7 @@ def test_limit_yield_cleanup() -> None:
     os.environ["EXTRACT__NEXT_ITEM_MODE"] = "fifo"
     state.clear()
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def r_iter():
         try:
             for i in range(100):
@@ -1035,7 +1035,7 @@ def test_limit_yield_cleanup() -> None:
 
 
 def test_source_state() -> None:
-    @dlt.source
+    @data_load_tool.source
     def test_source(expected_state):
         assert source_state() == expected_state
         return DltResource(Pipe.from_data("pipe", [1, 2, 3]), None, False)
@@ -1043,7 +1043,7 @@ def test_source_state() -> None:
     with pytest.raises(PipelineStateNotAvailable):
         test_source({}).state
 
-    dlt.pipeline(dev_mode=True)
+    data_load_tool.pipeline(dev_mode=True)
     assert test_source({}).state == {}
 
     # inject state to see if what we write in state is there
@@ -1054,11 +1054,11 @@ def test_source_state() -> None:
 
 
 def test_resource_state() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     def test_resource():
         yield [1, 2, 3]
 
-    @dlt.source(schema=Schema("schema_section"))
+    @data_load_tool.source(schema=Schema("schema_section"))
     def test_source():
         return test_resource
 
@@ -1073,7 +1073,7 @@ def test_resource_state() -> None:
     with pytest.raises(PipelineStateNotAvailable):
         s.test_resource.state
 
-    p = dlt.pipeline(dev_mode=True)
+    p = data_load_tool.pipeline(dev_mode=True)
     assert r.state == {}
     assert s.state == {}
     assert s.test_resource.state == {}
@@ -1170,17 +1170,17 @@ def test_resource_dict_add() -> None:
 
 @pytest.mark.parametrize("add_mode", ("add", "dict", "set"))
 def test_add_transformer_to_source(add_mode: str) -> None:
-    @dlt.resource(name="numbers")
+    @data_load_tool.resource(name="numbers")
     def number_gen(init):
         yield from range(init, init + 5)
 
-    @dlt.source
+    @data_load_tool.source
     def number_source():
         return number_gen
 
     source = number_source()
 
-    @dlt.transformer
+    @data_load_tool.transformer
     def multiplier(item):
         return item * 2
 
@@ -1203,11 +1203,11 @@ def test_add_transformer_to_source(add_mode: str) -> None:
 
 
 def test_unknown_resource_access() -> None:
-    @dlt.resource(name="numbers")
+    @data_load_tool.resource(name="numbers")
     def number_gen(init):
         yield from range(init, init + 5)
 
-    @dlt.source
+    @data_load_tool.source
     def number_source():
         return number_gen
 
@@ -1221,11 +1221,11 @@ def test_unknown_resource_access() -> None:
 
 
 def test_clone_resource_on_call():
-    @dlt.resource(name="gene")
+    @data_load_tool.resource(name="gene")
     def number_gen(init):
         yield from range(init, init + 5)
 
-    @dlt.transformer()
+    @data_load_tool.transformer()
     def multiplier(number, mul):
         return number * mul
 
@@ -1248,11 +1248,11 @@ def test_clone_resource_on_call():
 
 
 def test_clone_resource_on_bind():
-    @dlt.resource(name="gene")
+    @data_load_tool.resource(name="gene")
     def number_gen():
         yield from range(1, 5)
 
-    @dlt.transformer
+    @data_load_tool.transformer
     def multiplier(number, mul):
         return number * mul
 
@@ -1263,7 +1263,7 @@ def test_clone_resource_on_bind():
     assert bound_pipe._pipe.parent is pipe._pipe.parent
 
 
-@dlt.resource(selected=False)
+@data_load_tool.resource(selected=False)
 def number_gen_ext(max_r=3):
     yield from range(1, max_r)
 
@@ -1283,7 +1283,7 @@ def test_source_multiple_iterations() -> None:
         yield [1, 2, 3]
         yield [1, 2, 3]
 
-    s = DltSource(Schema("source"), "module", [dlt.resource(some_data())])
+    s = DltSource(Schema("source"), "module", [data_load_tool.resource(some_data())])
     assert s.exhausted is False
     assert list(s) == [1, 2, 3, 1, 2, 3]
     assert s.exhausted is True
@@ -1297,7 +1297,7 @@ def test_exhausted_property() -> None:
     def open_generator_data():
         yield from [1, 2, 3, 4]
 
-    s = DltSource(Schema("source"), "module", [dlt.resource(open_generator_data())])
+    s = DltSource(Schema("source"), "module", [data_load_tool.resource(open_generator_data())])
     assert s.exhausted is False
     assert next(iter(s)) == 1
     assert s.exhausted is True
@@ -1306,7 +1306,7 @@ def test_exhausted_property() -> None:
     s = DltSource(
         Schema("source"),
         "module",
-        [dlt.resource([1, 2, 3, 4], table_name="table", name="resource")],
+        [data_load_tool.resource([1, 2, 3, 4], table_name="table", name="resource")],
     )
     assert s.exhausted is False
     assert next(iter(s)) == 1
@@ -1316,7 +1316,7 @@ def test_exhausted_property() -> None:
     s = DltSource(
         Schema("source"),
         "module",
-        [dlt.resource(iter([1, 2, 3, 4]), table_name="table", name="resource")],
+        [data_load_tool.resource(iter([1, 2, 3, 4]), table_name="table", name="resource")],
     )
     assert s.exhausted is False
     assert next(iter(s)) == 1
@@ -1330,8 +1330,8 @@ def test_exhausted_property() -> None:
         Schema("source"),
         "module",
         [
-            dlt.resource([1, 2, 3, 4], table_name="table", name="resource"),
-            dlt.resource(open_generator_data()),
+            data_load_tool.resource([1, 2, 3, 4], table_name="table", name="resource"),
+            data_load_tool.resource(open_generator_data()),
         ],
     )
     assert s.exhausted is False
@@ -1341,11 +1341,11 @@ def test_exhausted_property() -> None:
     assert s.exhausted is True
 
     # source with transformers also exhausts
-    @dlt.source
+    @data_load_tool.source
     def mysource():
-        r = dlt.resource(itertools.count(start=1), name="infinity").add_limit(5)
+        r = data_load_tool.resource(itertools.count(start=1), name="infinity").add_limit(5)
         yield r
-        yield r | dlt.transformer(name="double")(lambda x: x * 2)
+        yield r | data_load_tool.transformer(name="double")(lambda x: x * 2)
 
     s = mysource()
     assert s.exhausted is False
@@ -1360,7 +1360,7 @@ def test_exhausted_with_limit() -> None:
     s = DltSource(
         Schema("source"),
         "module",
-        [dlt.resource(open_generator_data)],
+        [data_load_tool.resource(open_generator_data)],
     )
     assert s.exhausted is False
     list(s)
@@ -1375,11 +1375,11 @@ def test_exhausted_with_limit() -> None:
 
 
 def test_clone_resource_with_name() -> None:
-    @dlt.resource(selected=False)
+    @data_load_tool.resource(selected=False)
     def _r1():
         yield ["a", "b", "c"]
 
-    @dlt.transformer(selected=True)
+    @data_load_tool.transformer(selected=True)
     def _t1(items, suffix):
         yield list(map(lambda i: i + "_" + suffix, items))
 
@@ -1707,7 +1707,7 @@ def test_apply_hints_table_variants() -> None:
     # resource hints are base for table variants
     empty.apply_hints(
         primary_key="id",
-        incremental=dlt.sources.incremental(cursor_path="x"),
+        incremental=data_load_tool.sources.incremental(cursor_path="x"),
         columns=[{"name": "id", "data_type": "bigint"}],
     )
     empty.apply_hints(table_name="table_b", write_disposition="merge", create_table_variant=True)

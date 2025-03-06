@@ -1,7 +1,7 @@
 from functools import partial
 
-from dlt.common.runners import TRunMetrics
-from dlt.common.runners.stdout import exec_to_stdout
+from data_load_tool.common.runners import TRunMetrics
+from data_load_tool.common.runners.stdout import exec_to_stdout
 
 
 def worker(data1, data2):

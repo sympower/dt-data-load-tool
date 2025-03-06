@@ -6,10 +6,10 @@ keywords: [destination, credentials, example, lancedb, custom destination, vecto
 ---
 
 This example showcases a Python script that demonstrates the integration of LanceDB, an open-source vector database,
-as a custom destination within the dlt ecosystem.
+as a custom destination within the data_load_tool ecosystem.
 The script illustrates the implementation of a custom destination as well as the population of the LanceDB vector
 store with data from various sources.
-This highlights the seamless interoperability between dlt and LanceDB.
+This highlights the seamless interoperability between data_load_tool and LanceDB.
 
 You can get a Spotify client ID and secret from https://developer.spotify.com/.
 
@@ -29,15 +29,15 @@ import lancedb  # type: ignore
 from lancedb.embeddings import get_registry  # type: ignore
 from lancedb.pydantic import LanceModel, Vector  # type: ignore
 
-import dlt
-from dlt.common.configuration import configspec
-from dlt.common.schema import TTableSchema
-from dlt.common.typing import TDataItems, TSecretStrValue
-from dlt.sources.helpers import requests
-from dlt.sources.helpers.rest_client import RESTClient, AuthConfigBase
+import data_load_tool
+from data_load_tool.common.configuration import configspec
+from data_load_tool.common.schema import TTableSchema
+from data_load_tool.common.typing import TDataItems, TSecretStrValue
+from data_load_tool.sources.helpers import requests
+from data_load_tool.sources.helpers.rest_client import RESTClient, AuthConfigBase
 
 # access secrets to get openai key and instantiate embedding function
-openai_api_key: str = dlt.secrets.get(
+openai_api_key: str = data_load_tool.secrets.get(
     "destination.lancedb.credentials.embedding_model_provider_api_key"
 )
 func = get_registry().get("openai").create(name="text-embedding-3-small", api_key=openai_api_key)
@@ -84,10 +84,10 @@ class SpotifyAuth(AuthConfigBase):
         return auth_response.json()["access_token"]
 
 
-@dlt.source
+@data_load_tool.source
 def spotify_shows(
-    client_id: str = dlt.secrets.value,
-    client_secret: str = dlt.secrets.value,
+    client_id: str = data_load_tool.secrets.value,
+    client_secret: str = data_load_tool.secrets.value,
 ):
     spotify_base_api_url = "https://api.spotify.com/v1"
     client = RESTClient(
@@ -99,7 +99,7 @@ def spotify_shows(
         show_name = show.name
         show_id = show.default
         url = f"/shows/{show_id}/episodes"
-        yield dlt.resource(
+        yield data_load_tool.resource(
             client.paginate(url, params={"limit": 50}),
             name=show_name,
             write_disposition="merge",
@@ -109,9 +109,9 @@ def spotify_shows(
         )
 
 
-@dlt.destination(batch_size=250, name="lancedb")
+@data_load_tool.destination(batch_size=250, name="lancedb")
 def lancedb_destination(items: TDataItems, table: TTableSchema) -> None:
-    db_path = Path(dlt.config.get("lancedb.db_path"))
+    db_path = Path(data_load_tool.config.get("lancedb.db_path"))
     db = lancedb.connect(db_path)
 
     # since we are embedding the description field, we need to do some additional cleaning
@@ -127,13 +127,13 @@ def lancedb_destination(items: TDataItems, table: TTableSchema) -> None:
 
 
 if __name__ == "__main__":
-    db_path = Path(dlt.config.get("lancedb.db_path"))
+    db_path = Path(data_load_tool.config.get("lancedb.db_path"))
     db = lancedb.connect(db_path)
 
     for show in fields(Shows):
         db.drop_table(show.name, ignore_missing=True)
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="spotify",
         destination=lancedb_destination,
         dataset_name="spotify_podcast_data",

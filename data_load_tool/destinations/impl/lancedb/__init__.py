@@ -1,0 +1,1 @@
+from data_load_tool.destinations.impl.lancedb.lancedb_adapter import lancedb_adapter

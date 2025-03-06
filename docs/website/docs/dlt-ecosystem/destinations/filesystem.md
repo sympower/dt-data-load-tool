@@ -5,12 +5,12 @@ The filesystem destination stores data in remote file systems and cloud storage 
 Please read the notes on the layout of the data files. Currently, we are receiving feedback on it. Please join our Slack (icon at the top of the page) and help us find the optimal layout.
 :::
 
-## Install dlt with filesystem
+## Install data_load_tool with filesystem
 
-Install the dlt library with filesystem dependencies:
+Install the data_load_tool library with filesystem dependencies:
 
 ```sh
-pip install "dlt[filesystem]"
+pip install "data_load_tool[filesystem]"
 ```
 
 This installs the `s3fs` and `botocore` packages.
@@ -19,17 +19,17 @@ This installs the `s3fs` and `botocore` packages.
 
 You may also install the dependencies independently. Try:
 ```sh
-pip install dlt
+pip install data_load_tool
 pip install s3fs
 ```
 so pip does not fail on backtracking.
 :::
 
-## Initialize the dlt project
+## Initialize the data_load_tool project
 
-Let's start by initializing a new dlt project as follows:
+Let's start by initializing a new data_load_tool project as follows:
 ```sh
-dlt init chess filesystem
+data_load_tool init chess filesystem
 ```
 
 :::note
@@ -44,7 +44,7 @@ The command above creates a sample `secrets.toml` and requirements file for an A
 pip install -r requirements.txt
 ```
 
-To edit the dlt credentials file with your secret info, open `.dlt/secrets.toml`, which looks like this:
+To edit the data_load_tool credentials file with your secret info, open `.data_load_tool/secrets.toml`, which looks like this:
 
 ```toml
 [destination.filesystem]
@@ -55,7 +55,7 @@ aws_access_key_id = "please set me up!" # copy the access key here
 aws_secret_access_key = "please set me up!" # copy the secret access key here
 ```
 
-If you have your credentials stored in `~/.aws/credentials`, just remove the **[destination.filesystem.credentials]** section above, and dlt will fall back to your **default** profile in local credentials. If you want to switch the profile, pass the profile name as follows (here: `dlt-ci-user`):
+If you have your credentials stored in `~/.aws/credentials`, just remove the **[destination.filesystem.credentials]** section above, and data_load_tool will fall back to your **default** profile in local credentials. If you want to switch the profile, pass the profile name as follows (here: `dlt-ci-user`):
 
 ```toml
 [destination.filesystem.credentials]
@@ -69,7 +69,7 @@ You can also specify an AWS region:
 region_name="eu-central-1"
 ```
 
-You need to create an S3 bucket and a user who can access that bucket. dlt does not create buckets automatically.
+You need to create an S3 bucket and a user who can access that bucket. data_load_tool does not create buckets automatically.
 
 1. You can create the S3 bucket in the AWS console by clicking on "Create Bucket" in S3 and assigning the appropriate name and permissions to the bucket.
 2. Once the bucket is created, you'll have the bucket URL. For example, if the bucket name is `dlt-ci-test-bucket`, then the bucket URL will be:
@@ -79,7 +79,7 @@ You need to create an S3 bucket and a user who can access that bucket. dlt does 
    ```
 
 3. To grant permissions to the user being used to access the S3 bucket, go to IAM > Users, and click on “Add Permissions”.
-4. Below you can find a sample policy that gives the minimum permission required by dlt to a bucket we created above. The policy contains permissions to list files in a bucket, get, put, and delete objects. **Remember to place your bucket name in the Resource section of the policy!**
+4. Below you can find a sample policy that gives the minimum permission required by data_load_tool to a bucket we created above. The policy contains permissions to list files in a bucket, get, put, and delete objects. **Remember to place your bucket name in the Resource section of the policy!**
 
 ```json
 {
@@ -139,9 +139,9 @@ To pass additional arguments via env variables, use **stringified dictionary**:
 
 
 ### Google storage
-Run `pip install "dlt[gs]"` which will install the `gcfs` package.
+Run `pip install "data_load_tool[gs]"` which will install the `gcfs` package.
 
-To edit the `dlt` credentials file with your secret info, open `.dlt/secrets.toml`.
+To edit the `data_load_tool` credentials file with your secret info, open `.data_load_tool/secrets.toml`.
 You'll see AWS credentials by default.
 Use Google cloud credentials that you may know from [BigQuery destination](bigquery.md)
 ```toml
@@ -157,19 +157,19 @@ client_email = "client_email" # please set me up!
 Note that you can share the same credentials with BigQuery, replace the `[destination.filesystem.credentials]` section with a less specific one: `[destination.credentials]` which applies to both destinations.
 :::
 
-If you have default Google Cloud credentials in your environment (i.e., on cloud function), remove the credentials sections above and `dlt` will fall back to the available default.
+If you have default Google Cloud credentials in your environment (i.e., on cloud function), remove the credentials sections above and `data_load_tool` will fall back to the available default.
 
 Use **Cloud Storage** admin to create a new bucket. Then assign the **Storage Object Admin** role to your service account.
 
 ### Azure Blob Storage
 
-Run `pip install "dlt[az]"` which will install the `adlfs` package to interface with Azure Blob Storage.
+Run `pip install "data_load_tool[az]"` which will install the `adlfs` package to interface with Azure Blob Storage.
 
-Edit the credentials in `.dlt/secrets.toml`, you'll see AWS credentials by default; replace them with your Azure credentials.
+Edit the credentials in `.data_load_tool/secrets.toml`, you'll see AWS credentials by default; replace them with your Azure credentials.
 
 #### Supported schemes
 
-`dlt` supports both forms of the blob storage urls:
+`data_load_tool` supports both forms of the blob storage urls:
 ```toml
 [destination.filesystem]
 bucket_url = "az://<container_name>/path" # replace with your container name and path
@@ -191,7 +191,7 @@ If you need to use a custom host for your storage account, you can set it up lik
 azure_account_host = "<storage_account_name>.<host_base>"
 ```
 Remember to include `storage_account_name` with your base host ie. `dlt_ci.blob.core.usgovcloudapi.net`.
-`dlt` will use this host to connect to azure blob storage without any modifications:
+`data_load_tool` will use this host to connect to azure blob storage without any modifications:
 
 
 Two forms of Azure credentials are supported:
@@ -210,7 +210,7 @@ azure_storage_sas_token = "sas_token" # please set me up!
 ```
 
 If you have the correct Azure credentials set up on your machine (e.g., via Azure CLI),
-you can omit both `azure_storage_account_key` and `azure_storage_sas_token` and `dlt` will fall back to the available default.
+you can omit both `azure_storage_account_key` and `azure_storage_sas_token` and `data_load_tool` will fall back to the available default.
 Note that `azure_storage_account_name` is still required as it can't be inferred from the environment.
 
 #### Service principal credentials
@@ -227,7 +227,7 @@ azure_tenant_id = "tenant_id" # please set me up!
 
 :::caution
 **Concurrent blob uploads**
-`dlt` limits the number of concurrent connections for a single uploaded blob to 1. By default, `adlfs` that we use splits blobs into 4 MB chunks and uploads them concurrently, which leads to gigabytes of used memory and thousands of connections for larger load packages. You can increase the maximum concurrency as follows:
+`data_load_tool` limits the number of concurrent connections for a single uploaded blob to 1. By default, `adlfs` that we use splits blobs into 4 MB chunks and uploads them concurrently, which leads to gigabytes of used memory and thousands of connections for larger load packages. You can increase the maximum concurrency as follows:
 ```toml
 [destination.filesystem.kwargs]
 max_concurrency=3
@@ -257,7 +257,7 @@ export DESTINATION__FILESYSTEM__KWARGS = '{"auto_mkdir": true/false}'
 ```
 :::
 
-`dlt` correctly handles the native local file paths. Indeed, using the `file://` schema may not be intuitive, especially for Windows users.
+`data_load_tool` correctly handles the native local file paths. Indeed, using the `file://` schema may not be intuitive, especially for Windows users.
 
 ```toml
 [destination.unc_destination]
@@ -282,7 +282,7 @@ In the examples above, we define a few named filesystem destinations:
 * **posix_destination** demonstrates a native POSIX (Linux/Mac) absolute path.
 * **relative_destination** demonstrates a native POSIX (Linux/Mac) relative path. In this case, the `filesystem` destination will store files in the `$cwd/_storage/data` path, where **$cwd** is your current working directory.
 
-`dlt` supports Windows [UNC paths with the file:// scheme](https://en.wikipedia.org/wiki/File_URI_scheme). They can be specified using **host** or purely as a **path** component.
+`data_load_tool` supports Windows [UNC paths with the file:// scheme](https://en.wikipedia.org/wiki/File_URI_scheme). They can be specified using **host** or purely as a **path** component.
 
 ```toml
 [destination.unc_with_host]
@@ -295,7 +295,7 @@ bucket_url="file:////localhost/c$/a/b/c"
 :::caution
 Windows supports paths up to 255 characters. When you access a path longer than 255 characters, you'll see a `FileNotFound` exception.
 
-To overcome this limit, you can use [extended paths](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry). `dlt` recognizes both regular and UNC extended paths.
+To overcome this limit, you can use [extended paths](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry). `data_load_tool` recognizes both regular and UNC extended paths.
 
 ```toml
 [destination.regular_extended]
@@ -307,9 +307,9 @@ bucket_url='\\?\UNC\localhost\c$\a\b\c'
 :::
 
 ### SFTP
-Run `pip install "dlt[sftp]"` which will install the `paramiko` package alongside `dlt`, enabling secure SFTP transfers.
+Run `pip install "data_load_tool[sftp]"` which will install the `paramiko` package alongside `data_load_tool`, enabling secure SFTP transfers.
 
-Configure your SFTP credentials by editing the `.dlt/secrets.toml` file. By default, the file contains placeholders for AWS credentials. You should replace these with your SFTP credentials.
+Configure your SFTP credentials by editing the `.data_load_tool/secrets.toml` file. By default, the file contains placeholders for AWS credentials. You should replace these with your SFTP credentials.
 
 Below are the possible fields for SFTP credentials configuration:
 
@@ -409,7 +409,7 @@ The filesystem destination handles the write dispositions as follows:
 
 ## File compression
 
-The filesystem destination in the dlt library uses `gzip` compression by default for efficiency, which may result in the files being stored in a compressed format. This format may not be easily readable as plain text or JSON Lines (`jsonl`) files. If you encounter files that seem unreadable, they may be compressed.
+The filesystem destination in the data_load_tool library uses `gzip` compression by default for efficiency, which may result in the files being stored in a compressed format. This format may not be easily readable as plain text or JSON Lines (`jsonl`) files. If you encounter files that seem unreadable, they may be compressed.
 
 To handle compressed files:
 
@@ -438,7 +438,7 @@ You can control the files layout by specifying the desired configuration. There 
 Current default layout: `{table_name}/{load_id}.{file_id}.{ext}`
 
 :::note
-The default layout format has changed from `{schema_name}.{table_name}.{load_id}.{file_id}.{ext}` to `{table_name}/{load_id}.{file_id}.{ext}` in dlt 0.3.12. You can revert to the old layout by setting it manually.
+The default layout format has changed from `{schema_name}.{table_name}.{load_id}.{file_id}.{ext}` to `{table_name}/{load_id}.{file_id}.{ext}` in data_load_tool 0.3.12. You can revert to the old layout by setting it manually.
 :::
 
 ### Available layout placeholders
@@ -521,13 +521,13 @@ A few things to know when specifying your filename layout:
 - If you want a different base path that is common to all filenames, you can suffix your `bucket_url` rather than prefix your `layout` setting.
 - If you do not provide the `{ext}` placeholder, it will automatically be added to your layout at the end with a dot as a separator.
 - It is best practice to have a separator between each placeholder. Separators can be any character allowed as a filename character, but dots, dashes, and forward slashes are most common.
-- When you are using the `replace` disposition, `dlt` will have to be able to figure out the correct files to delete before loading the new data. For this to work, you have to:
+- When you are using the `replace` disposition, `data_load_tool` will have to be able to figure out the correct files to delete before loading the new data. For this to work, you have to:
   - include the `{table_name}` placeholder in your layout
   - not have any other placeholders except for the `{schema_name}` placeholder before the table_name placeholder and
   - have a separator after the table_name placeholder
 
 Please note:
-- `dlt` will mark complete loads by creating a json file in the `./_dlt_loads` folders that corresponds to the `_dlt_loads` table. For example, if the `chess__1685299832.jsonl` file is present in the loads folder, you can be sure that all files for the load package `1685299832` are completely loaded.
+- `data_load_tool` will mark complete loads by creating a json file in the `./_dlt_loads` folders that corresponds to the `_dlt_loads` table. For example, if the `chess__1685299832.jsonl` file is present in the loads folder, you can be sure that all files for the load package `1685299832` are completely loaded.
 
 ### Advanced layout configuration
 
@@ -557,10 +557,10 @@ Configuration options, including layout and placeholders, can be overridden dyna
 ```py
 import pendulum
 
-import dlt
-from dlt.destinations import filesystem
+import data_load_tool
+from data_load_tool.destinations import filesystem
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="data_things",
     destination=filesystem(
         layout="{table_name}/{test_placeholder}/{timestamp}/{load_id}.{file_id}.{ext}",
@@ -580,8 +580,8 @@ Furthermore, it is possible to:
 ```py
 import pendulum
 
-import dlt
-from dlt.destinations import filesystem
+import data_load_tool
+from data_load_tool.destinations import filesystem
 
 def placeholder_callback(schema_name: str, table_name: str, load_id: str, file_id: str, ext: str) -> str:
     # Custom logic here
@@ -590,7 +590,7 @@ def placeholder_callback(schema_name: str, table_name: str, load_id: str, file_i
 def get_current_datetime() -> pendulum.DateTime:
     return pendulum.now()
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="data_things",
     destination=filesystem(
         layout="{table_name}/{placeholder_x}/{timestamp}/{load_id}.{file_id}.{ext}",
@@ -629,10 +629,10 @@ You can choose the following [table formats](./delta-iceberg.md):
 * Delta table
 * Iceberg
 
-## Syncing of dlt state
-This destination fully supports [dlt state sync](../../general-usage/state#syncing-state-with-destination). To this end, special folders and files will be created at your destination which hold information about your pipeline state, schemas, and completed loads. These folders DO NOT respect your settings in the layout section. When using filesystem as a staging destination, not all of these folders are created, as the state and schemas are managed in the regular way by the final destination you have configured.
+## Syncing of data_load_tool state
+This destination fully supports [data_load_tool state sync](../../general-usage/state#syncing-state-with-destination). To this end, special folders and files will be created at your destination which hold information about your pipeline state, schemas, and completed loads. These folders DO NOT respect your settings in the layout section. When using filesystem as a staging destination, not all of these folders are created, as the state and schemas are managed in the regular way by the final destination you have configured.
 
-You will also notice `init` files being present in the root folder and the special `dlt` folders. In the absence of the concepts of schemas and tables in blob storages and directories, `dlt` uses these special files to harmonize the behavior of the `filesystem` destination with the other implemented destinations.
+You will also notice `init` files being present in the root folder and the special `data_load_tool` folders. In the absence of the concepts of schemas and tables in blob storages and directories, `data_load_tool` uses these special files to harmonize the behavior of the `filesystem` destination with the other implemented destinations.
 
 :::note
 When a load generates a new state, for example when using incremental loads, a new state file appears in the `_dlt_pipeline_state` folder at the destination. To prevent data accumulation, state cleanup mechanisms automatically remove old state files, retaining only the latest 100 by default. This cleanup process can be customized or disabled using the filesystem configuration `max_state_files`, which determines the maximum number of pipeline state files to retain (default is 100). Setting this value to 0 or a negative number disables the cleanup of old states.
@@ -646,9 +646,9 @@ To prevent the file name length error, set the `max_identifier_length` parameter
 For example:
 
 ```py
-from dlt.destinations import duckdb as duckdb_destination
+from data_load_tool.destinations import duckdb as duckdb_destination
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="your_pipeline_name",
     destination=duckdb_destination(
         max_identifier_length=200,  # Adjust the length as needed

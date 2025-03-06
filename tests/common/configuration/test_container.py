@@ -3,12 +3,12 @@ import pytest
 import threading
 from typing import Any, ClassVar, Literal, Optional, Iterator, Type, TYPE_CHECKING
 
-from dlt.common.configuration import configspec
-from dlt.common.configuration.providers.context import ContextProvider
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.configuration.specs import BaseConfiguration, ContainerInjectableContext
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.exceptions import (
+from data_load_tool.common.configuration import configspec
+from data_load_tool.common.configuration.providers.context import ContextProvider
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.specs import BaseConfiguration, ContainerInjectableContext
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.exceptions import (
     ConfigFieldMissingException,
     ContainerInjectableContextMangled,
     ContextDefaultCannotBeCreated,

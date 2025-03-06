@@ -1,11 +1,11 @@
 import pytest
 from copy import deepcopy
-from dlt.common.schema.exceptions import ParentTableNotFoundException
+from data_load_tool.common.schema.exceptions import ParentTableNotFoundException
 
-from dlt.common.typing import DictStrAny
-from dlt.common.schema import Schema
-from dlt.common.schema.utils import new_table
-from dlt.common.schema.typing import TSimpleRegex
+from data_load_tool.common.typing import DictStrAny
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.schema.utils import new_table
+from data_load_tool.common.schema.typing import TSimpleRegex
 
 from tests.common.utils import load_json_case
 

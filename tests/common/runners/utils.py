@@ -5,9 +5,9 @@ from time import sleep
 from typing import Iterator, Tuple, Optional, Any, List
 from concurrent.futures import Executor
 
-from dlt.common import logger
-from dlt.common.runners import TRunMetrics, Runnable, workermethod
-from dlt.common.utils import uniq_id
+from data_load_tool.common import logger
+from data_load_tool.common.runners import TRunMetrics, Runnable, workermethod
+from data_load_tool.common.utils import uniq_id
 
 # remove fork-server because it hangs the tests no CI
 ALL_METHODS = set(multiprocessing.get_all_start_methods()).intersection(["fork", "spawn"])

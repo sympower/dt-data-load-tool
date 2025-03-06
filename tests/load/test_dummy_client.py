@@ -6,33 +6,33 @@ import pytest
 from unittest.mock import patch
 from typing import List, Tuple
 
-from dlt.common.exceptions import TerminalException, TerminalValueError
-from dlt.common.storages import FileStorage, PackageStorage, ParsedLoadJobFileName
-from dlt.common.storages.configuration import FilesystemConfiguration
-from dlt.common.storages.load_package import TPackageJobState
-from dlt.common.storages.load_storage import JobFileFormatUnsupported
-from dlt.common.destination import AnyDestination
-from dlt.common.destination.client import RunnableLoadJob
-from dlt.common.schema.utils import (
+from data_load_tool.common.exceptions import TerminalException, TerminalValueError
+from data_load_tool.common.storages import FileStorage, PackageStorage, ParsedLoadJobFileName
+from data_load_tool.common.storages.configuration import FilesystemConfiguration
+from data_load_tool.common.storages.load_package import TPackageJobState
+from data_load_tool.common.storages.load_storage import JobFileFormatUnsupported
+from data_load_tool.common.destination import AnyDestination
+from data_load_tool.common.destination.client import RunnableLoadJob
+from data_load_tool.common.schema.utils import (
     fill_hints_from_parent_and_clone_table,
     get_nested_tables,
     get_root_table,
 )
 
-from dlt.destinations.impl.filesystem.configuration import FilesystemDestinationClientConfiguration
-from dlt.destinations import dummy, filesystem
-from dlt.destinations.impl.dummy import dummy as dummy_impl
-from dlt.destinations.impl.dummy.configuration import DummyClientConfiguration
+from data_load_tool.destinations.impl.filesystem.configuration import FilesystemDestinationClientConfiguration
+from data_load_tool.destinations import dummy, filesystem
+from data_load_tool.destinations.impl.dummy import dummy as dummy_impl
+from data_load_tool.destinations.impl.dummy.configuration import DummyClientConfiguration
 
-from dlt.load import Load
-from dlt.load.configuration import LoaderConfiguration
-from dlt.load.exceptions import (
+from data_load_tool.load import Load
+from data_load_tool.load.configuration import LoaderConfiguration
+from data_load_tool.load.exceptions import (
     LoadClientJobFailed,
     LoadClientJobRetry,
     TableChainFollowupJobCreationFailedException,
     FollowupJobCreationFailedException,
 )
-from dlt.load.utils import get_completed_table_chain, init_client, _extend_tables_with_table_chain
+from data_load_tool.load.utils import get_completed_table_chain, init_client, _extend_tables_with_table_chain
 
 from tests.utils import (
     MockPipeline,
@@ -884,7 +884,7 @@ def test_init_client_truncate_tables() -> None:
                     assert (
                         "event_user" in update_stored_schema.call_args_list[0].kwargs["only_tables"]
                     )
-                    # full bot table chain + dlt version but no user
+                    # full bot table chain + data_load_tool version but no user
                     assert len(
                         update_stored_schema.call_args_list[1].kwargs["only_tables"]
                     ) == 1 + len(bot_chain)
@@ -980,7 +980,7 @@ def assert_complete_job(
     timestamp = "2024-04-05T09:16:59.942779Z"
     mocked_timestamp = {"state": {"created_at": timestamp}}
     with mock.patch(
-        "dlt.current.load_package",
+        "data_load_tool.current.load_package",
         return_value=mocked_timestamp,
     ), patch.object(
         dummy_impl.DummyClient,

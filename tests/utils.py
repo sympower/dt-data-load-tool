@@ -11,36 +11,36 @@ import pytest
 import requests
 from requests import Response
 
-import dlt
-from dlt.common import known_env
-from dlt.common.runtime import telemetry
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.providers import (
+import data_load_tool
+from data_load_tool.common import known_env
+from data_load_tool.common.runtime import telemetry
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.providers import (
     DictionaryProvider,
     EnvironProvider,
     SecretsTomlProvider,
     ConfigTomlProvider,
 )
-from dlt.common.configuration.providers.provider import ConfigProvider
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.configuration.specs import RuntimeConfiguration, PluggableRunContext, configspec
-from dlt.common.configuration.specs.config_providers_context import ConfigProvidersContainer
-from dlt.common.configuration.specs.pluggable_run_context import (
+from data_load_tool.common.configuration.providers.provider import ConfigProvider
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.specs import RuntimeConfiguration, PluggableRunContext, configspec
+from data_load_tool.common.configuration.specs.config_providers_context import ConfigProvidersContainer
+from data_load_tool.common.configuration.specs.pluggable_run_context import (
     SupportsRunContext,
 )
-from dlt.common.pipeline import LoadInfo, PipelineContext, SupportsPipeline
-from dlt.common.runtime.run_context import DOT_DLT, RunContext
-from dlt.common.runtime.telemetry import start_telemetry, stop_telemetry
-from dlt.common.schema import Schema
-from dlt.common.schema.typing import TTableFormat
-from dlt.common.storages import FileStorage
-from dlt.common.storages.versioned_storage import VersionedStorage
-from dlt.common.typing import DictStrAny, StrAny, TDataItem
-from dlt.common.utils import custom_environ, set_working_dir, uniq_id
+from data_load_tool.common.pipeline import LoadInfo, PipelineContext, SupportsPipeline
+from data_load_tool.common.runtime.run_context import DOT_DLT, RunContext
+from data_load_tool.common.runtime.telemetry import start_telemetry, stop_telemetry
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.schema.typing import TTableFormat
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.storages.versioned_storage import VersionedStorage
+from data_load_tool.common.typing import DictStrAny, StrAny, TDataItem
+from data_load_tool.common.utils import custom_environ, set_working_dir, uniq_id
 
 TEST_STORAGE_ROOT = "_storage"
 
-ALL_DESTINATIONS = dlt.config.get("ALL_DESTINATIONS", list) or [
+ALL_DESTINATIONS = data_load_tool.config.get("ALL_DESTINATIONS", list) or [
     "duckdb",
 ]
 
@@ -79,12 +79,12 @@ SQL_DESTINATIONS = IMPLEMENTED_DESTINATIONS - NON_SQL_DESTINATIONS
 
 # exclude destination configs (for now used for athena and athena iceberg separation)
 EXCLUDED_DESTINATION_CONFIGURATIONS = set(
-    dlt.config.get("EXCLUDED_DESTINATION_CONFIGURATIONS", list) or set()
+    data_load_tool.config.get("EXCLUDED_DESTINATION_CONFIGURATIONS", list) or set()
 )
 
 
 # filter out active destinations for current tests
-ACTIVE_DESTINATIONS = set(dlt.config.get("ACTIVE_DESTINATIONS", list) or IMPLEMENTED_DESTINATIONS)
+ACTIVE_DESTINATIONS = set(data_load_tool.config.get("ACTIVE_DESTINATIONS", list) or IMPLEMENTED_DESTINATIONS)
 
 ACTIVE_SQL_DESTINATIONS = SQL_DESTINATIONS.intersection(ACTIVE_DESTINATIONS)
 ACTIVE_NON_SQL_DESTINATIONS = NON_SQL_DESTINATIONS.intersection(ACTIVE_DESTINATIONS)
@@ -92,7 +92,7 @@ ACTIVE_NON_SQL_DESTINATIONS = NON_SQL_DESTINATIONS.intersection(ACTIVE_DESTINATI
 # filter out active table formats for current tests
 IMPLEMENTED_TABLE_FORMATS = set(get_args(TTableFormat))
 ACTIVE_TABLE_FORMATS = set(
-    dlt.config.get("ACTIVE_TABLE_FORMATS", list) or IMPLEMENTED_TABLE_FORMATS
+    data_load_tool.config.get("ACTIVE_TABLE_FORMATS", list) or IMPLEMENTED_TABLE_FORMATS
 )
 
 # sanity checks
@@ -276,7 +276,7 @@ def wipe_pipeline(preserve_environ) -> Iterator[None]:
     if container[PipelineContext].is_active():
         # take existing pipeline
         # NOTE: no more needed. test storage is wiped fully when test starts
-        # p = dlt.pipeline()
+        # p = data_load_tool.pipeline()
         # p._wipe_working_folder()
         # deactivate context
         container[PipelineContext].deactivate()
@@ -284,12 +284,12 @@ def wipe_pipeline(preserve_environ) -> Iterator[None]:
 
 @pytest.fixture(autouse=True)
 def setup_secret_providers_to_current_module(request):
-    """Creates set of config providers where secrets are loaded from cwd()/.dlt and
-    configs are loaded from the .dlt/ in the same folder as module being tested
+    """Creates set of config providers where secrets are loaded from cwd()/.data_load_tool and
+    configs are loaded from the .data_load_tool/ in the same folder as module being tested
     """
-    secret_dir = os.path.abspath("./.dlt")
+    secret_dir = os.path.abspath("./.data_load_tool")
     dname = os.path.dirname(request.module.__file__)
-    config_dir = dname + "/.dlt"
+    config_dir = dname + "/.data_load_tool"
 
     # inject provider context so the original providers are restored at the end
     def _initial_providers(self):
@@ -300,7 +300,7 @@ def setup_secret_providers_to_current_module(request):
         ]
 
     with set_working_dir(dname), patch(
-        "dlt.common.runtime.run_context.RunContext.initial_providers",
+        "data_load_tool.common.runtime.run_context.RunContext.initial_providers",
         _initial_providers,
     ):
         Container()[PluggableRunContext].reload_providers()
@@ -320,7 +320,7 @@ def data_to_item_format(
         return data
 
     import pandas as pd
-    from dlt.common.libs.pyarrow import pyarrow as pa
+    from data_load_tool.common.libs.pyarrow import pyarrow as pa
 
     # Make dataframe from the data
     df = pd.DataFrame(list(data))
@@ -336,7 +336,7 @@ def data_to_item_format(
 
 def data_item_length(data: TDataItem) -> int:
     import pandas as pd
-    from dlt.common.libs.pyarrow import pyarrow as pa
+    from data_load_tool.common.libs.pyarrow import pyarrow as pa
 
     if isinstance(data, list):
         # If data is a list, check if it's a list of supported data types
@@ -357,7 +357,7 @@ def arrow_item_from_pandas(
     df: Any,
     object_format: TPythonTableFormat,
 ) -> Any:
-    from dlt.common.libs.pyarrow import pyarrow as pa
+    from data_load_tool.common.libs.pyarrow import pyarrow as pa
 
     if object_format == "pandas":
         return df
@@ -429,11 +429,11 @@ def clean_test_storage(
     storage.delete_folder("", recursively=True, delete_ro=True)
     storage.create_folder(".")
     if init_normalize:
-        from dlt.common.storages import NormalizeStorage
+        from data_load_tool.common.storages import NormalizeStorage
 
         NormalizeStorage(True)
     if init_loader:
-        from dlt.common.storages import LoadStorage
+        from data_load_tool.common.storages import LoadStorage
 
         LoadStorage(True, LoadStorage.ALL_SUPPORTED_FILE_FORMATS)
     return storage
@@ -498,7 +498,7 @@ def assert_load_info(info: LoadInfo, expected_load_packages: int = 1) -> None:
     info.raise_on_failed_jobs()
 
 
-def load_table_counts(p: dlt.Pipeline, *table_names: str) -> DictStrAny:
+def load_table_counts(p: data_load_tool.Pipeline, *table_names: str) -> DictStrAny:
     """Returns row counts for `table_names` as dict"""
     with p.sql_client() as c:
         query = "\nUNION ALL\n".join(
@@ -513,7 +513,7 @@ def load_table_counts(p: dlt.Pipeline, *table_names: str) -> DictStrAny:
 
 
 def assert_query_data(
-    p: dlt.Pipeline,
+    p: data_load_tool.Pipeline,
     sql: str,
     table_data: List[Any],
     schema_name: str = None,

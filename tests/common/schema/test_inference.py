@@ -4,11 +4,11 @@ from copy import deepcopy
 from typing import Any, List
 from hexbytes import HexBytes
 
-from dlt.common import Wei, Decimal, pendulum, json
-from dlt.common.json import custom_pua_decode
-from dlt.common.schema import Schema, utils
-from dlt.common.schema.typing import TSimpleRegex, TTableSchemaColumns
-from dlt.common.schema.exceptions import (
+from data_load_tool.common import Wei, Decimal, pendulum, json
+from data_load_tool.common.json import custom_pua_decode
+from data_load_tool.common.schema import Schema, utils
+from data_load_tool.common.schema.typing import TSimpleRegex, TTableSchemaColumns
+from data_load_tool.common.schema.exceptions import (
     CannotCoerceColumnException,
     CannotCoerceNullException,
     ParentTableNotFoundException,
@@ -272,7 +272,7 @@ def test_coerce_json_variant(schema: Schema) -> None:
 def test_supports_variant_pua_decode(schema: Schema) -> None:
     rows = load_json_case("pua_encoded_row")
     # use actual encoding for wei
-    from dlt.common.json import _WEI, _HEXBYTES
+    from data_load_tool.common.json import _WEI, _HEXBYTES
 
     rows[0]["_tx_transactionHash"] = rows[0]["_tx_transactionHash"].replace("", _HEXBYTES)
     rows[0]["wad"] = rows[0]["wad"].replace("", _WEI)
@@ -511,7 +511,7 @@ def test_autodetect_convert_type(schema: Schema) -> None:
 
 
 def test_infer_on_incomplete_column(schema: Schema) -> None:
-    # if incomplete column is present, dlt still infers column schema from the data
+    # if incomplete column is present, data_load_tool still infers column schema from the data
     # but overrides it with incomplete column
     incomplete_col = utils.new_column("I", nullable=False)
     incomplete_col["primary_key"] = True

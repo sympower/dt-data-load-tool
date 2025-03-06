@@ -7,15 +7,15 @@ import pyarrow as pa
 import pandas as pd
 import base64
 
-import dlt
-from dlt.common import pendulum
-from dlt.common.time import (
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.common.time import (
     reduce_pendulum_datetime_precision,
     ensure_pendulum_time,
     ensure_pendulum_datetime,
     ensure_pendulum_date,
 )
-from dlt.common.utils import uniq_id
+from data_load_tool.common.utils import uniq_id
 
 from tests.load.utils import destinations_configs, DestinationTestConfiguration
 from tests.pipeline.utils import assert_load_info, select_data
@@ -82,7 +82,7 @@ def test_load_arrow_item(
 
     pipeline = destination_config.setup_pipeline("arrow_" + uniq_id())
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield item
 
@@ -207,7 +207,7 @@ def test_parquet_column_names_are_normalized(
     )
     tbl = arrow_item_from_pandas(df, item_type)
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield tbl
 
@@ -263,7 +263,7 @@ def test_load_arrow_with_not_null_columns(
 
     item, records, _ = arrow_table_all_data_types(item_type, include_json=False, include_time=False)
 
-    @dlt.resource(primary_key="string", columns=[{"name": "int", "nullable": False}])
+    @data_load_tool.resource(primary_key="string", columns=[{"name": "int", "nullable": False}])
     def some_data():
         yield item
 

@@ -9,12 +9,12 @@ keywords: [pseudonymize, anonymize, columns, special characters]
 Pseudonymization is a deterministic way to hide personally identifiable information (PII), enabling us to consistently achieve the same mapping. If instead you wish to anonymize, you can delete the data or replace it with a constant. In the example below, we create a dummy source with a PII column called "name", which we replace with deterministic hashes (i.e., replacing the German umlaut).
 
 ```py
-import dlt
+import data_load_tool
 import hashlib
 
-@dlt.source
+@data_load_tool.source
 def dummy_source(prefix: str = None):
-    @dlt.resource
+    @data_load_tool.resource
     def dummy_data():
         for _ in range(3):
             yield {'id': _, 'name': f'Jane Washington {_}'}
@@ -53,7 +53,7 @@ data_resource = source_instance.dummy_data.add_map(pseudonymize_name)
 for row in source_instance:
     print(row)
 
-pipeline = dlt.pipeline(pipeline_name='example', destination='bigquery', dataset_name='normalized_data')
+pipeline = data_load_tool.pipeline(pipeline_name='example', destination='bigquery', dataset_name='normalized_data')
 load_info = pipeline.run(source_instance)
 ```
 

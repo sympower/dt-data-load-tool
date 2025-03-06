@@ -2,16 +2,16 @@ import pytest
 import datetime  # noqa: I251
 from typing import Iterator, Any
 
-import dlt, os
-from dlt.common import pendulum
-from dlt.common.destination.exceptions import UnsupportedDataType
-from dlt.common.utils import uniq_id
-from dlt.pipeline.exceptions import PipelineStepFailed
+import data_load_tool, os
+from data_load_tool.common import pendulum
+from data_load_tool.common.destination.exceptions import UnsupportedDataType
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 from tests.cases import table_update_and_row, assert_all_data_types_row
 from tests.pipeline.utils import assert_load_info, load_table_counts
 from tests.pipeline.utils import load_table_counts
-from dlt.destinations.exceptions import CantExtractTablePrefix
-from dlt.destinations.adapters import athena_partition, athena_adapter
+from data_load_tool.destinations.exceptions import CantExtractTablePrefix
+from data_load_tool.destinations.adapters import athena_partition, athena_adapter
 
 from tests.load.utils import (
     TEST_FILE_LAYOUTS,
@@ -34,7 +34,7 @@ pytestmark = pytest.mark.essential
 def test_athena_destinations(destination_config: DestinationTestConfiguration) -> None:
     pipeline = destination_config.setup_pipeline("athena_" + uniq_id(), dev_mode=True)
 
-    @dlt.resource(name="items", write_disposition="append")
+    @data_load_tool.resource(name="items", write_disposition="append")
     def items():
         yield {
             "id": 1,
@@ -53,7 +53,7 @@ def test_athena_destinations(destination_config: DestinationTestConfiguration) -
     assert table_counts["_dlt_loads"] == 1
 
     # load again with schema evloution
-    @dlt.resource(name="items", write_disposition="append")
+    @data_load_tool.resource(name="items", write_disposition="append")
     def items2():
         yield {
             "id": 1,
@@ -96,12 +96,12 @@ def test_athena_all_datatypes_and_timestamps(
     column_schemas, data_types = table_update_and_row(exclude_types=["time"])
 
     # apply the exact columns definitions so we process json and wei types correctly!
-    @dlt.resource(table_name="data_types", write_disposition="append", columns=column_schemas)
+    @data_load_tool.resource(table_name="data_types", write_disposition="append", columns=column_schemas)
     def my_resource() -> Iterator[Any]:
         nonlocal data_types
         yield [data_types] * 10
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def my_source() -> Any:
         return my_resource
 
@@ -183,12 +183,12 @@ def test_athena_blocks_time_column(destination_config: DestinationTestConfigurat
     column_schemas, data_types = table_update_and_row()
 
     # apply the exact columns definitions so we process json and wei types correctly!
-    @dlt.resource(table_name="data_types", write_disposition="append", columns=column_schemas)
+    @data_load_tool.resource(table_name="data_types", write_disposition="append", columns=column_schemas)
     def my_resource() -> Iterator[Any]:
         nonlocal data_types
         yield [data_types] * 10
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def my_source() -> Any:
         return my_resource
 
@@ -210,8 +210,8 @@ def test_athena_file_layouts(destination_config: DestinationTestConfiguration, l
     os.environ["DESTINATION__FILESYSTEM__LAYOUT"] = layout
 
     resources = [
-        dlt.resource([1, 2, 3], name="items1"),
-        dlt.resource([1, 2, 3, 4, 5, 6, 7], name="items2"),
+        data_load_tool.resource([1, 2, 3], name="items1"),
+        data_load_tool.resource([1, 2, 3, 4, 5, 6, 7], name="items2"),
     ]
 
     # layouts that should not work should raise exception
@@ -255,7 +255,7 @@ def test_athena_partitioned_iceberg_table(destination_config: DestinationTestCon
         (10, "B", datetime.date.fromisoformat("2021-03-02")),
     ]
 
-    @dlt.resource(table_format="iceberg")
+    @data_load_tool.resource(table_format="iceberg")
     def partitioned_table():
         yield [{"id": i, "category": c, "created_at": d} for i, c, d in data_items]
 

@@ -1,6 +1,6 @@
 import pytest
 from typing import Type
-from dlt.common.normalizers.naming import NamingConvention, sql_ci_v1, sql_cs_v1
+from data_load_tool.common.normalizers.naming import NamingConvention, sql_ci_v1, sql_cs_v1
 
 ALL_NAMING_CONVENTIONS = {sql_ci_v1.NamingConvention, sql_cs_v1.NamingConvention}
 

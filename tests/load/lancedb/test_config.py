@@ -3,12 +3,12 @@ from typing import Iterator
 
 import pytest
 
-import dlt
-from dlt.common.configuration import resolve_configuration
-from dlt.common.known_env import DLT_LOCAL_DIR
-from dlt.common.utils import uniq_id
+import data_load_tool
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.known_env import DLT_LOCAL_DIR
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations.impl.lancedb.configuration import (
+from data_load_tool.destinations.impl.lancedb.configuration import (
     LanceDBClientConfiguration,
 )
 
@@ -74,7 +74,7 @@ def test_lancedb_follows_local_dir() -> None:
     assert c.lance_uri.endswith(db_path)
 
     # check pipeline name
-    pipeline = dlt.pipeline("test_lancedb_follows_local_dir")
+    pipeline = data_load_tool.pipeline("test_lancedb_follows_local_dir")
     c = resolve_configuration(
         LanceDBClientConfiguration()
         ._bind_dataset_name(dataset_name="test_dataset")

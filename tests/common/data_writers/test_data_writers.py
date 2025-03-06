@@ -3,12 +3,12 @@ import pytest
 import time
 from typing import Iterator
 
-from dlt.common import pendulum, json
-from dlt.common.data_writers.exceptions import DataWriterNotFound, SpecLookupFailed
-from dlt.common.metrics import DataWriterMetrics
-from dlt.common.typing import AnyFun
+from data_load_tool.common import pendulum, json
+from data_load_tool.common.data_writers.exceptions import DataWriterNotFound, SpecLookupFailed
+from data_load_tool.common.metrics import DataWriterMetrics
+from data_load_tool.common.typing import AnyFun
 
-from dlt.common.data_writers.escape import (
+from data_load_tool.common.data_writers.escape import (
     escape_redshift_identifier,
     escape_hive_identifier,
     escape_redshift_literal,
@@ -17,7 +17,7 @@ from dlt.common.data_writers.escape import (
 )
 
 # import all writers here to check if it can be done without all the dependencies
-from dlt.common.data_writers.writers import (
+from data_load_tool.common.data_writers.writers import (
     WRITER_SPECS,
     ArrowToCsvWriter,
     ArrowToInsertValuesWriter,
@@ -51,7 +51,7 @@ class _BytesIOWriter(DataWriter):
 
 @pytest.fixture
 def insert_writer() -> Iterator[DataWriter]:
-    from dlt.destinations import redshift
+    from data_load_tool.destinations import redshift
 
     with io.StringIO() as f:
         yield InsertValuesWriter(f, caps=redshift().capabilities())

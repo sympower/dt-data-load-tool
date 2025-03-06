@@ -9,11 +9,11 @@ from requests.auth import AuthBase
 from requests.exceptions import HTTPError
 import requests_mock
 
-from dlt.common import logger
-from dlt.common.typing import TSecretStrValue
-from dlt.sources.helpers.requests import Client
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.auth import (
+from data_load_tool.common import logger
+from data_load_tool.common.typing import TSecretStrValue
+from data_load_tool.sources.helpers.requests import Client
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.auth import (
     APIKeyAuth,
     AuthConfigBase,
     BearerTokenAuth,
@@ -21,9 +21,9 @@ from dlt.sources.helpers.rest_client.auth import (
     OAuth2ClientCredentials,
     OAuthJWTAuth,
 )
-from dlt.sources.helpers.rest_client.client import Hooks
-from dlt.sources.helpers.rest_client.exceptions import IgnoreResponseException
-from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator, BaseReferencePaginator
+from data_load_tool.sources.helpers.rest_client.client import Hooks
+from data_load_tool.sources.helpers.rest_client.exceptions import IgnoreResponseException
+from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator, BaseReferencePaginator
 
 from .conftest import DEFAULT_PAGE_SIZE, DEFAULT_TOTAL_PAGES, assert_pagination
 

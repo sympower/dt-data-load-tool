@@ -8,12 +8,12 @@ packages = [
     { include = "dlt_example_plugin" },
 ]
 
-[tool.poetry.plugins.dlt]
+[tool.poetry.plugins.data_load_tool]
 dlt-example-plugin = "dlt_example_plugin.plugin"
 
 [tool.poetry.dependencies]
 python = ">=3.9.1,<3.14"
-dlt={"path"="../../../"}
+data_load_tool={"path"="../../../"}
 
 [build-system]
 requires = ["poetry-core"]

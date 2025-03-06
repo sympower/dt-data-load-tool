@@ -5,11 +5,11 @@ NOTE: there are tests in custom destination to check parallelism settings are ap
 
 from typing import Tuple, Any, cast
 
-from dlt.load.utils import filter_new_jobs, get_available_worker_slots
-from dlt.load.configuration import LoaderConfiguration
-from dlt.common.destination import DestinationCapabilitiesContext
-from dlt.common.utils import uniq_id
-from dlt.common.storages.load_storage import ParsedLoadJobFileName
+from data_load_tool.load.utils import filter_new_jobs, get_available_worker_slots
+from data_load_tool.load.configuration import LoaderConfiguration
+from data_load_tool.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.storages.load_storage import ParsedLoadJobFileName
 
 
 def create_job_name(table: str, index: int) -> str:

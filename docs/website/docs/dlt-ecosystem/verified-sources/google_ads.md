@@ -1,6 +1,6 @@
 ---
 title: Google Ads
-description: dlt verified source for Google Ads API
+description: data_load_tool verified source for Google Ads API
 keywords: [google ads api, google ads verified source, google ads]
 ---
 import Header from './_source-info-header.md';
@@ -13,7 +13,7 @@ import Header from './_source-info-header.md';
 Please note that we are unable to conduct regular testing on the specified source due to difficulties in obtaining the necessary credentials. We confirmed this source works at creation, and it is being used by the community. We anticipate that the source should operate smoothly over time given Google's best practices in versioning APIs.
 :::
 
-This Google Ads `dlt` verified source and [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/google_ads_pipeline.py) loads data using the "Google Ads API" to the destination of your choice.
+This Google Ads `data_load_tool` verified source and [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/google_ads_pipeline.py) loads data using the "Google Ads API" to the destination of your choice.
 
 Resources that can be loaded using this verified source are:
 
@@ -129,7 +129,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init google_ads duckdb
+   data_load_tool init google_ads duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -147,7 +147,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. In this file, set up the "developer
    token", "customer ID", and "impersonated_email" as follows:
    ```toml
@@ -206,7 +206,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is
    `dlt_google_ads_pipeline`, you may also use any custom name instead.
@@ -215,7 +215,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `google_ads`
@@ -224,13 +224,13 @@ This function returns a list of resources including metadata, fields, and metric
 the Google Ads API.
 
 ```py
-@dlt.source()
+@data_load_tool.source()
 def google_ads(
     credentials: Union[
         GcpOAuthCredentials, GcpServiceAccountCredentials
-    ] = dlt.secrets.value,
-    impersonated_email: str = dlt.secrets.value,
-    dev_token: str = dlt.secrets.value,
+    ] = data_load_tool.secrets.value,
+    impersonated_email: str = data_load_tool.secrets.value,
+    dev_token: str = data_load_tool.secrets.value,
 )  -> List[DltResource]:
    """
    Initializes a client with the provided credentials and development token to
@@ -252,9 +252,9 @@ while leveraging the permissions of a specific user within the Ads platform.
 This function retrieves all dimensions for a report from a Google Ads project.
 
 ```py
-@dlt.resource(write_disposition="replace")
+@data_load_tool.resource(write_disposition="replace")
 def customers(
-    client: Resource, customer_id: str = dlt.secrets.value
+    client: Resource, customer_id: str = data_load_tool.secrets.value
 ) -> Iterator[TDataItem]:
     """
     Fetches customer data from the Google Ads service and
@@ -278,7 +278,7 @@ verified source.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="dlt_google_ads_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="full_load_google_ads"  # Use a custom name if desired

@@ -2,7 +2,7 @@ import pytest
 import string
 from typing import List, Type
 
-from dlt.common.normalizers.naming import (
+from data_load_tool.common.normalizers.naming import (
     NamingConvention,
     snake_case,
     direct,
@@ -10,8 +10,8 @@ from dlt.common.normalizers.naming import (
     sql_ci_v1,
     sql_cs_v1,
 )
-from dlt.common.typing import DictStrStr
-from dlt.common.utils import uniq_id
+from data_load_tool.common.typing import DictStrStr
+from data_load_tool.common.utils import uniq_id
 
 
 ALL_NAMING_CONVENTIONS = {

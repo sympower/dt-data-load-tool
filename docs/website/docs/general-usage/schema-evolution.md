@@ -1,7 +1,7 @@
 ---
 title: Schema evolution
 description: A small guide to elaborate on how schema evolution works
-keywords: [schema evolution, schema, dlt schema]
+keywords: [schema evolution, schema, data_load_tool schema]
 ---
 
 ## When to use schema evolution?
@@ -12,17 +12,17 @@ It separates the technical challenge of "loading" data from the business challen
 
 However, for cases where schema evolution might be triggered by malicious events, such as in web tracking, data contracts are advised. Read more about how to implement data contracts [here](./schema-contracts).
 
-## Schema evolution with `dlt`
+## Schema evolution with `data_load_tool`
 
-`dlt` automatically infers the initial schema for your first pipeline run. However, in most cases, the schema tends to change over time, which makes it critical for downstream consumers to adapt to schema changes.
+`data_load_tool` automatically infers the initial schema for your first pipeline run. However, in most cases, the schema tends to change over time, which makes it critical for downstream consumers to adapt to schema changes.
 
-As the structure of data changes, such as the addition of new columns or changing data types, `dlt` handles these schema changes, enabling you to adapt to changes without losing velocity.
+As the structure of data changes, such as the addition of new columns or changing data types, `data_load_tool` handles these schema changes, enabling you to adapt to changes without losing velocity.
 
 ## Inferring a schema from nested data
 
-The first run of a pipeline will scan the data that goes through it and generate a schema. To convert nested data into a relational format, `dlt` flattens dictionaries and unpacks nested lists into sub-tables.
+The first run of a pipeline will scan the data that goes through it and generate a schema. To convert nested data into a relational format, `data_load_tool` flattens dictionaries and unpacks nested lists into sub-tables.
 
-We'll review some examples here and figure out how `dlt` creates the initial schema and how normalization works. Consider a pipeline that loads the following schema:
+We'll review some examples here and figure out how `data_load_tool` creates the initial schema and how normalization works. Consider a pipeline that loads the following schema:
 
 ```py
 data = [{
@@ -38,8 +38,8 @@ data = [{
     ]
 }]
 
-# Run `dlt` pipeline
-dlt.pipeline("organizations_pipeline", destination="duckdb").run(data, table_name="org")
+# Run `data_load_tool` pipeline
+data_load_tool.pipeline("organizations_pipeline", destination="duckdb").run(data, table_name="org")
 ```
 
 The schema of data above is loaded to the destination as follows:
@@ -47,13 +47,13 @@ The schema of data above is loaded to the destination as follows:
 
 ### What did the schema inference engine do?
 
-As you can see above, the dlt's inference engine generates the structure of the data based on the source and provided hints. It normalizes the data, creates tables and columns, and infers data types.
+As you can see above, the data_load_tool's inference engine generates the structure of the data based on the source and provided hints. It normalizes the data, creates tables and columns, and infers data types.
 
 For more information, you can refer to the [Schema](./schema) and [Adjust a Schema](../walkthroughs/adjust-a-schema) sections in the documentation.
 
 ## Evolving the schema
 
-For a typical data source, the schema tends to change over time, and dlt handles this changing schema seamlessly.
+For a typical data source, the schema tends to change over time, and data_load_tool handles this changing schema seamlessly.
 
 Let’s add the following 4 cases:
 
@@ -82,8 +82,8 @@ data = [{
     ]
 }]
 
-# Run `dlt` pipeline
-dlt.pipeline("organizations_pipeline", destination="duckdb").run(data, table_name="org")
+# Run `data_load_tool` pipeline
+data_load_tool.pipeline("organizations_pipeline", destination="duckdb").run(data, table_name="org")
 ```
 
 Let’s load the data and look at the tables:
@@ -110,10 +110,10 @@ The column lineage can be tracked by loading the 'load_info' to the destination.
 
 **Getting notifications**
 
-We can read the load outcome and send it to a Slack webhook with dlt.
+We can read the load outcome and send it to a Slack webhook with data_load_tool.
 ```py
-# Import the send_slack_message function from the dlt library
-from dlt.common.runtime.slack import send_slack_message
+# Import the send_slack_message function from the data_load_tool library
+from data_load_tool.common.runtime.slack import send_slack_message
 
 # Define the URL for your Slack webhook
 hook = "https://hooks.slack.com/services/xxx/xxx/xxx"
@@ -135,11 +135,11 @@ for package in load_info.load_packages:
                 )
             )
 ```
-This script sends Slack notifications for schema updates using the `send_slack_message` function from the `dlt` library. It provides details on the updated table and column.
+This script sends Slack notifications for schema updates using the `send_slack_message` function from the `data_load_tool` library. It provides details on the updated table and column.
 
 ## How to control evolution
 
-`dlt` allows schema evolution control via its schema and data contracts. Refer to our **[documentation](./schema-contracts)** for details.
+`data_load_tool` allows schema evolution control via its schema and data contracts. Refer to our **[documentation](./schema-contracts)** for details.
 
 ### How to test for removed columns - applying "not null" constraint
 
@@ -161,7 +161,7 @@ data = [{
     ]
 }]
 
-pipeline = dlt.pipeline("organizations_pipeline", destination="duckdb")
+pipeline = data_load_tool.pipeline("organizations_pipeline", destination="duckdb")
 # Adding not null constraint
 pipeline.run(data, table_name="org", columns={"room": {"data_type": "bigint", "nullable": False}})
 ```
@@ -193,15 +193,15 @@ data = [{
     ]
 }]
 
-# Run `dlt` pipeline
-dlt.pipeline("organizations_pipeline", destination="duckdb").run(data, table_name="org")
+# Run `data_load_tool` pipeline
+data_load_tool.pipeline("organizations_pipeline", destination="duckdb").run(data, table_name="org")
 ```
 The schema of the data above is loaded to the destination as follows:
 <iframe width="560" height="315" src='https://dbdiagram.io/e/65e80b31cd45b569fba33169/65e81055cd45b569fba3aa20'> </iframe>
 
 ## What did the schema evolution engine do?
 
-The schema evolution engine in the `dlt` library is designed to handle changes in the structure of your data over time. For example:
+The schema evolution engine in the `data_load_tool` library is designed to handle changes in the structure of your data over time. For example:
 
 - As above in continuation of the inferred schema, the “specifications” are nested in "details", which are nested in “Inventory”, all under the table name “org”. So the table created for projects is `org__inventory__details__specifications`.
 
@@ -211,5 +211,5 @@ This is a simple example of how schema evolution works.
 
 Demonstrating schema evolution without talking about schema and data contracts is only one side of the coin. Schema and data contracts dictate the terms of how the schema being written to the destination should evolve.
 
-Schema and data contracts can be applied to entities such as ‘tables’, ‘columns’, and ‘data_types’ using contract modes such as ‘evolve’, ‘freeze’, ‘discard_rows’, and ‘discard_columns’ to tell dlt how to apply contracts for a particular entity. To read more about **schema and data contracts**, read our [documentation](./schema-contracts).
+Schema and data contracts can be applied to entities such as ‘tables’, ‘columns’, and ‘data_types’ using contract modes such as ‘evolve’, ‘freeze’, ‘discard_rows’, and ‘discard_columns’ to tell data_load_tool how to apply contracts for a particular entity. To read more about **schema and data contracts**, read our [documentation](./schema-contracts).
 

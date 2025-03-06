@@ -4,7 +4,7 @@ description: Learn custom response processing
 keywords: [rest api, restful api]
 ---
 
-`rest_api_source()` function creates the [dlt source](../../../general-usage/source.md) and lets you configure the following parameters:
+`rest_api_source()` function creates the [data_load_tool source](../../../general-usage/source.md) and lets you configure the following parameters:
 
 - `config`: The REST API configuration dictionary.
 - `name`: An optional name for the source.
@@ -52,7 +52,7 @@ In this example, the source will ignore responses with a status code of 404, res
 
 ```py
 from requests.models import Response
-from dlt.common import json
+from data_load_tool.common import json
 
 def set_encoding(response, *args, **kwargs):
     # Sets the encoding in case it's not correctly detected

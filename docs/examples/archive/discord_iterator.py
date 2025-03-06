@@ -1,8 +1,8 @@
-# from dlt.common import json
-# from dlt.common.schema import Schema
-# from dlt.common.typing import DictStrAny
+# from data_load_tool.common import json
+# from data_load_tool.common.schema import Schema
+# from data_load_tool.common.typing import DictStrAny
 
-# from dlt.pipeline import Pipeline, PostgresPipelineCredentials
+# from data_load_tool.pipeline import Pipeline, PostgresPipelineCredentials
 
 # # this is example of extracting from iterator that may be a
 # # - jsonl file you read line by line

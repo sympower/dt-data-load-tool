@@ -2,8 +2,8 @@ import os
 from git import GitCommandError, RepositoryDirtyError, GitError
 import pytest
 
-from dlt.common.storages import FileStorage
-from dlt.common.git import (
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.git import (
     clone_repo,
     ensure_remote_head,
     git_custom_key_command,

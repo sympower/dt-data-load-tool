@@ -1,6 +1,6 @@
 ---
 title: Jira
-description: dlt verified source for Atlassian Jira
+description: data_load_tool verified source for Atlassian Jira
 keywords: [jira api, jira verified source, jira]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 [Jira](https://www.atlassian.com/software/jira) by Atlassian helps teams manage projects and tasks
 efficiently, prioritize work, and collaborate.
 
-This Jira `dlt` verified source and
+This Jira `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/jira_pipeline.py)
 loads data using the Jira API to the destination of your choice.
 
@@ -55,7 +55,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init jira duckdb
+   data_load_tool init jira duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -73,7 +73,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe.
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe.
 
    Here's what the file looks like:
 
@@ -107,7 +107,7 @@ For more information, read [General Usage: Credentials.](../../general-usage/cre
    ```
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `jira_pipeline`. You may also use any custom name instead.
 
@@ -115,7 +115,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
 
 ### Default endpoints
 
@@ -126,29 +126,29 @@ You can write your own pipelines to load data to a destination using this verifi
 This source function creates a list of resources to load data into the destination.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def jira(
-     subdomain: str = dlt.secrets.value,
-     email: str = dlt.secrets.value,
-     api_token: str = dlt.secrets.value,
+     subdomain: str = data_load_tool.secrets.value,
+     email: str = data_load_tool.secrets.value,
+     api_token: str = data_load_tool.secrets.value,
 ) -> Iterable[DltResource]:
    ...
 ```
 
-- `subdomain`: The subdomain of the Jira account. Configured in ".dlt/secrets.toml".
-- `email`: The email associated with the Jira account. Configured in ".dlt/secrets.toml".
-- `api_token`: The API token for accessing the Jira account. Configured in ".dlt/secrets.toml".
+- `subdomain`: The subdomain of the Jira account. Configured in ".data_load_tool/secrets.toml".
+- `email`: The email associated with the Jira account. Configured in ".data_load_tool/secrets.toml".
+- `api_token`: The API token for accessing the Jira account. Configured in ".data_load_tool/secrets.toml".
 
 ### Source `jira_search`
 
 This function returns a resource for querying issues using JQL [(Jira Query Language)](https://support.atlassian.com/jira-service-management-cloud/docs/use-advanced-search-with-jira-query-language-jql/).
 
 ```py
-@dlt.source
+@data_load_tool.source
 def jira_search(
-     subdomain: str = dlt.secrets.value,
-     email: str = dlt.secrets.value,
-     api_token: str = dlt.secrets.value,
+     subdomain: str = data_load_tool.secrets.value,
+     email: str = data_load_tool.secrets.value,
+     api_token: str = data_load_tool.secrets.value,
 ) -> Iterable[DltResource]:
    ...
 ```
@@ -160,7 +160,7 @@ The above function uses the same arguments `subdomain`, `email`, and `api_token`
 The resource function searches issues using JQL queries and then loads them to the destination.
 
 ```py
-@dlt.resource(write_disposition="replace")
+@data_load_tool.resource(write_disposition="replace")
 def issues(jql_queries: List[str]) -> Iterable[TDataItem]:
    api_path = "rest/api/3/search"
    return {}  # return the retrieved values here
@@ -177,7 +177,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset. To read more about pipeline configuration, please refer to our documentation [here](../../general-usage/pipeline):
 
     ```py
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="jira_pipeline",  # Use a custom name if desired
         destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dataset_name="jira"  # Use a custom name if desired

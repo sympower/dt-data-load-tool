@@ -1,29 +1,29 @@
 ---
 title: Deploy with Orchestra
-description: How to deploy a dlt pipeline on Orchestra
-keywords: [Orchestra, dlt, elt, data pipeline]
+description: How to deploy a data_load_tool pipeline on Orchestra
+keywords: [Orchestra, data_load_tool, elt, data pipeline]
 ---
 
 # Deploy with Orchestra
 
 ## What is Orchestra?
 
-[Orchestra](https://getorchestra.io) unified control plane for Data and AI operations. In addition to providing an end-to-end, declarative [orchestration tool](https://www.getorchestra.io/solutions), Orchestra provides a lightweight execution environment for running python - perfect for getting started with dlt.
+[Orchestra](https://getorchestra.io) unified control plane for Data and AI operations. In addition to providing an end-to-end, declarative [orchestration tool](https://www.getorchestra.io/solutions), Orchestra provides a lightweight execution environment for running python - perfect for getting started with data_load_tool.
 
-Orchestra can also run [dbt core](https://www.getorchestra.io/product/orchestra-dbt-core-tm) which makes it perfect for joining dlt ingestion jobs to downstream transformations.
+Orchestra can also run [dbt core](https://www.getorchestra.io/product/orchestra-dbt-core-tm) which makes it perfect for joining data_load_tool ingestion jobs to downstream transformations.
 
-You can leverage [Orchestra's Free Tier here](https://app.getorchestra.io?utm_campaign=dlt_docs) to get started with dlt straight away.
+You can leverage [Orchestra's Free Tier here](https://app.getorchestra.io?utm_campaign=dlt_docs) to get started with data_load_tool straight away.
 
-## Building data pipelines with `dlt`
+## Building data pipelines with `data_load_tool`
 
-**`dlt`** is an open-source Python library that allows you to declaratively load data sources
+**`data_load_tool`** is an open-source Python library that allows you to declaratively load data sources
 into well-structured tables or datasets. It does this through automatic schema inference and evolution.
 The library simplifies building data pipelines by providing functionality to support the entire extract 
 and load process.
 
-### How does `dlt` integrate with Orchestra?
+### How does `data_load_tool` integrate with Orchestra?
 
-Fundamentally `dlt` is python code. This means that to run `dlt`, you should first set-up the [Python Connector](https://docs.getorchestra.io/docs/integrations/utility/python/) in Orchestra. You can find a step-by-step [dlt video tutorial here](https://www.youtube.com/watch?v=2V94CRXFZXk).
+Fundamentally `data_load_tool` is python code. This means that to run `data_load_tool`, you should first set-up the [Python Connector](https://docs.getorchestra.io/docs/integrations/utility/python/) in Orchestra. You can find a step-by-step [data_load_tool video tutorial here](https://www.youtube.com/watch?v=2V94CRXFZXk).
 
 When configuring the python connection, ensure environment variables such as secrets are added with the [proper naming convention](../../general-usage/credentials/setup).
 
@@ -39,17 +39,17 @@ For example:
 }
 ```
 
-![Configure a dlt Python Integration in Orchestra](images/orchestra_dlt_credential.png)
+![Configure a data_load_tool Python Integration in Orchestra](images/orchestra_dlt_credential.png)
 
 ### Entry point
 
-After configuring you `.dlt` project, you should ensure the pipelines you want to run can be run from a single point of entry i.e. a single file.
+After configuring you `.data_load_tool` project, you should ensure the pipelines you want to run can be run from a single point of entry i.e. a single file.
 
 Imported file;  `pipeline.py`
 
 ```py
 from typing import List
-import dlt
+import data_load_tool
 
 from hubspot import hubspot, hubspot_events_for_objects, THubspotObjectType
 from setup_logger import build_logger
@@ -63,10 +63,10 @@ def run_pipeline() -> None:
     Returns:
         None
     """
-    logger.info("Starting to run dlt Pipeline")
+    logger.info("Starting to run data_load_tool Pipeline")
     # Create a DLT pipeline object with the pipeline name, dataset name, and destination database type
     # Add dev_mode=(True or False) if you need your pipeline to create the dataset in your destination
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="hubspot",
         dataset_name="dlt_hubspot",
         destination='bigquery',
@@ -94,7 +94,7 @@ def load_crm_data_with_history() -> None:
 
     # Create a DLT pipeline object with the pipeline name, dataset name, and destination database type
     # Add dev_mode=(True or False) if you need your pipeline to create the dataset in your destination
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="hubspot",
         dataset_name="hubspot_dataset",
         destination='bigquery',
@@ -119,7 +119,7 @@ def load_crm_objects_with_custom_properties() -> None:
     # dataset name, properties to read and destination database
     # type Add dev_mode=(True or False) if you need your
     # pipeline to create the dataset in your destination
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="hubspot",
         dataset_name="hubspot_dataset",
         destination='bigquery',
@@ -154,7 +154,7 @@ def load_web_analytics_events(
     """
 
     # Create a DLT pipeline object with the pipeline name, dataset name, and destination database type
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="hubspot",
         dataset_name="hubspot_dataset",
         destination='bigquery',
@@ -184,7 +184,7 @@ run_pipeline()
 
 After doing this, you should add a Python Task to a Pipeline like so:
 
-![Adding a Python Task that runs dlt in Orchestra](images/orchestra_add_dlt_step.png)
+![Adding a Python Task that runs data_load_tool in Orchestra](images/orchestra_add_dlt_step.png)
 
 This will generate the below .yml:
 
@@ -212,18 +212,18 @@ pipeline:
         configuration: null
 ```
 
-Next, run the Pipeline in Orchestra. After running the Pipeline in Orchestra, you will be able to view the status of the dlt job alongside other Tasks in the end-to-end Data Pipeline.
+Next, run the Pipeline in Orchestra. After running the Pipeline in Orchestra, you will be able to view the status of the data_load_tool job alongside other Tasks in the end-to-end Data Pipeline.
 
 
-![Visualising dlt in Orchestra](images/dlt_orchestra_node.png)
+![Visualising data_load_tool in Orchestra](images/dlt_orchestra_node.png)
 
-_Left to right: the dlt Task Node, the raw logs from the dlt task, the Task parameters panel_.
+_Left to right: the data_load_tool Task Node, the raw logs from the data_load_tool task, the Task parameters panel_.
 
 
 
 ## Additional resources
 
-- Try dlt with Orchestra now:
+- Try data_load_tool with Orchestra now:
   [here](https://app.getorchestra.io/signup).
 - Running dbt core in Orchestra:
   [here.](https://www.getorchestra.io/product/orchestra-dbt-core-tm)

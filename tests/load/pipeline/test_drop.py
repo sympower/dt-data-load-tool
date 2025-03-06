@@ -5,32 +5,32 @@ from itertools import chain
 
 import pytest
 
-import dlt
-from dlt.common.destination.client import JobClientBase
-from dlt.extract import DltResource
-from dlt.common.utils import uniq_id
-from dlt.pipeline import helpers, state_sync, Pipeline
-from dlt.load import Load
-from dlt.pipeline.exceptions import (
+import data_load_tool
+from data_load_tool.common.destination.client import JobClientBase
+from data_load_tool.extract import DltResource
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.pipeline import helpers, state_sync, Pipeline
+from data_load_tool.load import Load
+from data_load_tool.pipeline.exceptions import (
     PipelineHasPendingDataException,
     PipelineNeverRan,
     PipelineStepFailed,
 )
-from dlt.destinations.job_client_impl import SqlJobClientBase
+from data_load_tool.destinations.job_client_impl import SqlJobClientBase
 
 from tests.load.utils import destinations_configs, DestinationTestConfiguration
 from tests.pipeline.utils import assert_load_info, load_table_counts
 
 
 def _attach(pipeline: Pipeline) -> Pipeline:
-    return dlt.attach(pipeline.pipeline_name, pipelines_dir=pipeline.pipelines_dir)
+    return data_load_tool.attach(pipeline.pipeline_name, pipelines_dir=pipeline.pipelines_dir)
 
 
-@dlt.source(section="droppable", name="droppable")
+@data_load_tool.source(section="droppable", name="droppable")
 def droppable_source(drop_columns: bool = False) -> List[DltResource]:
-    @dlt.resource
+    @data_load_tool.resource
     def droppable_a(
-        a: dlt.sources.incremental[int] = dlt.sources.incremental("a", 0, range_start="open")
+        a: data_load_tool.sources.incremental[int] = data_load_tool.sources.incremental("a", 0, range_start="open")
     ) -> Iterator[Dict[str, Any]]:
         if drop_columns:
             yield dict(a=1, b=2)
@@ -39,16 +39,16 @@ def droppable_source(drop_columns: bool = False) -> List[DltResource]:
             yield dict(a=1, b=2, c=3)
             yield dict(a=4, b=23, c=24)
 
-    @dlt.resource
+    @data_load_tool.resource
     def droppable_b(
-        asd: dlt.sources.incremental[int] = dlt.sources.incremental("asd", 0)
+        asd: data_load_tool.sources.incremental[int] = data_load_tool.sources.incremental("asd", 0)
     ) -> Iterator[Dict[str, Any]]:
         # Child table
         yield dict(asd=2323, qe=555, items=[dict(m=1, n=2), dict(m=3, n=4)])
 
-    @dlt.resource
+    @data_load_tool.resource
     def droppable_c(
-        qe: dlt.sources.incremental[int] = dlt.sources.incremental("qe"),
+        qe: data_load_tool.sources.incremental[int] = data_load_tool.sources.incremental("qe"),
     ) -> Iterator[Dict[str, Any]]:
         # Grandchild table
         if drop_columns:
@@ -63,14 +63,14 @@ def droppable_source(drop_columns: bool = False) -> List[DltResource]:
                 ],
             )
 
-    @dlt.resource
+    @data_load_tool.resource
     def droppable_d(
-        o: dlt.sources.incremental[int] = dlt.sources.incremental("o"),
+        o: data_load_tool.sources.incremental[int] = data_load_tool.sources.incremental("o"),
     ) -> Iterator[List[Dict[str, Any]]]:
-        dlt.state()["data_from_d"] = {"foo1": {"bar": 1}, "foo2": {"bar": 2}}
+        data_load_tool.state()["data_from_d"] = {"foo1": {"bar": 1}, "foo2": {"bar": 2}}
         yield [dict(o=55), dict(o=22)]
 
-    @dlt.resource(selected=True)
+    @data_load_tool.resource(selected=True)
     def droppable_no_state():
         yield [1, 2, 3]
 
@@ -479,7 +479,7 @@ def test_drop_state_only(destination_config: DestinationTestConfiguration) -> No
 
 def test_drop_first_run_and_pending_packages() -> None:
     """Attempts to drop before pipeline runs and when partial loads happen"""
-    pipeline = dlt.pipeline("drop_test_" + uniq_id(), destination="dummy")
+    pipeline = data_load_tool.pipeline("drop_test_" + uniq_id(), destination="dummy")
     with pytest.raises(PipelineNeverRan):
         helpers.drop(pipeline, "droppable_a")
     os.environ["COMPLETED_PROB"] = "1.0"

@@ -1,19 +1,19 @@
 ---
 title: Schema
 description: Schema
-keywords: [schema, dlt schema, yaml]
+keywords: [schema, data_load_tool schema, yaml]
 ---
 
 # Schema
 
 The schema describes the structure of normalized data (e.g., tables, columns, data types, etc.) and
-provides instructions on how the data should be processed and loaded. dlt generates schemas from
+provides instructions on how the data should be processed and loaded. data_load_tool generates schemas from
 the data during the normalization process. Users can affect this standard behavior by providing
 **hints** that change how tables, columns, and other metadata are generated and how the data is
-loaded. Such hints can be passed in the code, i.e., to the `dlt.resource` decorator or `pipeline.run`
+loaded. Such hints can be passed in the code, i.e., to the `data_load_tool.resource` decorator or `pipeline.run`
 method. Schemas can also be exported and imported as files, which can be directly modified.
 
-> 💡 `dlt` associates a schema with a [source](source.md) and a table schema with a
+> 💡 `data_load_tool` associates a schema with a [source](source.md) and a table schema with a
 > [resource](resource.md).
 
 ## Schema content hash and version
@@ -36,13 +36,13 @@ the order is lost.
 
 ## Naming convention
 
-`dlt` creates tables, nested tables, and column schemas from the data. The data being loaded,
+`data_load_tool` creates tables, nested tables, and column schemas from the data. The data being loaded,
 typically JSON documents, contains identifiers (i.e., key names in a dictionary) with any Unicode
 characters, any lengths, and naming styles. On the other hand, the destinations accept very strict
 namespaces for their identifiers. Like Redshift, that accepts case-insensitive alphanumeric
 identifiers with a maximum of 127 characters.
 
-Each schema contains a [naming convention](naming-convention.md) that tells dlt how to translate identifiers to the
+Each schema contains a [naming convention](naming-convention.md) that tells data_load_tool how to translate identifiers to the
 namespace that the destination understands. This convention can be configured, changed in code, or enforced via
 destination.
 
@@ -55,12 +55,12 @@ The default naming convention:
 1. Nesting is expressed as double `_` in names.
 1. It shortens the identifier if it exceeds the length at the destination.
 
-> 💡 The standard behavior of `dlt` is to **use the same naming convention for all destinations** so
+> 💡 The standard behavior of `data_load_tool` is to **use the same naming convention for all destinations** so
 > users always see the same tables and columns in their databases.
 
 > 💡 If you provide any schema elements that contain identifiers via decorators or arguments (i.e.,
 > `table_name` or `columns`), all the names used will be converted via the naming convention when
-> adding to the schema. For example, if you execute `dlt.run(... table_name="CamelCase")` the data
+> adding to the schema. For example, if you execute `data_load_tool.run(... table_name="CamelCase")` the data
 > will be loaded into `camel_case`.
 
 > 💡 Use simple, short, small caps identifiers for everything!
@@ -80,7 +80,7 @@ DuckDB).
 
 ## Data normalizer
 
-The data normalizer changes the structure of the input data so it can be loaded into the destination. The standard `dlt` normalizer creates a relational structure from Python dictionaries and lists. Elements of that structure, such as table and column definitions, are added to the schema.
+The data normalizer changes the structure of the input data so it can be loaded into the destination. The standard `data_load_tool` normalizer creates a relational structure from Python dictionaries and lists. Elements of that structure, such as table and column definitions, are added to the schema.
 
 The data normalizer is configurable, and users can plug in their own normalizers, for example, to handle nested table linking differently or generate parquet-like data structures instead of nested tables.
 
@@ -92,7 +92,7 @@ A table schema has the following properties:
 
 1. `name` and `description`.
 2. `columns` with a dictionary of table schemas.
-3. `write_disposition` hint telling `dlt` how new data coming to the table is loaded.
+3. `write_disposition` hint telling `data_load_tool` how new data coming to the table is loaded.
 4. `schema_contract` - describes a [contract on the table](schema-contracts.md).
 5. `parent` is a part of the nested reference, defined on a nested table and points to the parent table.
 
@@ -118,12 +118,12 @@ A column schema contains the following basic hints:
 3. `merge_key` marks a column as part of the merge key used by [incremental load](./incremental-loading.md#merge-incremental-loading).
 
 Hints below are used to create [nested references](#nested-references-root-and-nested-tables):
-1. `row_key` is a special form of primary key created by `dlt` to uniquely identify rows of data.
+1. `row_key` is a special form of primary key created by `data_load_tool` to uniquely identify rows of data.
 2. `parent_key` is a special form of foreign key used by nested tables to refer to parent tables.
 3. `root_key` marks a column as part of the root key, which is a type of foreign key always referring to the root table.
 4. `_dlt_list_idx` is an index on a nested list from which a nested table is created.
 
-`dlt` lets you define additional performance hints:
+`data_load_tool` lets you define additional performance hints:
 
 1. `partition` marks a column to be used to partition data.
 2. `cluster` marks a column to be used to cluster data.
@@ -135,7 +135,7 @@ Each destination can interpret the hints in its own way. For example, the `clust
 
 ### Variant columns
 
-Variant columns are generated by a normalizer when it encounters a data item with a type that cannot be coerced into an existing column. Please see our [`coerce_row`](https://github.com/dlt-hub/dlt/blob/7d9baf1b8fdf2813bcf7f1afe5bb3558993305ca/dlt/common/schema/schema.py#L205) if you are interested in seeing how it works internally.
+Variant columns are generated by a normalizer when it encounters a data item with a type that cannot be coerced into an existing column. Please see our [`coerce_row`](https://github.com/dlt-hub/data_load_tool/blob/7d9baf1b8fdf2813bcf7f1afe5bb3558993305ca/data_load_tool/common/schema/schema.py#L205) if you are interested in seeing how it works internally.
 
 Let's consider our [getting started](../intro) example with a slightly different approach, where `id` is an integer type at the beginning:
 
@@ -161,7 +161,7 @@ data = [
 ]
 ```
 
-So after you run the pipeline, `dlt` will automatically infer type changes and will add a new field in the schema `id__v_text` to reflect that new data type for `id`. For any type that is not compatible with integer, it will create a new field.
+So after you run the pipeline, `data_load_tool` will automatically infer type changes and will add a new field in the schema `id__v_text` to reflect that new data type for `id`. For any type that is not compatible with integer, it will create a new field.
 
 | name          | data_type     | nullable |
 | ------------- | ------------- | -------- |
@@ -175,7 +175,7 @@ Now go ahead and try to add a new record where `id` is a float number; you shoul
 
 ### Data types
 
-| dlt Data Type | Source Value Example                                | Precision and Scale                                     |
+| data_load_tool Data Type | Source Value Example                                | Precision and Scale                                     |
 | ------------- | --------------------------------------------------- | ------------------------------------------------------- |
 | text          | `'hello world'`                                     | Supports precision, typically mapping to **VARCHAR(N)** |
 | double        | `45.678`                                            |                                                         |
@@ -191,7 +191,7 @@ Now go ahead and try to add a new record where `id` is a float number; you shoul
 
 `wei` is a datatype that tries to best represent native Ethereum 256-bit integers and fixed-point decimals. It works correctly on Postgres and BigQuery. All other destinations have insufficient precision.
 
-`json` data type tells `dlt` to load that element as JSON or string and not attempt to flatten or create a nested table out of it. Note that structured types like arrays or maps are not supported by `dlt` at this point.
+`json` data type tells `data_load_tool` to load that element as JSON or string and not attempt to flatten or create a nested table out of it. Note that structured types like arrays or maps are not supported by `data_load_tool` at this point.
 
 `time` data type is saved in the destination without timezone info; if timezone is included, it is stripped. E.g., `'14:01:02+02:00` -> `'14:01:02'`.
 
@@ -204,12 +204,12 @@ The precision for **bigint** is mapped to available integer types, i.e., TINYINT
 :::
 
 ## Table references
-`dlt` tables refer to other tables. It supports two types of such references:
+`data_load_tool` tables refer to other tables. It supports two types of such references:
 1. **Nested reference** created automatically when nested data (i.e., a `json` document containing a nested list) is converted into relational form. These references use specialized column and table hints and are used, for example, when [merging data](incremental-loading.md).
 2. **Table references** are optional, user-defined annotations that are not verified and enforced but may be used by downstream tools, for example, to generate automatic tests or models for the loaded data.
 
 ### Nested references: root and nested tables
-When `dlt` normalizes nested data into a relational schema, it automatically creates [**root** and **nested** tables](destination-tables.md) and links them using **nested references**.
+When `data_load_tool` normalizes nested data into a relational schema, it automatically creates [**root** and **nested** tables](destination-tables.md) and links them using **nested references**.
 
 1. All tables receive a column with the `row_key` hint (named `_dlt_id` by default) to uniquely identify each row of data.
 2. Nested tables receive a `parent` table hint with the name of the parent table. The root table does not have a `parent` hint defined.
@@ -265,7 +265,7 @@ Above, we modify a schema that comes with a source to detect UNIX timestamps wit
 
 ### Column hint rules
 
-You can define global rules that will apply hints to newly inferred columns. These rules apply to normalized column names. You can use column names directly or with regular expressions. `dlt` matches the column names **after they have been normalized with naming conventions**.
+You can define global rules that will apply hints to newly inferred columns. These rules apply to normalized column names. You can use column names directly or with regular expressions. `data_load_tool` matches the column names **after they have been normalized with naming conventions**.
 
 By default, the schema adopts hint rules from the json(relational) normalizer to support correct hinting of columns added by the normalizer:
 
@@ -295,7 +295,7 @@ settings:
 ```
 Above, we add a `partition` hint to all columns ending with `_timestamp`. You can do the same thing in the code:
 ```py
-  from dlt.common.schema.typing import TSimpleRegex
+  from data_load_tool.common.schema.typing import TSimpleRegex
   
   source = data_source()
   # this will update existing hints with the hints passed
@@ -304,7 +304,7 @@ Above, we add a `partition` hint to all columns ending with `_timestamp`. You ca
 
 ### Preferred data types
 
-You can define rules that will set the data type for newly created columns. Put the rules under the `preferred_types` key of `settings`. On the left side, there's a rule on a column name; on the right side is the data type. You can use column names directly or with regular expressions. `dlt` matches the column names **after they have been normalized with naming conventions**.
+You can define rules that will set the data type for newly created columns. Put the rules under the `preferred_types` key of `settings`. On the left side, there's a rule on a column name; on the right side is the data type. You can use column names directly or with regular expressions. `data_load_tool` matches the column names **after they have been normalized with naming conventions**.
 
 Example:
 
@@ -330,15 +330,15 @@ Here's the same thing in code:
     }
   )
 ```
-### Applying data types directly with `@dlt.resource` and `apply_hints`
-`dlt` offers the flexibility to directly apply data types and hints in your code, bypassing the need for importing and adjusting schemas. This approach is ideal for rapid prototyping and handling data sources with dynamic schema requirements.
+### Applying data types directly with `@data_load_tool.resource` and `apply_hints`
+`data_load_tool` offers the flexibility to directly apply data types and hints in your code, bypassing the need for importing and adjusting schemas. This approach is ideal for rapid prototyping and handling data sources with dynamic schema requirements.
 
-### Direct specification in `@dlt.resource`
-Directly define data types and their properties, such as nullability, within the `@dlt.resource` decorator. This eliminates the dependency on external schema files. For example:
+### Direct specification in `@data_load_tool.resource`
+Directly define data types and their properties, such as nullability, within the `@data_load_tool.resource` decorator. This eliminates the dependency on external schema files. For example:
 
 ```py
 
-@dlt.resource(name='my_table', columns={"my_column": {"data_type": "bool", "nullable": True}})
+@data_load_tool.resource(name='my_table', columns={"my_column": {"data_type": "bool", "nullable": True}})
 def my_resource():
     for i in range(10):
         yield {'my_column': i % 2 == 0}
@@ -357,7 +357,7 @@ source_data = mongodb().with_resources(*all_collections)
 for col in all_collections:
     source_data.resources[col].apply_hints(columns={"column_name": {"data_type": "json"}})
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="mongodb_pipeline",
     destination="duckdb",
     dataset_name="mongodb_data"
@@ -376,7 +376,7 @@ This can be used in a pipeline as:
 
 ```py
 # Create a pipeline
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
                pipeline_name="chess_pipeline",
                destination='duckdb',
                dataset_name="games_data")
@@ -400,7 +400,7 @@ We recommend not creating schemas explicitly. Instead, users should provide a fe
 settings and then let the table and column schemas be generated from the resource hints and the
 data itself.
 
-The `dlt.source` decorator accepts a schema instance that you can create yourself and modify in
+The `data_load_tool.source` decorator accepts a schema instance that you can create yourself and modify in
 whatever way you wish. The decorator also supports a few typical use cases:
 
 ### Schema created implicitly by decorator
@@ -424,20 +424,20 @@ schemas of all the database tables when someone requests table data to be loaded
 is available only at the moment the source function is called.
 
 Similarly to the `source_state()` and `resource_state()`, the source and resource function has the current
-schema available via `dlt.current.source_schema()`.
+schema available via `data_load_tool.current.source_schema()`.
 
 Example:
 
 ```py
-@dlt.source
+@data_load_tool.source
 def textual(nesting_level: int):
     # get the source schema from the `current` context
-    schema = dlt.current.source_schema()
+    schema = data_load_tool.current.source_schema()
     # remove date detector
     schema.remove_type_detection("iso_timestamp")
     # convert UNIX timestamp (float, within a year from NOW) into timestamp
     schema.add_type_detection("timestamp")
 
-    return dlt.resource([])
+    return data_load_tool.resource([])
 ```
 

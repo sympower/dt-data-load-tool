@@ -1,13 +1,13 @@
 import os
 import pytest
 
-from dlt.common import json, pendulum
-from dlt.common.schema import TSchemaTables
-from dlt.common.storages import PackageStorage, LoadStorage
-from dlt.common.storages.exceptions import LoadPackageNotFound, NoMigrationPathException
+from data_load_tool.common import json, pendulum
+from data_load_tool.common.schema import TSchemaTables
+from data_load_tool.common.storages import PackageStorage, LoadStorage
+from data_load_tool.common.storages.exceptions import LoadPackageNotFound, NoMigrationPathException
 
-from dlt.common.storages.file_storage import FileStorage
-from dlt.common.storages.load_package import create_load_id
+from data_load_tool.common.storages.file_storage import FileStorage
+from data_load_tool.common.storages.load_package import create_load_id
 from tests.common.storages.utils import (
     start_loading_file,
     assert_package_info,

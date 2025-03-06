@@ -2,13 +2,13 @@ import os
 import argparse
 from typing import Any, ClassVar, Optional, Type
 
-from dlt.common.configuration import plugins
-from dlt.common.configuration.specs.pluggable_run_context import SupportsRunContext
-from dlt.cli import SupportsCliCommand
-from dlt.common.runtime.run_context import RunContext, DOT_DLT
+from data_load_tool.common.configuration import plugins
+from data_load_tool.common.configuration.specs.pluggable_run_context import SupportsRunContext
+from data_load_tool.cli import SupportsCliCommand
+from data_load_tool.common.runtime.run_context import RunContext, DOT_DLT
 
 from tests.utils import TEST_STORAGE_ROOT
-from dlt.cli.exceptions import CliCommandException
+from data_load_tool.cli.exceptions import CliCommandException
 
 
 class RunContextTest(RunContext):

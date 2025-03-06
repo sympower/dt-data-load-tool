@@ -3,27 +3,27 @@ import shutil
 from typing_extensions import get_type_hints
 import pytest
 
-import dlt
-from dlt.common.pendulum import pendulum
-from dlt.common.exceptions import (
+import data_load_tool
+from data_load_tool.common.pendulum import pendulum
+from data_load_tool.common.exceptions import (
     PipelineStateNotAvailable,
     ResourceNameNotAvailable,
 )
-from dlt.common.schema import Schema
-from dlt.common.schema.utils import pipeline_state_table
-from dlt.common.pipeline import get_current_pipe_name, get_dlt_pipelines_dir
-from dlt.common.storages import FileStorage
-from dlt.common import pipeline as state_module
-from dlt.common.storages.load_package import TPipelineStateDoc
-from dlt.common.utils import uniq_id
-from dlt.common.destination import Destination
-from dlt.common.destination.client import StateInfo
-from dlt.common.validation import validate_dict
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.schema.utils import pipeline_state_table
+from data_load_tool.common.pipeline import get_current_pipe_name, get_dlt_pipelines_dir
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common import pipeline as state_module
+from data_load_tool.common.storages.load_package import TPipelineStateDoc
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.destination import Destination
+from data_load_tool.common.destination.client import StateInfo
+from data_load_tool.common.validation import validate_dict
 
-from dlt.destinations.utils import get_pipeline_state_query_columns
-from dlt.pipeline.exceptions import PipelineStateEngineNoUpgradePathException, PipelineStepFailed
-from dlt.pipeline.pipeline import Pipeline
-from dlt.pipeline.state_sync import (
+from data_load_tool.destinations.utils import get_pipeline_state_query_columns
+from data_load_tool.pipeline.exceptions import PipelineStateEngineNoUpgradePathException, PipelineStepFailed
+from data_load_tool.pipeline.pipeline import Pipeline
+from data_load_tool.pipeline.state_sync import (
     generate_pipeline_state_version_hash,
     migrate_pipeline_state,
     PIPELINE_STATE_ENGINE_VERSION,
@@ -33,18 +33,18 @@ from tests.utils import test_storage
 from tests.pipeline.utils import json_case_path, load_json_case
 
 
-@dlt.resource()
+@data_load_tool.resource()
 def some_data():
-    last_value = dlt.current.source_state().get("last_value", 0)
+    last_value = data_load_tool.current.source_state().get("last_value", 0)
     yield [1, 2, 3]
-    dlt.current.source_state()["last_value"] = last_value + 1
+    data_load_tool.current.source_state()["last_value"] = last_value + 1
 
 
-@dlt.resource()
+@data_load_tool.resource()
 def some_data_resource_state():
-    last_value = dlt.current.resource_state().get("last_value", 0)
+    last_value = data_load_tool.current.resource_state().get("last_value", 0)
     yield [1, 2, 3]
-    dlt.current.resource_state()["last_value"] = last_value + 1
+    data_load_tool.current.resource_state()["last_value"] = last_value + 1
 
 
 def test_state_repr() -> None:
@@ -98,7 +98,7 @@ def test_state_repr() -> None:
 
 
 def test_restore_state_props() -> None:
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="restore_state_props",
         destination=Destination.from_reference("redshift", destination_name="redshift_name"),
         staging=Destination.from_reference("filesystem", destination_name="filesystem_name"),
@@ -114,7 +114,7 @@ def test_restore_state_props() -> None:
     assert state["destination_name"] == "redshift_name"
     assert state["staging_name"] == "filesystem_name"
 
-    p = dlt.pipeline(pipeline_name="restore_state_props")
+    p = data_load_tool.pipeline(pipeline_name="restore_state_props")
     state = p.state
     print(p.state)
     assert state["dataset_name"] == "the_dataset"
@@ -128,7 +128,7 @@ def test_restore_state_props() -> None:
 
 
 def test_managed_state() -> None:
-    p = dlt.pipeline(pipeline_name="managed_state_pipeline")
+    p = data_load_tool.pipeline(pipeline_name="managed_state_pipeline")
     p.extract(some_data())
     sources_state = p.state["sources"]
     # standalone resources get state in the section named same as the default schema
@@ -143,9 +143,9 @@ def test_managed_state() -> None:
 
     # attach to different source that will get separate state
 
-    @dlt.source(name="separate_state", section="different_section")
+    @data_load_tool.source(name="separate_state", section="different_section")
     def some_source():
-        assert "last_value" not in dlt.current.source_state()
+        assert "last_value" not in data_load_tool.current.source_state()
         return some_data
 
     s = some_source()
@@ -157,10 +157,10 @@ def test_managed_state() -> None:
         sources_state["managed_state"]["last_value"] == 2
     )  # the state for standalone resource not affected
 
-    @dlt.source
+    @data_load_tool.source
     def source_same_section():
         # source has separate state key
-        assert "last_value" not in dlt.current.source_state()
+        assert "last_value" not in data_load_tool.current.source_state()
         return some_data
 
     s = source_same_section()
@@ -177,7 +177,7 @@ def test_managed_state() -> None:
 
     # resource without section gets the default schema name as state key
     def _gen_inner():
-        dlt.current.source_state()["gen"] = True
+        data_load_tool.current.source_state()["gen"] = True
         yield 1
 
     p.extract(_gen_inner())
@@ -192,9 +192,9 @@ def test_no_active_pipeline_required_for_resource() -> None:
 
 
 def test_active_pipeline_required_for_source() -> None:
-    @dlt.source
+    @data_load_tool.source
     def some_source():
-        dlt.current.source_state().get("last_value", 0)
+        data_load_tool.current.source_state().get("last_value", 0)
         return some_data
 
     # source cannot be instantiated without pipeline context
@@ -204,7 +204,7 @@ def test_active_pipeline_required_for_source() -> None:
         some_source()
     assert py_ex.value.source_state_key == "some_source"
 
-    p = dlt.pipeline(pipeline_name="managed_state_pipeline")
+    p = data_load_tool.pipeline(pipeline_name="managed_state_pipeline")
     s = some_source()
 
     # but can be iterated without pipeline context after it is created
@@ -216,29 +216,29 @@ def test_source_state_iterator():
     os.environ["COMPLETED_PROB"] = "1.0"
     pipeline_name = "pipe_" + uniq_id()
 
-    @dlt.resource(selected=False)
+    @data_load_tool.resource(selected=False)
     def main():
-        state = dlt.current.source_state()
+        state = data_load_tool.current.source_state()
         print(f"main state: {state}")
         mark = state.setdefault("mark", 1)
         # increase the multiplier each time state is obtained
         state["mark"] *= 2
         yield [1, 2, 3]
-        assert dlt.current.source_state()["mark"] == mark * 2
+        assert data_load_tool.current.source_state()["mark"] == mark * 2
 
-    @dlt.transformer(data_from=main)
+    @data_load_tool.transformer(data_from=main)
     def feeding(item):
         # we must have state
-        assert dlt.current.source_state()["mark"] > 1
-        print(f"feeding state {dlt.current.source_state()}")
-        mark = dlt.current.source_state()["mark"]
+        assert data_load_tool.current.source_state()["mark"] > 1
+        print(f"feeding state {data_load_tool.current.source_state()}")
+        mark = data_load_tool.current.source_state()["mark"]
         yield from map(lambda i: i * mark, item)
 
-    @dlt.source
+    @data_load_tool.source
     def pass_the_state():
         return main, feeding
 
-    p = dlt.pipeline(pipeline_name=pipeline_name, destination="dummy")
+    p = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="dummy")
     p.extract(pass_the_state())
     p.extract(pass_the_state())
     assert p.state["sources"]["pass_the_state"]["mark"] == 4
@@ -249,7 +249,7 @@ def test_source_state_iterator():
 
 
 def test_unmanaged_state() -> None:
-    p = dlt.pipeline(pipeline_name="unmanaged_pipeline")
+    p = data_load_tool.pipeline(pipeline_name="unmanaged_pipeline")
     # evaluate generator that reads and writes state
     list(some_data())
     # state is not in pipeline
@@ -264,16 +264,16 @@ def test_unmanaged_state() -> None:
 
     # resource without section gets default schema name as source state key
     def _gen_inner():
-        dlt.state()["gen"] = True
+        data_load_tool.state()["gen"] = True
         yield 1
 
-    list(dlt.resource(_gen_inner))
-    list(dlt.resource(_gen_inner()))
+    list(data_load_tool.resource(_gen_inner))
+    list(data_load_tool.resource(_gen_inner()))
     assert state_module._last_full_state["sources"]["unmanaged"]["gen"] is True
 
-    @dlt.source
+    @data_load_tool.source
     def some_source():
-        state = dlt.current.source_state()
+        state = data_load_tool.current.source_state()
         value = state.get("last_value", 0)
         state["last_value"] = value + 1
         return some_data
@@ -304,10 +304,10 @@ def test_unmanaged_state_no_pipeline() -> None:
     assert state_module._last_full_state["sources"]["test_pipeline_state"]["last_value"] == 1
 
     def _gen_inner():
-        dlt.current.state()["gen"] = True
+        data_load_tool.current.state()["gen"] = True
         yield 1
 
-    list(dlt.resource(_gen_inner()))
+    list(data_load_tool.resource(_gen_inner()))
     fk = next(iter(state_module._last_full_state["sources"]))
     assert state_module._last_full_state["sources"][fk]["gen"] is True
 
@@ -325,11 +325,11 @@ def test_resource_state_write() -> None:
         get_current_pipe_name()
 
     def _gen_inner():
-        dlt.current.resource_state()["gen"] = True
+        data_load_tool.current.resource_state()["gen"] = True
         yield 1
 
-    p = dlt.pipeline()
-    r = dlt.resource(_gen_inner(), name="name_ovrd")
+    p = data_load_tool.pipeline()
+    r = data_load_tool.resource(_gen_inner(), name="name_ovrd")
     assert list(r) == [1]
     assert (
         state_module._last_full_state["sources"][p._make_schema_with_default_name().name][
@@ -342,7 +342,7 @@ def test_resource_state_write() -> None:
 
 
 def test_resource_state_in_pipeline() -> None:
-    p = dlt.pipeline()
+    p = data_load_tool.pipeline()
     r = some_data_resource_state()
     p.extract(r)
     assert r.state["last_value"] == 1
@@ -350,10 +350,10 @@ def test_resource_state_in_pipeline() -> None:
         get_current_pipe_name()
 
     def _gen_inner(tv="df"):
-        dlt.current.resource_state()["gen"] = tv
+        data_load_tool.current.resource_state()["gen"] = tv
         yield 1
 
-    r = dlt.resource(_gen_inner("gen_tf"), name="name_ovrd")
+    r = data_load_tool.resource(_gen_inner("gen_tf"), name="name_ovrd")
     p.extract(r)
     assert r.state["gen"] == "gen_tf"
     assert (
@@ -365,7 +365,7 @@ def test_resource_state_in_pipeline() -> None:
     with pytest.raises(ResourceNameNotAvailable):
         get_current_pipe_name()
 
-    r = dlt.resource(_gen_inner, name="pure_function")
+    r = data_load_tool.resource(_gen_inner, name="pure_function")
     p.extract(r)
     assert r.state["gen"] == "df"
     assert (
@@ -379,14 +379,14 @@ def test_resource_state_in_pipeline() -> None:
 
     # get resource state in defer function
     def _gen_inner_defer(tv="df"):
-        @dlt.defer
+        @data_load_tool.defer
         def _run():
-            dlt.current.resource_state()["gen"] = tv
+            data_load_tool.current.resource_state()["gen"] = tv
             return 1
 
         yield _run()
 
-    r = dlt.resource(_gen_inner_defer, name="defer_function")
+    r = data_load_tool.resource(_gen_inner_defer, name="defer_function")
     # you cannot get resource name in `defer` function
     with pytest.raises(PipelineStepFailed) as pip_ex:
         p.extract(r)
@@ -394,14 +394,14 @@ def test_resource_state_in_pipeline() -> None:
 
     # get resource state in defer explicitly
     def _gen_inner_defer_explicit_name(resource_name, tv="df"):
-        @dlt.defer
+        @data_load_tool.defer
         def _run():
-            dlt.current.resource_state(resource_name)["gen"] = tv
+            data_load_tool.current.resource_state(resource_name)["gen"] = tv
             return 1
 
         yield _run()
 
-    r = dlt.resource(_gen_inner_defer_explicit_name, name="defer_function_explicit")
+    r = data_load_tool.resource(_gen_inner_defer_explicit_name, name="defer_function_explicit")
     p.extract(r("defer_function_explicit", "expl"))
     assert r.state["gen"] == "expl"
     assert (
@@ -413,14 +413,14 @@ def test_resource_state_in_pipeline() -> None:
 
     # get resource state in yielding defer (which btw is invalid and will be resolved in main thread)
     def _gen_inner_defer_yielding(tv="yielding"):
-        @dlt.defer
+        @data_load_tool.defer
         def _run():
-            dlt.current.resource_state()["gen"] = tv
+            data_load_tool.current.resource_state()["gen"] = tv
             yield from [1, 2, 3]
 
         yield _run()
 
-    r = dlt.resource(_gen_inner_defer_yielding, name="defer_function_yielding")
+    r = data_load_tool.resource(_gen_inner_defer_yielding, name="defer_function_yielding")
     p.extract(r)
     assert r.state["gen"] == "yielding"
     assert (
@@ -433,12 +433,12 @@ def test_resource_state_in_pipeline() -> None:
     # get resource state in async function
     def _gen_inner_async(tv="async"):
         async def _run():
-            dlt.current.resource_state()["gen"] = tv
+            data_load_tool.current.resource_state()["gen"] = tv
             return 1
 
         yield _run()
 
-    r = dlt.resource(_gen_inner_async, name="async_function")
+    r = data_load_tool.resource(_gen_inner_async, name="async_function")
     # you cannot get resource name in `defer` function
     with pytest.raises(PipelineStepFailed) as pip_ex:
         p.extract(r)
@@ -450,12 +450,12 @@ def test_transformer_state_write() -> None:
 
     # yielding transformer
     def _gen_inner(item):
-        dlt.current.resource_state()["gen"] = True
+        data_load_tool.current.resource_state()["gen"] = True
         yield map(lambda i: i * 2, item)
 
-    # p = dlt.pipeline()
-    # p.extract(dlt.transformer(_gen_inner, data_from=r, name="tx_other_name"))
-    assert list(dlt.transformer(_gen_inner, data_from=r, name="tx_other_name")) == [2, 4, 6]
+    # p = data_load_tool.pipeline()
+    # p.extract(data_load_tool.transformer(_gen_inner, data_from=r, name="tx_other_name"))
+    assert list(data_load_tool.transformer(_gen_inner, data_from=r, name="tx_other_name")) == [2, 4, 6]
     assert (
         state_module._last_full_state["sources"]["test_pipeline_state"]["resources"][
             "some_data_resource_state"
@@ -471,11 +471,11 @@ def test_transformer_state_write() -> None:
 
     # returning transformer
     def _gen_inner_rv(item):
-        dlt.current.resource_state()["gen"] = True
+        data_load_tool.current.resource_state()["gen"] = True
         return item * 2
 
     r = some_data_resource_state()
-    assert list(dlt.transformer(_gen_inner_rv, data_from=r, name="tx_other_name_rv")) == [
+    assert list(data_load_tool.transformer(_gen_inner_rv, data_from=r, name="tx_other_name_rv")) == [
         1,
         2,
         3,
@@ -491,34 +491,34 @@ def test_transformer_state_write() -> None:
     )
 
     # deferred transformer
-    @dlt.defer
+    @data_load_tool.defer
     def _gen_inner_rv_defer(item):
-        dlt.current.resource_state()["gen"] = True
+        data_load_tool.current.resource_state()["gen"] = True
         return item
 
     r = some_data_resource_state()
     # not available because executed in a pool
     with pytest.raises(ResourceNameNotAvailable):
-        print(list(dlt.transformer(_gen_inner_rv_defer, data_from=r, name="tx_other_name_defer")))
+        print(list(data_load_tool.transformer(_gen_inner_rv_defer, data_from=r, name="tx_other_name_defer")))
 
     # async transformer
     async def _gen_inner_rv_async(item):
-        dlt.current.resource_state()["gen"] = True
+        data_load_tool.current.resource_state()["gen"] = True
         return item
 
     r = some_data_resource_state()
     # not available because executed in a pool
     with pytest.raises(ResourceNameNotAvailable):
-        print(list(dlt.transformer(_gen_inner_rv_async, data_from=r, name="tx_other_name_async")))
+        print(list(data_load_tool.transformer(_gen_inner_rv_async, data_from=r, name="tx_other_name_async")))
 
     # async transformer with explicit resource name
     async def _gen_inner_rv_async_name(item, r_name):
-        dlt.current.resource_state(r_name)["gen"] = True
+        data_load_tool.current.resource_state(r_name)["gen"] = True
         return item
 
     r = some_data_resource_state()
     assert list(
-        dlt.transformer(_gen_inner_rv_async_name, data_from=r, name="tx_other_name_async")(
+        data_load_tool.transformer(_gen_inner_rv_async_name, data_from=r, name="tx_other_name_async")(
             "tx_other_name_async"
         )
     ) == [1, 2, 3]
@@ -548,7 +548,7 @@ def test_migrate_pipeline_state(test_storage: FileStorage) -> None:
 
     # check destination migration
     assert state["destination_name"] is None
-    assert state["destination_type"] == "dlt.destinations.postgres"
+    assert state["destination_type"] == "data_load_tool.destinations.postgres"
     assert "destination" not in state
 
     with pytest.raises(PipelineStateEngineNoUpgradePathException) as py_ex:
@@ -569,7 +569,7 @@ def test_migrate_pipeline_state(test_storage: FileStorage) -> None:
         json_case_path("state/state.v1"),
         test_storage.make_full_path(f"debug_pipeline/{Pipeline.STATE_FILE}"),
     )
-    p = dlt.attach(pipeline_name="debug_pipeline", pipelines_dir=test_storage.storage_path)
+    p = data_load_tool.attach(pipeline_name="debug_pipeline", pipelines_dir=test_storage.storage_path)
     assert p.dataset_name == "debug_pipeline_data"
     assert p.default_schema_name == "example_source"
     state = p.state
@@ -577,29 +577,29 @@ def test_migrate_pipeline_state(test_storage: FileStorage) -> None:
 
     # specifically check destination v3 to v4 migration
     state_v3 = {
-        "destination": "dlt.destinations.redshift",
-        "staging": "dlt.destinations.filesystem",
+        "destination": "data_load_tool.destinations.redshift",
+        "staging": "data_load_tool.destinations.filesystem",
         "_state_engine_version": 3,
     }
     migrate_pipeline_state(
         "test_pipeline", state_v3, state_v3["_state_engine_version"], PIPELINE_STATE_ENGINE_VERSION  # type: ignore
     )
     assert state_v3["destination_name"] is None
-    assert state_v3["destination_type"] == "dlt.destinations.redshift"
+    assert state_v3["destination_type"] == "data_load_tool.destinations.redshift"
     assert "destination" not in state_v3
     assert state_v3["staging_name"] is None
-    assert state_v3["staging_type"] == "dlt.destinations.filesystem"
+    assert state_v3["staging_type"] == "data_load_tool.destinations.filesystem"
     assert "staging" not in state_v3
 
     state_v3 = {
-        "destination": "dlt.destinations.redshift",
+        "destination": "data_load_tool.destinations.redshift",
         "_state_engine_version": 3,
     }
     migrate_pipeline_state(
         "test_pipeline", state_v3, state_v3["_state_engine_version"], PIPELINE_STATE_ENGINE_VERSION  # type: ignore
     )
     assert state_v3["destination_name"] is None
-    assert state_v3["destination_type"] == "dlt.destinations.redshift"
+    assert state_v3["destination_type"] == "data_load_tool.destinations.redshift"
     assert "destination" not in state_v3
     assert "staging_name" not in state_v3
     assert "staging_type" not in state_v3
@@ -624,9 +624,9 @@ def test_migrate_pipeline_state(test_storage: FileStorage) -> None:
 
     # make sure that destination name is preserved
     state_v4 = {
-        "destination_type": "dlt.destinations.redshift",
+        "destination_type": "data_load_tool.destinations.redshift",
         "destination_name": "redshift",
-        "staging_type": "dlt.destinations.filesystem",
+        "staging_type": "data_load_tool.destinations.filesystem",
         "staging_name": "fs_prod",
         "_state_engine_version": 3,
     }
@@ -634,9 +634,9 @@ def test_migrate_pipeline_state(test_storage: FileStorage) -> None:
         "test_pipeline", state_v4, state_v4["_state_engine_version"], PIPELINE_STATE_ENGINE_VERSION  # type: ignore
     )
     assert state_v4["destination_name"] is None
-    assert state_v4["destination_type"] == "dlt.destinations.redshift"
+    assert state_v4["destination_type"] == "data_load_tool.destinations.redshift"
     assert "destination" not in state_v3
     assert state_v4["staging_name"] == "fs_prod"
-    assert state_v4["staging_type"] == "dlt.destinations.filesystem"
+    assert state_v4["staging_type"] == "data_load_tool.destinations.filesystem"
     # NOTE: we intend it to fail when state engine version is bumped to this test is revised
     assert state_v4["_state_engine_version"] == 4

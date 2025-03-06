@@ -1,8 +1,8 @@
 from typing import cast
 from textwrap import dedent
 
-from dlt.destinations.impl.synapse.sql_client import SynapseSqlClient
-from dlt.destinations.impl.synapse.synapse_adapter import TTableIndexType
+from data_load_tool.destinations.impl.synapse.sql_client import SynapseSqlClient
+from data_load_tool.destinations.impl.synapse.synapse_adapter import TTableIndexType
 
 
 def get_storage_table_index_type(sql_client: SynapseSqlClient, table_name: str) -> TTableIndexType:

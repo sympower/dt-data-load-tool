@@ -114,7 +114,7 @@
     }
   },
   "normalizers": {
-    "names": "dlt.common.normalizers.names.snake_case",
+    "names": "data_load_tool.common.normalizers.names.snake_case",
     "json": {
       "module": "tests.normalize.mock_rasa_json_normalizer",
       "config": {

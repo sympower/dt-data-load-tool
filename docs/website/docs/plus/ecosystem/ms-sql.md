@@ -10,7 +10,7 @@ import Link from '../../_plus_admonition.md';
 
 # MS SQL replication
 
-dlt+ provides a comprehensive solution for syncing an MS SQL Server table using [Change Tracking](https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/about-change-tracking-sql-server), a solution similar to CDC. By leveraging SQL Server's native Change Tracking feature, you can efficiently load incremental data changes — including inserts, updates, and deletes — into your destination.
+data_load_tool+ provides a comprehensive solution for syncing an MS SQL Server table using [Change Tracking](https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/about-change-tracking-sql-server), a solution similar to CDC. By leveraging SQL Server's native Change Tracking feature, you can efficiently load incremental data changes — including inserts, updates, and deletes — into your destination.
 
 ## Prerequisites
 
@@ -43,9 +43,9 @@ WITH (TRACK_COLUMNS_UPDATED = ON);
 - `[YourSchemaName].[YourTableName]`: Replace with your schema and table names.
 - `TRACK_COLUMNS_UPDATED`: When set to ON, allows you to see which columns were updated in a row. Set to OFF if you don’t need this level of detail.
 
-### Set up dlt+ and drivers
+### Set up data_load_tool+ and drivers
 
-* Make sure dlt+ is installed according to the [installation guide](../getting-started/installation.md).
+* Make sure data_load_tool+ is installed according to the [installation guide](../getting-started/installation.md).
 
 * Install the Microsoft ODBC Driver for SQL Server according to the official [instructions](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16). If you prefer, there is also a [Python library alternative](https://www.pymssql.org/).
 
@@ -81,8 +81,8 @@ To fully avoid any duplication, you may completely lock the table during the ini
 Now you can use the `sql_table` resource to perform the initial backfill:
 
 ```py
-import dlt
-from dlt.sources.sql_database import sql_table
+import data_load_tool
+from data_load_tool.sources.sql_database import sql_table
 
 # Initial full load
 initial_resource = sql_table(
@@ -93,7 +93,7 @@ initial_resource = sql_table(
     write_disposition="merge",
 )
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='sql_server_sync_pipeline',
     destination='your_destination',
     dataset_name='destination_dataset',
@@ -123,12 +123,12 @@ incremental_resource = create_change_tracking_table(
 
 pipeline.run(incremental_resource)
 ```
-When running for the first time, it is necessary to pass the `tracking_version` in the `initial_tracking_version` argument. This will initialize incremental loading and keep the updated tracking version in the `dlt` state. In subsequent runs, you do not need to provide the initial value anymore.
+When running for the first time, it is necessary to pass the `tracking_version` in the `initial_tracking_version` argument. This will initialize incremental loading and keep the updated tracking version in the `data_load_tool` state. In subsequent runs, you do not need to provide the initial value anymore.
 
 ### Incremental loading
 
 After the initial load, you can run the `create_change_tracking_table` resource on a schedule to load only the changes since the last tracking version using SQL Server’s `CHANGETABLE` function. 
-You do not need to pass `initial_tracking_version` anymore, since this is automatically stored in the `dlt` state.
+You do not need to pass `initial_tracking_version` anymore, since this is automatically stored in the `data_load_tool` state.
 
 ```py
 from dlt_plus.sources.mssql import create_change_tracking_table
@@ -152,11 +152,11 @@ pipeline.run(incremental_resource)
 <summary>Show full code example</summary>
 
 ```py
-import dlt
+import data_load_tool
 
 from sqlalchemy import create_engine
 
-from dlt.sources.sql_database import sql_table
+from data_load_tool.sources.sql_database import sql_table
 from dlt_plus.sources.mssql import (
     create_change_tracking_table,
     get_current_change_tracking_version,
@@ -166,7 +166,7 @@ from dlt_plus.sources.mssql import (
 def single_table_initial_load(connection_url: str, schema_name: str, table_name: str) -> None:
     """Performs an initial full load and sets up tracking version and incremental loads"""
     # Create a new pipeline
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name=f"{schema_name}_{table_name}_sync",
         destination="duckdb",
         dataset_name=schema_name,
@@ -209,7 +209,7 @@ def single_table_incremental_load(connection_url: str, schema_name: str, table_n
     """Continues loading incrementally"""
     # Make sure you use the same pipeline and dataset names in order to continue incremental
     # loading.
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name=f"{schema_name}_{table_name}_sync",
         destination="duckdb",
         dataset_name=schema_name,
@@ -310,7 +310,7 @@ pipeline.run(incremental_resource)
 By default, `hard_delete` is set to `True`, meaning hard deletes are performed, i.e., rows deleted in the source will be permanently removed from the destination. 
 
 Replicated data allows for NULLs for not nullable columns when a record is deleted. To avoid additional tables that hold deleted rows and additional merge steps,
-`dlt` emits placeholder values that are stored in the staging dataset only.
+`data_load_tool` emits placeholder values that are stored in the staging dataset only.
 
 ### Soft deletes
 

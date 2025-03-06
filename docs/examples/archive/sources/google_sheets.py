@@ -1,9 +1,9 @@
 from typing import Any, Iterator, Sequence, Union, cast
 
-import dlt
-from dlt.common.configuration.specs import GcpServiceAccountCredentials, GcpOAuthCredentials
-from dlt.common.typing import DictStrAny, StrAny
-from dlt.common.exceptions import MissingDependencyException
+import data_load_tool
+from data_load_tool.common.configuration.specs import GcpServiceAccountCredentials, GcpOAuthCredentials
+from data_load_tool.common.typing import DictStrAny, StrAny
+from data_load_tool.common.exceptions import MissingDependencyException
 
 try:
     from apiclient.discovery import build
@@ -24,13 +24,13 @@ def _initialize_sheets(
     return service
 
 
-@dlt.source
+@data_load_tool.source
 def google_spreadsheet(
     spreadsheet_id: str,
     sheet_names: Sequence[str],
     credentials: Union[
         GcpServiceAccountCredentials, GcpOAuthCredentials, str, StrAny
-    ] = dlt.secrets.value,
+    ] = data_load_tool.secrets.value,
 ) -> Any:
     sheets = _initialize_sheets(cast(GcpServiceAccountCredentials, credentials))
 
@@ -62,6 +62,6 @@ def google_spreadsheet(
 
     # create resources from supplied sheet names
     return [
-        dlt.resource(get_sheet(name), name=name, write_disposition="replace")
+        data_load_tool.resource(get_sheet(name), name=name, write_disposition="replace")
         for name in sheet_names
     ]

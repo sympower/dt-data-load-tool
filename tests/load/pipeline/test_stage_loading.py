@@ -1,11 +1,11 @@
 import pytest
 from typing import List
 
-import dlt, os
-from dlt.common import json
-from dlt.common.storages.configuration import FilesystemConfiguration
-from dlt.common.utils import uniq_id
-from dlt.common.schema.typing import TDataType
+import data_load_tool, os
+from data_load_tool.common import json
+from data_load_tool.common.storages.configuration import FilesystemConfiguration
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema.typing import TDataType
 
 from tests.load.pipeline.test_merge_disposition import github
 from tests.pipeline.utils import load_table_counts, assert_load_info
@@ -20,7 +20,7 @@ from tests.cases import table_update_and_row
 pytestmark = pytest.mark.essential
 
 
-@dlt.resource(
+@data_load_tool.resource(
     table_name="issues", write_disposition="merge", primary_key="id", merge_key=("node_id", "url")
 )
 def load_modified_issues():
@@ -39,7 +39,7 @@ def load_modified_issues():
         yield from issues
 
 
-@dlt.resource(table_name="events", write_disposition="append", primary_key="timestamp")
+@data_load_tool.resource(table_name="events", write_disposition="append", primary_key="timestamp")
 def event_many_load_2():
     with open("tests/normalize/cases/event.event.many_load_2.json", "r", encoding="utf-8") as f:
         events = json.load(f)
@@ -327,12 +327,12 @@ def test_all_data_types(destination_config: DestinationTestConfiguration) -> Non
                 column_schemas[col]["data_type"] = "text"
 
     # apply the exact columns definitions so we process nested and wei types correctly!
-    @dlt.resource(table_name="data_types", write_disposition="merge", columns=column_schemas)
+    @data_load_tool.resource(table_name="data_types", write_disposition="merge", columns=column_schemas)
     def my_resource():
         nonlocal data_types
         yield [data_types] * 10
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def my_source():
         return my_resource
 

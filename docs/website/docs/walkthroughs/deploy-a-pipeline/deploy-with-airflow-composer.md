@@ -6,17 +6,17 @@ keywords: [how to, deploy a pipeline, airflow, gcp]
 
 # Deploy a pipeline with Airflow and Google Composer
 
-Before you can deploy a pipeline, you will need to [install dlt](../../reference/installation.md)
+Before you can deploy a pipeline, you will need to [install data_load_tool](../../reference/installation.md)
 and [create a pipeline](../create-a-pipeline.md).
 
 :::tip
-While this walkthrough deals specifically with Google Composer, it will generate DAGs and configuration files that you can use on any Airflow deployment. DAGs are generated using **dlt Airflow helper** that maps `dlt` resources into Airflow tasks, provides a clean working environment, retry mechanism, metrics, and logging via Airflow loggers.
+While this walkthrough deals specifically with Google Composer, it will generate DAGs and configuration files that you can use on any Airflow deployment. DAGs are generated using **data_load_tool Airflow helper** that maps `data_load_tool` resources into Airflow tasks, provides a clean working environment, retry mechanism, metrics, and logging via Airflow loggers.
 :::
 
-## 1. Add your `dlt` project directory to GitHub
+## 1. Add your `data_load_tool` project directory to GitHub
 
 You will need a GitHub repository for your project. If you don't have one yet, you need to
-initialize a Git repository in your `dlt` project directory and push it to GitHub as described in
+initialize a Git repository in your `data_load_tool` project directory and push it to GitHub as described in
 [Adding locally hosted code to GitHub](https://docs.github.com/en/get-started/importing-your-projects-to-github/importing-source-code-to-github/adding-locally-hosted-code-to-github).
 
 ## 2. Ensure your pipeline works
@@ -27,18 +27,18 @@ Before you can deploy, you must run your pipeline locally at least once.
 python3 {pipeline_name}_pipeline.py
 ```
 
-This should successfully load data from the source to the destination once and allows `dlt` to gather required information for the deployment.
+This should successfully load data from the source to the destination once and allows `data_load_tool` to gather required information for the deployment.
 
 ## 3. Initialize deployment
 
 First, you need to add additional dependencies that the `deploy` command requires:
 ```sh
-pip install "dlt[cli]"
+pip install "data_load_tool[cli]"
 ```
 
 then:
 ```sh
-dlt deploy {pipeline_name}_pipeline.py airflow-composer
+data_load_tool deploy {pipeline_name}_pipeline.py airflow-composer
 ```
 
 This command checks if your pipeline has run successfully before and creates the following folders:
@@ -57,10 +57,10 @@ This command checks if your pipeline has run successfully before and creates the
   *dags_folder*. Please refer to the
   [Troubleshooting](deploy-with-airflow-composer.md#troubleshooting) section for more information.
 
-By default, the `dlt deploy` command shows you the deployment credentials in ENV format.
+By default, the `data_load_tool deploy` command shows you the deployment credentials in ENV format.
 
 <aside>
-💡 When you run the dlt deploy command, you will get the relevant info in your CLI about how you can deploy credentials.
+💡 When you run the data_load_tool deploy command, you will get the relevant info in your CLI about how you can deploy credentials.
 </aside>
 
 ## Example with the pipedrive pipeline
@@ -69,7 +69,7 @@ By default, the `dlt deploy` command shows you the deployment credentials in ENV
 
 ### 1. Run the deploy command
 ```sh
-dlt deploy pipedrive_pipeline.py airflow-composer
+data_load_tool deploy pipedrive_pipeline.py airflow-composer
 ```
 where `pipedrive_pipeline.py` is the pipeline script that you just ran and `airflow-composer` is a deployment method. The command will create deployment files and provide instructions to set up the credentials.
 
@@ -96,12 +96,12 @@ pipedrive_api_key = "c66..."
 The `deploy` command will use an [Airflow variable](#4-add-credentials) called `dlt_secrets_toml` to store all the required secrets as a TOML fragment. You can also use **environment variables** by passing the `--secrets-format env` option:
 
 ```sh
-dlt deploy pipedrive_pipeline.py airflow-composer --secrets-format env
+data_load_tool deploy pipedrive_pipeline.py airflow-composer --secrets-format env
 ```
 which will output the environment variable names and their values.
 
 ```sh
-3. Add the following secret values (typically stored in ./.dlt/secrets.toml):
+3. Add the following secret values (typically stored in ./.data_load_tool/secrets.toml):
 SOURCES__PIPEDRIVE__PIPEDRIVE_API_KEY
 
 in ENVIRONMENT VARIABLES using Google Composer UI
@@ -117,10 +117,10 @@ c66c..
 In the directory `dags/`, you can find the file `dag_pipedrive.py` that you need to edit. It has the following structure:
 
 ```py
-import dlt
+import data_load_tool
 from airflow.decorators import dag
-from dlt.common import pendulum
-from dlt.helpers.airflow_helper import PipelineTasksGroup
+from data_load_tool.common import pendulum
+from data_load_tool.helpers.airflow_helper import PipelineTasksGroup
 
 # Modify the DAG arguments
 default_task_args = {
@@ -149,14 +149,14 @@ def load_data():
     from pipeline_or_source_script import source
 
     # Modify the pipeline parameters
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name='pipeline_name',
         dataset_name='dataset_name',
         destination='duckdb',
         dev_mode=False  # Must be false if we decompose
     )
     # Create the source, the "serialize" decompose option
-    # will convert dlt resources into Airflow tasks.
+    # will convert data_load_tool resources into Airflow tasks.
     # Use "none" to disable it.
     tasks.add_run(
         pipeline,
@@ -167,7 +167,7 @@ def load_data():
         provide_context=True
     )
 
-    # The "parallel" decompose option will convert dlt
+    # The "parallel" decompose option will convert data_load_tool
     # resources into parallel Airflow tasks, except the
     # first one, which will be executed before any other tasks.
     # All the tasks will be executed in the same pipeline state.
@@ -180,7 +180,7 @@ def load_data():
     #   provide_context=True
     # )
 
-    # The "parallel-isolated" decompose option will convert dlt
+    # The "parallel-isolated" decompose option will convert data_load_tool
     # resources into parallel Airflow tasks, except the
     # first one, which will be executed before any other tasks.
     # In this mode, all the tasks will use separate pipeline states.
@@ -199,7 +199,7 @@ load_data()
 - Customize the PipelineTaskGroup:
 
   - Change the name from “pipeline_name” to yours, for example, “pipedrive”.
-  - Change runtime settings: data_folder, logging, retry policy, etc. For example, let’s wipe all the data created by the pipeline (`wipe_local_data=True`), redirect the dlt logger into the task logger (`use_task_logger=True`), and set the retry policy as a Retrying class object with three restart attempts.
+  - Change runtime settings: data_folder, logging, retry policy, etc. For example, let’s wipe all the data created by the pipeline (`wipe_local_data=True`), redirect the data_load_tool logger into the task logger (`use_task_logger=True`), and set the retry policy as a Retrying class object with three restart attempts.
 
   ```py
   from tenacity import Retrying, stop_after_attempt
@@ -234,7 +234,7 @@ You should now move your working code from the pipeline script you previously ra
   ```py
   """Example to incrementally load activities limited to items updated after a given date"""
 
-  pipeline = dlt.pipeline(
+  pipeline = data_load_tool.pipeline(
     pipeline_name="pipedrive", destination='duckdb', dataset_name="pipedrive_data"
   )
 
@@ -259,7 +259,7 @@ You should now move your working code from the pipeline script you previously ra
   ```py
   # Create the source,
   # the "serialize" decompose option will convert
-  # dlt resources into Airflow tasks.
+  # data_load_tool resources into Airflow tasks.
   # Use "none" to disable it
   tasks.add_run(
       pipeline=pipeline,
@@ -290,10 +290,10 @@ You should now move your working code from the pipeline script you previously ra
 As a result, we will get a script of the following form:
 
 ```py
-import dlt
+import data_load_tool
 from airflow.decorators import dag
-from dlt.common import pendulum
-from dlt.helpers.airflow_helper import PipelineTasksGroup
+from data_load_tool.common import pendulum
+from data_load_tool.helpers.airflow_helper import PipelineTasksGroup
 
 # Modify the dag arguments
 default_task_args = {
@@ -331,7 +331,7 @@ def load_pipedrive_data():
 
     """Example to incrementally load activities limited to items updated after a given date"""
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="pipedrive", destination='duckdb', dataset_name="pipedrive_data"
     )
 
@@ -348,7 +348,7 @@ def load_pipedrive_data():
     ).with_resources("activities")
 
     # Create the source, the "serialize" decompose option
-    # will convert dlt resources into Airflow tasks.
+    # will convert data_load_tool resources into Airflow tasks.
     # Use "none" to disable it.
     tasks.add_run(
         pipeline=pipeline,
@@ -393,7 +393,7 @@ There are two ways to pass the credentials:
    - Launch the Airflow UI, head to the **Admin** top-level menu, and select **Variables**.
    - Add a new variable with the name `dlt_secrets_toml`.
    - Paste the TOML fragment displayed by the `deploy` command.
-   - 💡 The content of this variable will be used by the `dlt` Airflow helper instead of the local `secrets.toml` which you are familiar with. If your local secrets file contains anything else you want to access on Airflow, you are good to just copy the local `secrets.toml` content to the `dlt_secrets_toml` variable.
+   - 💡 The content of this variable will be used by the `data_load_tool` Airflow helper instead of the local `secrets.toml` which you are familiar with. If your local secrets file contains anything else you want to access on Airflow, you are good to just copy the local `secrets.toml` content to the `dlt_secrets_toml` variable.
 
 1. As environment variables.
 
@@ -401,7 +401,7 @@ There are two ways to pass the credentials:
      environment variables will be displayed in the output:
 
      ```sh
-     3. Add the following secret values (typically stored in ./.dlt/secrets.toml):
+     3. Add the following secret values (typically stored in ./.data_load_tool/secrets.toml):
      SOURCES__PIPEDRIVE__PIPEDRIVE_API_KEY
 
      in ENVIRONMENT VARIABLES using Google Composer UI
@@ -412,7 +412,7 @@ There are two ways to pass the credentials:
      c66c...
      ```
 
-   - Copy capitalized variables and add them into Airflow’s env variables, then save it. Now, `dlt` can
+   - Copy capitalized variables and add them into Airflow’s env variables, then save it. Now, `data_load_tool` can
      pick it up.
 
      ![add-credential](images/add-credential.png)
@@ -512,7 +512,7 @@ dags_folder = absolute_path_to_your_project
 
 `dags_folder` should not lead to the `absolute_path_to_your_project/dags` folder.
 
-### 2. ValueError: Can only decompose dlt sources
+### 2. ValueError: Can only decompose data_load_tool sources
 
 In this case, you perhaps passed a list of sources to the method `add_run` as data or another unacceptable data structure and provided `decompose = "serialize"`.
 

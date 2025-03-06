@@ -1,21 +1,21 @@
 import pytest
 from typing import List
 
-from dlt.sources.rest_api import (
+from data_load_tool.sources.rest_api import (
     rest_api_source,
 )
 
-from dlt.sources.rest_api.config_setup import (
+from data_load_tool.sources.rest_api.config_setup import (
     create_response_hooks,
     _handle_response_action,
 )
-from dlt.sources.rest_api.typing import (
+from data_load_tool.sources.rest_api.typing import (
     RESTAPIConfig,
     ResponseAction,
 )
 
 try:
-    from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+    from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 except ImportError:
     pass
 

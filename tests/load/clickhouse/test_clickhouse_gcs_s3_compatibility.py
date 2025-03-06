@@ -2,15 +2,15 @@ from typing import Generator, Dict
 
 import pytest
 
-import dlt
-from dlt.destinations import filesystem
+import data_load_tool
+from data_load_tool.destinations import filesystem
 from tests.load.utils import GCS_BUCKET
 from tests.pipeline.utils import assert_load_info
 
 
 @pytest.mark.essential
 def test_clickhouse_gcs_s3_compatibility() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     def dummy_data() -> Generator[Dict[str, int], None, None]:
         yield {"field1": 1, "field2": 2}
 
@@ -18,7 +18,7 @@ def test_clickhouse_gcs_s3_compatibility() -> None:
         GCS_BUCKET.replace("gs://", "s3://"), destination_name="filesystem_s3_gcs_comp"
     )
 
-    pipe = dlt.pipeline(
+    pipe = data_load_tool.pipeline(
         pipeline_name="gcs_s3_compatibility",
         destination="clickhouse",
         staging=gcp_bucket,

@@ -1,6 +1,6 @@
 ---
 title: Salesforce
-description: dlt pipeline for Salesforce API
+description: data_load_tool pipeline for Salesforce API
 keywords: [salesforce api, salesforce pipeline, salesforce]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 [Salesforce](https://www.salesforce.com) is a cloud platform that streamlines business operations
 and customer relationship management, encompassing sales, marketing, and customer service.
 
-This Salesforce `dlt` verified source and
+This Salesforce `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/salesforce_pipeline.py)
 loads data using the “Salesforce API” to the destination of your choice.
 
@@ -72,7 +72,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init salesforce duckdb
+   data_load_tool init salesforce duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -91,7 +91,7 @@ For more information, read the guide on
 
 ### Add credentials
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can
    securely store your access tokens and other sensitive information. It's important to handle this
    file with care and keep it safe. Here's what the file looks like:
 
@@ -128,7 +128,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `salesforce`, you may also use
    any custom name instead.
@@ -137,7 +137,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `salesforce_source`:
@@ -146,11 +146,11 @@ This function returns a list of resources to load users, user_role, opportunity,
 opportunity_line_item, account, etc., data from the Salesforce API.
 
 ```py
-@dlt.source(name="salesforce")
+@data_load_tool.source(name="salesforce")
 def salesforce_source(
-    user_name: str = dlt.secrets.value,
-    password: str = dlt.secrets.value,
-    security_token: str = dlt.secrets.value,
+    user_name: str = data_load_tool.secrets.value,
+    password: str = data_load_tool.secrets.value,
+    security_token: str = data_load_tool.secrets.value,
 ) -> Iterable[DltResource]:
    ...
 ```
@@ -159,14 +159,14 @@ def salesforce_source(
 
 - `password`: Corresponding Salesforce password.
 
-- `security_token`: Token for Salesforce API authentication, configured in ".dlt/secrets.toml".
+- `security_token`: Token for Salesforce API authentication, configured in ".data_load_tool/secrets.toml".
 
 ### Resource `sf_user` (replace mode):
 
 This resource function retrieves records from the Salesforce "User" endpoint.
 
 ```py
-@dlt.resource(write_disposition="replace")
+@data_load_tool.resource(write_disposition="replace")
 def sf_user() -> Iterator[Dict[str, Any]]:
     yield from _get_records(client, "User")
 ```
@@ -186,9 +186,9 @@ This resource function retrieves records from the Salesforce "Opportunity" endpo
 mode.
 
 ```py
-@dlt.resource(write_disposition="merge")
+@data_load_tool.resource(write_disposition="merge")
 def opportunity(
-    last_timestamp: Incremental[str] = dlt.sources.incremental(
+    last_timestamp: Incremental[str] = data_load_tool.sources.incremental(
         "SystemModstamp", initial_value=None
     )
 ) -> Iterator[Dict[str, Any]]:
@@ -201,7 +201,7 @@ def opportunity(
 `last_timestamp`: Argument that will receive [incremental](../../general-usage/incremental-loading)
 state, initialized with "initial_value". It is configured to track the "SystemModstamp" field in data
 items returned by "_get_records" and then yielded. It will store the newest "SystemModstamp" value in
-dlt state and make it available in "last_timestamp.last_value" on the next pipeline run.
+data_load_tool state and make it available in "last_timestamp.last_value" on the next pipeline run.
 
 Besides "opportunity", there are several resources that use replace mode for data writing to the
 destination.
@@ -223,7 +223,7 @@ To create your data pipeline using single loading and [incremental data loading]
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="salesforce_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="salesforce_data",  # Use a custom name if desired
@@ -235,7 +235,7 @@ To create your data pipeline using single loading and [incremental data loading]
 1. To load data from all the endpoints, use the `salesforce_source` method as follows:
 
    ```py
-   from dlt.common.schema.typing import TSimpleRegex
+   from data_load_tool.common.schema.typing import TSimpleRegex
 
    load_data = salesforce_source()
    source.schema.merge_hints({"not_null": [TSimpleRegex("id")]})  # Hint for id field not null
@@ -244,7 +244,7 @@ To create your data pipeline using single loading and [incremental data loading]
    print(load_info)
    ```
 
-   > A hint ensures that the id column is void of null values. During data loading, dlt will verify that the source's id column doesn't contain nulls.
+   > A hint ensures that the id column is void of null values. During data loading, data_load_tool will verify that the source's id column doesn't contain nulls.
 
 1. To use the method `pipeline.run()` to load custom endpoints “candidates” and “members”:
 
@@ -254,7 +254,7 @@ To create your data pipeline using single loading and [incremental data loading]
    print(load_info)
    ```
 
-   In the initial run, the "opportunity" and "contact" endpoints load all data using 'merge' mode and 'last_timestamp' set to "None". In subsequent runs, only data after 'last_timestamp.last_value' (from the previous run) is merged. Incremental loading is specific to endpoints in merge mode with the “dlt.sources.incremental” parameter.
+   In the initial run, the "opportunity" and "contact" endpoints load all data using 'merge' mode and 'last_timestamp' set to "None". In subsequent runs, only data after 'last_timestamp.last_value' (from the previous run) is merged. Incremental loading is specific to endpoints in merge mode with the “data_load_tool.sources.incremental” parameter.
 
    > For incremental loading of endpoints, maintain the pipeline name and destination dataset name. The pipeline name is important for accessing the [state](../../general-usage/state) from the last run, including the end date for incremental data loads. Altering these names could trigger a [“dev-mode”](../../general-usage/pipeline#do-experiments-with-dev-mode), disrupting the metadata tracking for [incremental data loading](../../general-usage/incremental-loading).
 

@@ -389,7 +389,7 @@ html[data-theme='dark'] .menu_vPEQ>ul>li:nth-child(2)>div>a::before {
   background-image: url(../../static/img/UserGuide-Active-1.svg);
 }
 
-/* dlt+ */
+/* data_load_tool+ */
 
 .menu_vPEQ>ul>li.menu__list-item--collapsed:nth-child(3)>div>a::before {
   background-image: url(../../static/img/Plus-Inactive.svg);
@@ -449,7 +449,7 @@ html[data-theme='dark'] .menu_vPEQ>ul>li:nth-child(5)>div>a::before {
   background-image: url(../../static/img/Destinations-Active-1.svg);
 }
 
-/* Using dlt */
+/* Using data_load_tool */
 
 .menu_vPEQ>ul>li.menu__list-item--collapsed:nth-child(6)>div>a::before {
   background-image: url(../../static/img/GeneralUsage-Inactive.svg);
@@ -469,7 +469,7 @@ html[data-theme='dark'] .menu_vPEQ>ul>li:nth-child(6)>div>a::before {
   background-image: url(../../static/img/GeneralUsage-Active-1.svg);
 }
 
-/* Deploying dlt */
+/* Deploying data_load_tool */
 
 .menu_vPEQ>ul>li.menu__list-item--collapsed:nth-child(7)>div>a::before {
   background-image: url(../../static/img/UsingLoadedData-Inactive.svg);
@@ -489,7 +489,7 @@ html[data-theme='dark'] .menu_vPEQ>ul>li:nth-child(7)>div>a::before {
   background-image: url(../../static/img/UsingLoadedData-Active-1.svg);
 }
 
-/* Optimizing dlt */
+/* Optimizing data_load_tool */
 
 
 .menu_vPEQ>ul>li.menu__list-item--collapsed:nth-child(8)>div>a::before {

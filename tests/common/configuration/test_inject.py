@@ -2,10 +2,10 @@ import os
 from typing import Any, Dict, Optional, Type, Union
 import pytest
 import time, threading
-import dlt
+import data_load_tool
 
-from dlt.common.configuration.exceptions import ConfigFieldMissingException
-from dlt.common.configuration.inject import (
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException
+from data_load_tool.common.configuration.inject import (
     _LAST_DLT_CONFIG,
     _ORIGINAL_ARGS,
     get_fun_spec,
@@ -14,24 +14,24 @@ from dlt.common.configuration.inject import (
     with_config,
     create_resolved_partial,
 )
-from dlt.common.configuration.providers import EnvironProvider
-from dlt.common.configuration.providers.toml import SECRETS_TOML
-from dlt.common.configuration.resolve import inject_section
-from dlt.common.configuration.specs import (
+from data_load_tool.common.configuration.providers import EnvironProvider
+from data_load_tool.common.configuration.providers.toml import SECRETS_TOML
+from data_load_tool.common.configuration.resolve import inject_section
+from data_load_tool.common.configuration.specs import (
     BaseConfiguration,
     GcpServiceAccountCredentialsWithoutDefaults,
     ConnectionStringCredentials,
 )
-from dlt.common.configuration.specs.base_configuration import (
+from data_load_tool.common.configuration.specs.base_configuration import (
     CredentialsConfiguration,
     configspec,
     is_secret_hint,
     is_valid_configspec_field,
 )
-from dlt.common.configuration.specs.config_providers_context import ConfigProvidersContainer
-from dlt.common.configuration.specs.config_section_context import ConfigSectionContext
-from dlt.common.reflection.spec import get_spec_name_from_f
-from dlt.common.typing import (
+from data_load_tool.common.configuration.specs.config_providers_context import ConfigProvidersContainer
+from data_load_tool.common.configuration.specs.config_section_context import ConfigSectionContext
+from data_load_tool.common.reflection.spec import get_spec_name_from_f
+from data_load_tool.common.typing import (
     StrAny,
     TSecretStrValue,
     TSecretValue,
@@ -46,7 +46,7 @@ from tests.common.configuration.utils import environment, toml_providers
 
 def test_arguments_are_explicit(environment: Any) -> None:
     @with_config
-    def f_var(user=dlt.config.value, path=dlt.config.value):
+    def f_var(user=data_load_tool.config.value, path=data_load_tool.config.value):
         # explicit args "survive" the injection: they have precedence over env
         assert user == "explicit user"
         assert path == "explicit path"
@@ -56,13 +56,13 @@ def test_arguments_are_explicit(environment: Any) -> None:
     f_var("explicit user", "explicit path")
 
     @with_config
-    def f_var_env(user=dlt.config.value, path=dlt.config.value):
+    def f_var_env(user=data_load_tool.config.value, path=data_load_tool.config.value):
         assert user == "env user"
         assert path == "explicit path"
 
     # user will be injected
-    f_var_env(dlt.config.value, path="explicit path")
-    f_var_env(path="explicit path", user=dlt.secrets.value)
+    f_var_env(data_load_tool.config.value, path="explicit path")
+    f_var_env(path="explicit path", user=data_load_tool.secrets.value)
 
     # none will be passed and trigger config missing
     with pytest.raises(ConfigFieldMissingException) as cfg_ex:
@@ -78,16 +78,16 @@ def test_explicit_none(environment: Any) -> None:
 
     assert f_var(None) is None
     assert f_var() == "default"
-    assert f_var(dlt.config.value) == "default"
+    assert f_var(data_load_tool.config.value) == "default"
     environment["USER"] = "env user"
     assert f_var() == "env user"
     assert f_var(None) is None
-    assert f_var(dlt.config.value) == "env user"
+    assert f_var(data_load_tool.config.value) == "env user"
 
 
 def test_default_values_are_resolved(environment: Any) -> None:
     @with_config
-    def f_var(user=dlt.config.value, path="a/b/c"):
+    def f_var(user=data_load_tool.config.value, path="a/b/c"):
         assert user == "env user"
         assert path == "env path"
 
@@ -97,12 +97,12 @@ def test_default_values_are_resolved(environment: Any) -> None:
 
 def test_arguments_dlt_literal_defaults_are_required(environment: Any) -> None:
     @with_config
-    def f_config(user=dlt.config.value):
+    def f_config(user=data_load_tool.config.value):
         assert user is not None
         return user
 
     @with_config
-    def f_secret(password=dlt.secrets.value):
+    def f_secret(password=data_load_tool.secrets.value):
         # explicit args "survive" the injection: they have precedence over env
         assert password is not None
         return password
@@ -117,20 +117,20 @@ def test_arguments_dlt_literal_defaults_are_required(environment: Any) -> None:
 
     environment["USER"] = "user"
     assert f_config() == "user"
-    assert f_config(dlt.config.value) == "user"
+    assert f_config(data_load_tool.config.value) == "user"
 
     environment["PASSWORD"] = "password"
     assert f_secret() == "password"
-    assert f_secret(dlt.secrets.value) == "password"
+    assert f_secret(data_load_tool.secrets.value) == "password"
 
 
 def test_dlt_literals_in_spec() -> None:
     @configspec
     class LiteralsConfiguration(BaseConfiguration):
-        required_str: str = dlt.config.value
-        required_int: int = dlt.config.value
-        required_secret: TSecretStrValue = dlt.secrets.value
-        credentials: CredentialsConfiguration = dlt.secrets.value
+        required_str: str = data_load_tool.config.value
+        required_int: int = data_load_tool.config.value
+        required_secret: TSecretStrValue = data_load_tool.secrets.value
+        credentials: CredentialsConfiguration = data_load_tool.secrets.value
         optional_default: float = 1.2
 
     fields = {
@@ -162,15 +162,15 @@ def test_dlt_literals_in_spec() -> None:
     # this generates warnings
     @configspec
     class WrongLiteralsConfiguration(BaseConfiguration):
-        required_int: int = dlt.secrets.value
-        required_secret: TSecretStrValue = dlt.config.value
-        credentials: CredentialsConfiguration = dlt.config.value
+        required_int: int = data_load_tool.secrets.value
+        required_secret: TSecretStrValue = data_load_tool.config.value
+        credentials: CredentialsConfiguration = data_load_tool.config.value
 
 
 def test_dlt_literals_defaults_none() -> None:
     @with_config
     def with_optional_none(
-        level: Optional[int] = dlt.config.value, aux: Optional[str] = dlt.secrets.value
+        level: Optional[int] = data_load_tool.config.value, aux: Optional[str] = data_load_tool.secrets.value
     ):
         return (level, aux)
 
@@ -181,7 +181,7 @@ def test_inject_from_argument_section(toml_providers: ConfigProvidersContainer) 
     # `gcp_storage` is a key in `secrets.toml` and the default `credentials` section of GcpServiceAccountCredentialsWithoutDefaults must be replaced with it
 
     @with_config
-    def f_credentials(gcp_storage: GcpServiceAccountCredentialsWithoutDefaults = dlt.secrets.value):
+    def f_credentials(gcp_storage: GcpServiceAccountCredentialsWithoutDefaults = data_load_tool.secrets.value):
         # unique project name
         assert gcp_storage.project_id == "mock-project-id-gcp-storage"
 
@@ -191,8 +191,8 @@ def test_inject_from_argument_section(toml_providers: ConfigProvidersContainer) 
 def test_inject_secret_value_secret_type(environment: Any) -> None:
     @with_config
     def f_custom_secret_type(
-        _dict: Dict[str, Any] = dlt.secrets.value,
-        _int: int = dlt.secrets.value,
+        _dict: Dict[str, Any] = data_load_tool.secrets.value,
+        _int: int = data_load_tool.secrets.value,
         **injection_kwargs: Any,
     ):
         # secret values were coerced into types
@@ -250,7 +250,7 @@ def test_inject_with_pipeline_section(environment: Any) -> None:
     environment["PIPE__VALUE"] = expected_value
 
     @with_config(section_arg_name="pipeline_name")
-    def f(pipeline_name=dlt.config.value, value=dlt.secrets.value):
+    def f(pipeline_name=data_load_tool.config.value, value=data_load_tool.secrets.value):
         assert value == expected_value
 
     f("pipe")
@@ -268,7 +268,7 @@ def test_inject_with_pipeline_section(environment: Any) -> None:
 
 def test_extend_sections_from_argument(environment: Any) -> None:
     @with_config(sections=("datasets",), section_arg_name="dataset_name")
-    def f(dataset_name=dlt.config.value, value=dlt.secrets.value):
+    def f(dataset_name=data_load_tool.config.value, value=data_load_tool.secrets.value):
         assert dataset_name == "github"
         assert value == expected_value
 
@@ -305,7 +305,7 @@ def test_inject_spec_in_func_params() -> None:
     # if any of args (ie. `init` below) is an instance of SPEC, we use it as initial value
 
     @with_config(spec=TestConfig)
-    def test_spec_arg(base_value=dlt.config.value, init: TestConfig = None):
+    def test_spec_arg(base_value=data_load_tool.config.value, init: TestConfig = None):
         return base_value
 
     # spec used to wrap function
@@ -317,24 +317,24 @@ def test_inject_spec_in_func_params() -> None:
 
 def test_inject_with_sections_and_sections_context() -> None:
     @with_config
-    def no_sections(value=dlt.config.value):
+    def no_sections(value=data_load_tool.config.value):
         return value
 
     @with_config(sections=("test",))
-    def test_sections(value=dlt.config.value):
+    def test_sections(value=data_load_tool.config.value):
         return value
 
     # a section context that prefers existing context
     @with_config(sections=("test",), sections_merge_style=ConfigSectionContext.prefer_existing)
-    def test_sections_pref_existing(value=dlt.config.value):
+    def test_sections_pref_existing(value=data_load_tool.config.value):
         return value
 
-    # a section that wants context like dlt resource
+    # a section that wants context like data_load_tool resource
     @with_config(
         sections=("test", "module", "name"),
         sections_merge_style=ConfigSectionContext.resource_merge_style,
     )
-    def test_sections_like_resource(value=dlt.config.value):
+    def test_sections_like_resource(value=data_load_tool.config.value):
         return value
 
     os.environ["VALUE"] = "no_section"
@@ -365,7 +365,7 @@ def test_inject_with_sections_and_sections_context() -> None:
 
 def test_partial() -> None:
     @with_config(sections=("test",))
-    def test_sections(value=dlt.config.value):
+    def test_sections(value=data_load_tool.config.value):
         return value
 
     # no value in scope will fail
@@ -408,7 +408,7 @@ def test_base_spec() -> None:
         str_str: str = None
 
     @with_config(base=BaseParams)
-    def f_explicit_base(str_str=dlt.config.value, opt: bool = True):
+    def f_explicit_base(str_str=data_load_tool.config.value, opt: bool = True):
         # for testing
         assert opt is False
         return str_str
@@ -447,7 +447,7 @@ def test_lock_context(lock, same_pool) -> None:
             return super().get_value(key, hint, pipeline_name, *sections)
 
     @with_config(sections=("test",), lock_context_on_injection=lock)
-    def test_sections(value=dlt.config.value):
+    def test_sections(value=data_load_tool.config.value):
         return value
 
     os.environ["TEST__VALUE"] = "test_val"
@@ -489,14 +489,14 @@ def test_inject_with_func_section(environment: Any) -> None:
     # function to get sections from the arguments is provided
 
     @with_config(sections=lambda args: "dlt_" + args["name"])  # type: ignore[call-overload]
-    def table_info(name, password=dlt.secrets.value):
+    def table_info(name, password=data_load_tool.secrets.value):
         return password
 
     environment["DLT_USERS__PASSWORD"] = "pass"
     assert table_info("users") == "pass"
 
-    @with_config(sections=lambda args: ("dlt", args["name"]))  # type: ignore[call-overload]
-    def table_info_2(name, password=dlt.secrets.value):
+    @with_config(sections=lambda args: ("data_load_tool", args["name"]))  # type: ignore[call-overload]
+    def table_info_2(name, password=data_load_tool.secrets.value):
         return password
 
     environment["DLT__CONTACTS__PASSWORD"] = "pass_x"
@@ -509,19 +509,19 @@ def test_inject_on_class_and_methods(environment: Any) -> None:
 
     class AuxCallReceiver:
         @with_config
-        def __call__(self, level: int = dlt.config.value, aux: str = dlt.config.value) -> Any:
+        def __call__(self, level: int = data_load_tool.config.value, aux: str = data_load_tool.config.value) -> Any:
             return (level, aux)
 
     assert AuxCallReceiver()() == (1, "DEBUG")
 
     class AuxReceiver:
         @with_config
-        def __init__(self, level: int = dlt.config.value, aux: str = dlt.config.value) -> None:
+        def __init__(self, level: int = data_load_tool.config.value, aux: str = data_load_tool.config.value) -> None:
             self.level = level
             self.aux = aux
 
         @with_config
-        def resolve(self, level: int = dlt.config.value, aux: str = dlt.config.value) -> Any:
+        def resolve(self, level: int = data_load_tool.config.value, aux: str = data_load_tool.config.value) -> Any:
             return (level, aux)
 
     kl_ = AuxReceiver()
@@ -580,7 +580,7 @@ def test_resolved_spec_in_kwargs_pass_through(environment: Any) -> None:
         aux: str = "INFO"
 
     @with_config(spec=AuxTest)
-    def init_cf(aux: str = dlt.config.value, **injection_kwargs: Any):
+    def init_cf(aux: str = data_load_tool.config.value, **injection_kwargs: Any):
         assert aux == "DEBUG"
         return last_config(**injection_kwargs)
 
@@ -588,7 +588,7 @@ def test_resolved_spec_in_kwargs_pass_through(environment: Any) -> None:
     c = init_cf()
 
     @with_config(spec=AuxTest)
-    def get_cf(aux: str = dlt.config.value, last_config: AuxTest = None):
+    def get_cf(aux: str = data_load_tool.config.value, last_config: AuxTest = None):
         assert aux == "DEBUG"
         assert last_config.aux == "DEBUG"
         return last_config
@@ -600,9 +600,9 @@ def test_resolved_spec_in_kwargs_pass_through(environment: Any) -> None:
 
 def test_inject_spec_into_argument_with_spec_type() -> None:
     # if signature contains argument with type of SPEC, it gets injected there
-    import dlt
-    from dlt.common.configuration import known_sections
-    from dlt.destinations.impl.dummy.configuration import DummyClientConfiguration
+    import data_load_tool
+    from data_load_tool.common.configuration import known_sections
+    from data_load_tool.destinations.impl.dummy.configuration import DummyClientConfiguration
 
     @with_config(
         spec=DummyClientConfiguration,
@@ -611,7 +611,7 @@ def test_inject_spec_into_argument_with_spec_type() -> None:
             "dummy",
         ),
     )
-    def _configure(config: DummyClientConfiguration = dlt.config.value) -> DummyClientConfiguration:
+    def _configure(config: DummyClientConfiguration = data_load_tool.config.value) -> DummyClientConfiguration:
         return config
 
     # _configure has argument of type DummyClientConfiguration that it returns
@@ -629,7 +629,7 @@ def test_initial_spec_from_arg_with_spec_type(environment: Any) -> None:
 
     @with_config(spec=AuxTest)
     def init_cf(
-        level: int = dlt.config.value, aux: str = dlt.config.value, init_cf: AuxTest = None
+        level: int = data_load_tool.config.value, aux: str = data_load_tool.config.value, init_cf: AuxTest = None
     ):
         assert level == -1
         assert aux == "DEBUG"
@@ -647,12 +647,12 @@ def test_use_most_specific_union_type(
 ) -> None:
     @with_config
     def postgres_union(
-        local_credentials: Union[ConnectionStringCredentials, str, StrAny] = dlt.secrets.value
+        local_credentials: Union[ConnectionStringCredentials, str, StrAny] = data_load_tool.secrets.value
     ):
         return local_credentials
 
     @with_config
-    def postgres_direct(local_credentials: ConnectionStringCredentials = dlt.secrets.value):
+    def postgres_direct(local_credentials: ConnectionStringCredentials = data_load_tool.secrets.value):
         return local_credentials
 
     conn_str = "postgres://loader:loader@localhost:5432/dlt_data"
@@ -710,7 +710,7 @@ def test_use_most_specific_union_type(
 def test_auto_derived_spec_type_name() -> None:
     class AutoNameTest:
         @with_config
-        def __init__(self, pos_par=dlt.secrets.value, /, kw_par=None) -> None:
+        def __init__(self, pos_par=data_load_tool.secrets.value, /, kw_par=None) -> None:
             pass
 
         @classmethod

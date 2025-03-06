@@ -1,8 +1,8 @@
-import dlt
+import data_load_tool
 
 from sources.google_sheets import google_spreadsheet
 
-dlt.pipeline(destination="bigquery", dev_mode=False)
+data_load_tool.pipeline(destination="bigquery", dev_mode=False)
 # see example.secrets.toml to where to put credentials
 
 # "2022-05", "model_metadata"

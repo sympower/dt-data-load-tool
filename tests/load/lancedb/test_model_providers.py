@@ -10,13 +10,13 @@ from lancedb import DBConnection  # type: ignore
 from lancedb.embeddings import EmbeddingFunctionRegistry  # type: ignore
 from lancedb.table import Table  # type: ignore
 
-import dlt
-from dlt.common.configuration import resolve_configuration
-from dlt.common.typing import DictStrStr
-from dlt.common.utils import uniq_id
-from dlt.destinations.impl.lancedb import lancedb_adapter
-from dlt.destinations.impl.lancedb.configuration import LanceDBClientConfiguration
-from dlt.destinations.impl.lancedb.lancedb_client import LanceDBClient
+import data_load_tool
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.typing import DictStrStr
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations.impl.lancedb import lancedb_adapter
+from data_load_tool.destinations.impl.lancedb.configuration import LanceDBClientConfiguration
+from data_load_tool.destinations.impl.lancedb.lancedb_client import LanceDBClient
 from tests.load.utils import drop_active_pipeline_data, sequence_generator
 from tests.pipeline.utils import assert_load_info
 

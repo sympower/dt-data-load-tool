@@ -3,10 +3,10 @@ FROM apache/airflow:2.5.2-python3.9
 # Metadata
 LABEL org.label-schema.vendor="dltHub" \
     org.label-schema.url="https://dlthub.com" \
-    org.label-schema.name="dlt" \
-    org.label-schema.description="**data load tool (dlt)** is a simple, open source Python library that makes data loading easy."
+    org.label-schema.name="data_load_tool" \
+    org.label-schema.description="**data load tool (data_load_tool)** is a simple, open source Python library that makes data loading easy."
 
-# prepare dirs to install dlt
+# prepare dirs to install data_load_tool
 RUN mkdir -p /tmp/pydlt
 
 WORKDIR /tmp/pydlt

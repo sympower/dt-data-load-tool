@@ -5,13 +5,13 @@
 # from typing import Any, Iterator
 # import csv
 
-# from dlt.common.typing import DictStrAny, StrAny
-# from dlt.common.schema import Schema
+# from data_load_tool.common.typing import DictStrAny, StrAny
+# from data_load_tool.common.schema import Schema
 
-# from dlt.pipeline import Pipeline, GCPPipelineCredentials
+# from data_load_tool.pipeline import Pipeline, GCPPipelineCredentials
 
 # SCOPES = ['https://www.googleapis.com/auth/drive']
-# # KEY_FILE_LOCATION = '/Users/adrian/PycharmProjects/sv/dlt/temp/scalevector-1235ac340b0b.json'
+# # KEY_FILE_LOCATION = '/Users/adrian/PycharmProjects/sv/data_load_tool/temp/scalevector-1235ac340b0b.json'
 # KEY_FILE_LOCATION = '_secrets/scalevector-1235ac340b0b.json'
 
 

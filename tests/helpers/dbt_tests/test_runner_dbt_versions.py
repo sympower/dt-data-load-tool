@@ -5,20 +5,20 @@ from typing import Any, Iterator, List, Dict
 from functools import partial
 from typing import Tuple
 import pytest
-from dlt.common import json
+from data_load_tool.common import json
 
-from dlt.common.configuration import resolve_configuration
-from dlt.common.configuration.specs import GcpServiceAccountCredentials, CredentialsWithDefault
-from dlt.common.storages.file_storage import FileStorage
-from dlt.common.runners import Venv
-from dlt.common.runners.synth_pickle import decode_obj, encode_obj
-from dlt.common.typing import AnyFun
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.configuration.specs import GcpServiceAccountCredentials, CredentialsWithDefault
+from data_load_tool.common.storages.file_storage import FileStorage
+from data_load_tool.common.runners import Venv
+from data_load_tool.common.runners.synth_pickle import decode_obj, encode_obj
+from data_load_tool.common.typing import AnyFun
 
-from dlt.destinations.impl.postgres.postgres import PostgresClient
-from dlt.destinations.impl.bigquery.configuration import BigQueryClientConfiguration
-from dlt.helpers.dbt.configuration import DBTRunnerConfiguration
-from dlt.helpers.dbt.exceptions import PrerequisitesException, DBTProcessingError
-from dlt.helpers.dbt import (
+from data_load_tool.destinations.impl.postgres.postgres import PostgresClient
+from data_load_tool.destinations.impl.bigquery.configuration import BigQueryClientConfiguration
+from data_load_tool.helpers.dbt.configuration import DBTRunnerConfiguration
+from data_load_tool.helpers.dbt.exceptions import PrerequisitesException, DBTProcessingError
+from data_load_tool.helpers.dbt import (
     package_runner,
     create_venv,
     _create_dbt_deps,

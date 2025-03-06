@@ -2,8 +2,8 @@ from typing import Dict, List, Any, Type
 
 from pydantic import BaseModel
 
-from dlt.extract.utils import ensure_table_schema_columns_hint
-from dlt.common.schema.typing import TColumnSchema
+from data_load_tool.extract.utils import ensure_table_schema_columns_hint
+from data_load_tool.common.schema.typing import TColumnSchema
 from tests.cases import TABLE_UPDATE
 
 

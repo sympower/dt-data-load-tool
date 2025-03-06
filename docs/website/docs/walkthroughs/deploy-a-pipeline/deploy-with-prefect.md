@@ -21,17 +21,17 @@ Prefect is a workflow orchestration and observability platform that automates an
 - **Caching**: This feature enables a task to reflect a completed state without actually executing its defining code.
 - **Observability**: This feature allows users to monitor workflows and tasks. It provides insights into data pipeline performance and behavior through logging, metrics, and notifications.
 
-## Building data pipelines with `dlt`
+## Building data pipelines with `data_load_tool`
 
-`dlt` is an open-source Python library that enables the declarative loading of data sources into well-structured tables or datasets by automatically inferring and evolving schemas. It simplifies the construction of data pipelines by offering functionality to support the complete extract and load process.
+`data_load_tool` is an open-source Python library that enables the declarative loading of data sources into well-structured tables or datasets by automatically inferring and evolving schemas. It simplifies the construction of data pipelines by offering functionality to support the complete extract and load process.
 
-### How does **`dlt`** integrate with Prefect for pipeline orchestration?
+### How does **`data_load_tool`** integrate with Prefect for pipeline orchestration?
 
-Here's a concise guide to orchestrating a `dlt` pipeline with Prefect using "Moving Slack data into BigQuery" as an example. You can find a comprehensive, step-by-step guide in the article [“Building resilient data pipelines in minutes with dlt + Prefect”,](https://www.prefect.io/blog/building-resilient-data-pipelines-in-minutes-with-dlt-prefect) and the corresponding GitHub repository [here.](https://github.com/dylanbhughes/dlt_slack_pipeline/blob/main/slack_pipeline_with_prefect.py)
+Here's a concise guide to orchestrating a `data_load_tool` pipeline with Prefect using "Moving Slack data into BigQuery" as an example. You can find a comprehensive, step-by-step guide in the article [“Building resilient data pipelines in minutes with data_load_tool + Prefect”,](https://www.prefect.io/blog/building-resilient-data-pipelines-in-minutes-with-dlt-prefect) and the corresponding GitHub repository [here.](https://github.com/dylanbhughes/dlt_slack_pipeline/blob/main/slack_pipeline_with_prefect.py)
 
 ### Here's a summary of the steps followed:
 
-1. Create a `dlt` pipeline. For detailed instructions on creating a pipeline, please refer to the [documentation](../create-a-pipeline).
+1. Create a `data_load_tool` pipeline. For detailed instructions on creating a pipeline, please refer to the [documentation](../create-a-pipeline).
 
 1. Add `@task` decorator to the individual functions.
     1. Here we use the `@task` decorator for the `get_users` function: 

@@ -6,15 +6,15 @@ import tempfile
 import shutil
 import importlib
 
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.specs.pluggable_run_context import PluggableRunContext
-from dlt.common.destination import DestinationReference
-from dlt.common.runners import Venv
-from dlt.common.configuration import plugins
-from dlt.common.configuration.plugins import PluginContext
-from dlt.common.runtime import run_context
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.specs.pluggable_run_context import PluggableRunContext
+from data_load_tool.common.destination import DestinationReference
+from data_load_tool.common.runners import Venv
+from data_load_tool.common.configuration import plugins
+from data_load_tool.common.configuration.plugins import PluginContext
+from data_load_tool.common.runtime import run_context
 
-from dlt.sources import SourceReference
+from data_load_tool.sources import SourceReference
 from tests.utils import TEST_STORAGE_ROOT
 from pytest_console_scripts import ScriptRunner
 
@@ -70,7 +70,7 @@ def test_example_plugin() -> None:
     plugin_context = Container()[PluginContext]
     assert plugin_context.plugin_modules == [context.module.__name__]
     # reference prefixes we probe when resolving
-    assert run_context.get_plugin_modules() == ["dlt_example_plugin", "dlt_example_plugin", "dlt"]
+    assert run_context.get_plugin_modules() == ["dlt_example_plugin", "dlt_example_plugin", "data_load_tool"]
     assert context.local_dir.startswith(context.data_dir)
     assert context.local_dir.endswith("tmp")
 
@@ -107,7 +107,7 @@ def test_import_references() -> None:
 
 
 def test_plugin_execution_context() -> None:
-    from dlt.common.runtime.exec_info import get_execution_context
+    from data_load_tool.common.runtime.exec_info import get_execution_context
 
     context = get_execution_context()
     assert context["run_context"] == "dlt-test"
@@ -115,16 +115,16 @@ def test_plugin_execution_context() -> None:
 
 def test_cli_hook(script_runner: ScriptRunner) -> None:
     # new command
-    result = script_runner.run(["dlt", "example", "--name", "John"])
+    result = script_runner.run(["data_load_tool", "example", "--name", "John"])
     assert result.returncode == 0
     assert "Example command executed with name: John" in result.stdout
 
     # raise
-    result = script_runner.run(["dlt", "example", "--name", "John", "--result", "known_error"])
+    result = script_runner.run(["data_load_tool", "example", "--name", "John", "--result", "known_error"])
     assert result.returncode == -33
     assert "MODIFIED_DOCS_URL" in result.stdout
 
-    result = script_runner.run(["dlt", "example", "--name", "John", "--result", "unknown_error"])
+    result = script_runner.run(["data_load_tool", "example", "--name", "John", "--result", "unknown_error"])
     assert result.returncode == -1
     assert "DEFAULT_DOCS_URL" in result.stdout
     assert "No one knows what is going on" in result.stderr
@@ -132,13 +132,13 @@ def test_cli_hook(script_runner: ScriptRunner) -> None:
 
     # raise with trace
     result = script_runner.run(
-        ["dlt", "--debug", "example", "--name", "John", "--result", "unknown_error"]
+        ["data_load_tool", "--debug", "example", "--name", "John", "--result", "unknown_error"]
     )
     assert "No one knows what is going on" in result.stderr
     assert "Traceback" in result.stderr  # stacktrace is there
 
     # overwritten pipeline command
-    result = script_runner.run(["dlt", "init"])
+    result = script_runner.run(["data_load_tool", "init"])
     assert result.returncode == -55
     assert "Plugin overwrote init command" in result.stdout
     assert "INIT_DOCS_URL" in result.stdout

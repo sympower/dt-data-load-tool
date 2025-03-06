@@ -1,11 +1,11 @@
-from dlt import TSecretValue
-from dlt.common.configuration.specs import GcpServiceAccountCredentials
-from dlt.common.configuration.providers.google_secrets import GoogleSecretsProvider
-from dlt.common.configuration.accessors import secrets
-from dlt.common.configuration.specs.config_providers_context import _google_secrets_provider
-from dlt.common.configuration.specs import GcpServiceAccountCredentials, known_sections
-from dlt.common.typing import AnyType
-from dlt.common.configuration.resolve import resolve_configuration
+from data_load_tool import TSecretValue
+from data_load_tool.common.configuration.specs import GcpServiceAccountCredentials
+from data_load_tool.common.configuration.providers.google_secrets import GoogleSecretsProvider
+from data_load_tool.common.configuration.accessors import secrets
+from data_load_tool.common.configuration.specs.config_providers_context import _google_secrets_provider
+from data_load_tool.common.configuration.specs import GcpServiceAccountCredentials, known_sections
+from data_load_tool.common.typing import AnyType
+from data_load_tool.common.configuration.resolve import resolve_configuration
 
 from tests.utils import init_test_logging
 

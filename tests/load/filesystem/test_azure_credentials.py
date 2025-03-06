@@ -5,20 +5,20 @@ from uuid import uuid4
 import pytest
 from pytest_mock import MockerFixture
 
-import dlt
-from dlt.common import pendulum
-from dlt.common.time import ensure_pendulum_datetime
-from dlt.common.configuration import resolve_configuration, ConfigFieldMissingException
-from dlt.common.configuration.specs import (
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.common.time import ensure_pendulum_datetime
+from data_load_tool.common.configuration import resolve_configuration, ConfigFieldMissingException
+from data_load_tool.common.configuration.specs import (
     AzureCredentials,
     AzureServicePrincipalCredentials,
     AzureServicePrincipalCredentialsWithoutDefaults,
     AzureCredentialsWithoutDefaults,
 )
-from dlt.common.storages.configuration import FilesystemConfiguration
+from data_load_tool.common.storages.configuration import FilesystemConfiguration
 from tests.load.utils import ALL_FILESYSTEM_DRIVERS, AZ_BUCKET
 from tests.common.configuration.utils import environment
-from dlt.common.storages.fsspec_filesystem import fsspec_from_config
+from data_load_tool.common.storages.fsspec_filesystem import fsspec_from_config
 
 # mark all tests as essential, do not remove
 pytestmark = pytest.mark.essential
@@ -36,10 +36,10 @@ def az_service_principal_config() -> Optional[FilesystemConfiguration]:
 
     """
     credentials = AzureServicePrincipalCredentialsWithoutDefaults(
-        azure_tenant_id=dlt.config.get("tests.az_sp_tenant_id", str),
-        azure_client_id=dlt.config.get("tests.az_sp_client_id", str),
-        azure_client_secret=dlt.config.get("tests.az_sp_client_secret", str),
-        azure_storage_account_name=dlt.config.get("tests.az_sp_storage_account_name", str),
+        azure_tenant_id=data_load_tool.config.get("tests.az_sp_tenant_id", str),
+        azure_client_id=data_load_tool.config.get("tests.az_sp_client_id", str),
+        azure_client_secret=data_load_tool.config.get("tests.az_sp_client_secret", str),
+        azure_storage_account_name=data_load_tool.config.get("tests.az_sp_storage_account_name", str),
     )
     #
     credentials = resolve_configuration(credentials, sections=("destination", "fsazureprincipal"))

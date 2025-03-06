@@ -3,19 +3,19 @@ import pytest
 from pathlib import Path
 from urllib3.util import parse_url
 
-from dlt.common.configuration.utils import add_config_to_env
-from dlt.common.exceptions import TerminalValueError
-from dlt.destinations.impl.snowflake.snowflake import SnowflakeLoadJob
+from data_load_tool.common.configuration.utils import add_config_to_env
+from data_load_tool.common.exceptions import TerminalValueError
+from data_load_tool.destinations.impl.snowflake.snowflake import SnowflakeLoadJob
 from tests.utils import TEST_DICT_CONFIG_PROVIDER
 
 pytest.importorskip("snowflake")
 
-from dlt.common.libs.sql_alchemy_compat import make_url
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.configuration.exceptions import ConfigurationValueError
-from dlt.common.utils import digest128
+from data_load_tool.common.libs.sql_alchemy_compat import make_url
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.exceptions import ConfigurationValueError
+from data_load_tool.common.utils import digest128
 
-from dlt.destinations.impl.snowflake.configuration import (
+from data_load_tool.destinations.impl.snowflake.configuration import (
     SNOWFLAKE_APPLICATION_ID,
     SnowflakeClientConfiguration,
     SnowflakeCredentials,
@@ -213,15 +213,15 @@ def test_snowflake_credentials_native_value(environment) -> None:
         )
     # set password via env
     os.environ["CREDENTIALS__PASSWORD"] = "pass"
-    os.environ["CREDENTIALS__APPLICATION"] = "dlt"
+    os.environ["CREDENTIALS__APPLICATION"] = "data_load_tool"
     c = resolve_configuration(
         SnowflakeCredentials(),
         explicit_value="snowflake://user1@host1/db1?warehouse=warehouse1&role=role1",
     )
     assert c.is_resolved()
     assert c.password == "pass"
-    assert c.application == "dlt"
-    assert "application=dlt" not in str(c.to_url())
+    assert c.application == "data_load_tool"
+    assert "application=data_load_tool" not in str(c.to_url())
     # # but if password is specified - it is final
     c = resolve_configuration(
         SnowflakeCredentials(),

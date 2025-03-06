@@ -48,14 +48,14 @@ directory structure:
 
 ```text
 currency_conversion_enrichment/
-├── .dlt/
+├── .data_load_tool/
 │   └── secrets.toml
 └── currency_enrichment_pipeline.py
 ```
 
 ### 1. Creating resource
 
-`dlt` works on the principle of [sources](../../general-usage/source.md) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source.md) and
 [resources.](../../general-usage/resource.md)
 
 1. The last part of our data enrichment ([part one](../../general-usage/data-enrichments/user_agent_device_data_enrichment.md))
@@ -78,7 +78,7 @@ currency_conversion_enrichment/
 1. Here's the resource that yields the sample data as discussed above:
 
    ```py
-   @dlt.resource()
+   @data_load_tool.resource()
    def enriched_data_part_two():
        data_enrichment_part_one = [
            {
@@ -104,12 +104,12 @@ currency_conversion_enrichment/
 
 This function retrieves conversion rates for currency pairs that either haven't been fetched before
 or were last updated more than 24 hours ago from the ExchangeRate-API, using information stored in
-the `dlt` [state](../../general-usage/state.md).
+the `data_load_tool` [state](../../general-usage/state.md).
 
 The first step is to register on [ExchangeRate-API](https://app.exchangerate-api.com/) and obtain the
 API token.
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -140,17 +140,17 @@ API token.
         Note:
             The base currency (USD) and target currency (EUR) are hard coded in this function,
             but that can be changed.
-            The API key is retrieved from the `dlt` secrets.
+            The API key is retrieved from the `data_load_tool` secrets.
         """
         # Hardcoded base and target currencies
         base_currency = "USD"
         target_currency = "EUR"
 
         # Retrieve the API key from DLT secrets
-        api_key: str = dlt.secrets.get("sources.api_key")
+        api_key: str = data_load_tool.secrets.get("sources.api_key")
 
         # Initialize or retrieve the state for currency rates
-        rates_state = dlt.current.resource_state().setdefault("rates", {})
+        rates_state = data_load_tool.current.resource_state().setdefault("rates", {})
         currency_pair_key = f"{base_currency}-{target_currency}"
         currency_pair_state = rates_state.setdefault(currency_pair_key, {
             "last_update": datetime.datetime.min,
@@ -196,10 +196,10 @@ API token.
    - Add map function
    - Transformer function
 
-   The `dlt` library's `transformer` and `add_map` functions serve distinct purposes in data
+   The `data_load_tool` library's `transformer` and `add_map` functions serve distinct purposes in data
    processing.
 
-   `Transformers` are a form of `dlt resource` that takes input from other resources
+   `Transformers` are a form of `data_load_tool resource` that takes input from other resources
    via the `data_from` argument to enrich or transform the data.
    [Click here.](../../general-usage/resource.md#process-resources-with-dlttransformer)
 
@@ -212,7 +212,7 @@ API token.
 
    ```py
    # Create the pipeline
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="data_enrichment_two",
        destination="duckdb",
        dataset_name="currency_conversion_enrichment",
@@ -225,7 +225,7 @@ API token.
    ```
 
    :::info
-   Please note that the same outcome can be achieved by using the `@dlt.transformer` decorator function.
+   Please note that the same outcome can be achieved by using the `@data_load_tool.transformer` decorator function.
    To do so, you need to add the transformer decorator at the top of the `converted_amount` function.
    For `pipeline.run`, you can use the following code:
 
@@ -247,7 +247,7 @@ API token.
    [destination](../../dlt-ecosystem/destinations/), for example, duckdb:
 
    ```sh
-   pip install "dlt[duckdb]"
+   pip install "data_load_tool[duckdb]"
    ```
 
 1. Run the pipeline with the following command:
@@ -259,7 +259,7 @@ API token.
 1. To ensure that everything loads as expected, use the command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the "pipeline_name" for the above pipeline example is `data_enrichment_two`; you can

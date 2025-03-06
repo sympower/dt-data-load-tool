@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: basic steps for setting up a dlt pipeline for SQL Database
+description: basic steps for setting up a data_load_tool pipeline for SQL Database
 keywords: [sql connector, sql database pipeline, sql database]
 ---
 
@@ -10,15 +10,15 @@ import Header from '../_source-info-header.md';
 
 <Header/>
 
-To connect to your SQL database using `dlt`, follow these steps:
+To connect to your SQL database using `data_load_tool`, follow these steps:
 
-1. Initialize a `dlt` project in the current working directory by running the following command:
+1. Initialize a `data_load_tool` project in the current working directory by running the following command:
 
     ```sh 
-    dlt init sql_database duckdb
+    data_load_tool init sql_database duckdb
     ```
 
-    This will add necessary files and configurations for a `dlt` pipeline with SQL database as the source and
+    This will add necessary files and configurations for a `data_load_tool` pipeline with SQL database as the source and
    [DuckDB](../../destinations/duckdb.md) as the destination.
 
 :::tip
@@ -27,7 +27,7 @@ If you'd like to use a different destination, simply replace `duckdb` with the n
 
 2. Add credentials for your SQL database
 
-    To connect to your SQL database, `dlt` would need to authenticate using necessary credentials. To enable this, paste your credentials in the `secrets.toml` file created inside the `.dlt/` folder in the following format:
+    To connect to your SQL database, `data_load_tool` would need to authenticate using necessary credentials. To enable this, paste your credentials in the `secrets.toml` file created inside the `.data_load_tool/` folder in the following format:
     ```toml
     [sources.sql_database.credentials]
     drivername = "mysql+pymysql" # driver name for the database
@@ -67,7 +67,7 @@ If you'd like to use a different destination, simply replace `duckdb` with the n
 
 6. Make sure everything is loaded as expected with  
     ```sh
-    dlt pipeline <pipeline_name> show
+    data_load_tool pipeline <pipeline_name> show
     ```
 
    :::note

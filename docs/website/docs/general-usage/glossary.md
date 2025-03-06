@@ -1,6 +1,6 @@
 ---
 title: Glossary
-description: Glossary of common dlt terms
+description: Glossary of common data_load_tool terms
 keywords: [glossary, resource, source, pipeline]
 ---
 
@@ -40,7 +40,7 @@ Moves the data from the source to the destination, according to instructions pro
 
 ## [Verified source](../walkthroughs/add-a-verified-source)
 
-A Python module distributed with `dlt init` that allows creating pipelines that extract data from a
+A Python module distributed with `data_load_tool init` that allows creating pipelines that extract data from a
 particular **Source**. Such a module is intended to be published in order for others to use it to
 build pipelines.
 
@@ -50,7 +50,7 @@ demonstration scripts, documentation, and the dataset produced was reviewed by a
 ## [Schema](schema)
 
 Describes the structure of normalized data (e.g., unpacked tables, column types, etc.) and provides
-instructions on how the data should be processed and loaded (i.e., it tells `dlt` about the content
+instructions on how the data should be processed and loaded (i.e., it tells `data_load_tool` about the content
 of the data and how to load it into the destination).
 
 ## [Config](credentials/setup#secretstoml-and-configtoml)

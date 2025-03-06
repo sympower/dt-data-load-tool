@@ -3,7 +3,7 @@ from typing import Dict, Any
 from copy import deepcopy
 from unittest import mock
 
-from dlt.common import pipeline as ps
+from data_load_tool.common import pipeline as ps
 
 
 def test_delete_source_state_keys() -> None:

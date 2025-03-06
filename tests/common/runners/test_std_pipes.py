@@ -2,13 +2,13 @@ from subprocess import CalledProcessError
 import tempfile
 from typing import Any, Iterator, NamedTuple
 import pytest
-from dlt.common.exceptions import UnsupportedProcessStartMethodException
+from data_load_tool.common.exceptions import UnsupportedProcessStartMethodException
 
-from dlt.common.runners import TRunMetrics, Venv
-from dlt.common.runners.stdout import iter_std, iter_stdout, iter_stdout_with_result
-from dlt.common.runners.synth_pickle import encode_obj, decode_obj, decode_last_obj
+from data_load_tool.common.runners import TRunMetrics, Venv
+from data_load_tool.common.runners.stdout import iter_std, iter_stdout, iter_stdout_with_result
+from data_load_tool.common.runners.synth_pickle import encode_obj, decode_obj, decode_last_obj
 
-from dlt.common.utils import digest128b
+from data_load_tool.common.utils import digest128b
 
 
 class _TestPickler(NamedTuple):
@@ -161,7 +161,7 @@ def test_std_iter() -> None:
 
 
 def test_stdout_encode_result() -> None:
-    # use current venv to execute so we have dlt
+    # use current venv to execute so we have data_load_tool
     venv = Venv.restore_current()
     lines = list(iter_stdout(venv, "python", "tests/common/scripts/stdout_encode_result.py"))
     # last line contains results

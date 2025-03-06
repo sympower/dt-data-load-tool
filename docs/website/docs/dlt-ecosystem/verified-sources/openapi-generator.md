@@ -1,6 +1,6 @@
 ---
 title: OpenAPI source generator
-description: OpenAPI dlt source generator
+description: OpenAPI data_load_tool source generator
 keywords: [openapi, rest api, swagger, source generator, cli, rest]
 ---
 import Header from './_source-info-header.md';
@@ -9,20 +9,20 @@ import Header from './_source-info-header.md';
 
 <Header/>
 
-Our OpenAPI source generator - `dlt-init-openapi` - generates [`dlt`](../../intro) data pipelines from [OpenAPI 3.x specs](https://swagger.io/specification/) using the [rest_api verified source](./rest_api) to extract data from any REST API. If you are not familiar with the `rest_api` source, please read [rest_api](./rest_api) to learn how our `rest_api` source works.
+Our OpenAPI source generator - `dlt-init-openapi` - generates [`data_load_tool`](../../intro) data pipelines from [OpenAPI 3.x specs](https://swagger.io/specification/) using the [rest_api verified source](./rest_api) to extract data from any REST API. If you are not familiar with the `rest_api` source, please read [rest_api](./rest_api) to learn how our `rest_api` source works.
 
 :::tip
 We also have a cool [Google Colab example](https://colab.research.google.com/drive/1MRZvguOTZj1MlkEGzjiso8lQ_wr1MJRI?usp=sharing#scrollTo=LHGxzf1Ev_yr) that demonstrates this generator. 😎
 :::
 
 ## Features
-`dlt-init-openapi` generates code from an OpenAPI spec that you can use to extract data from a `rest_api` into any [`destination`](../destinations/) (e.g., Postgres, BigQuery, Redshift...) that `dlt` supports. dlt-init-openapi additionally executes a set of heuristics to discover information not explicitly defined in OpenAPI specs.
+`dlt-init-openapi` generates code from an OpenAPI spec that you can use to extract data from a `rest_api` into any [`destination`](../destinations/) (e.g., Postgres, BigQuery, Redshift...) that `data_load_tool` supports. dlt-init-openapi additionally executes a set of heuristics to discover information not explicitly defined in OpenAPI specs.
 
 Features include:
 
 * **[Pagination](./rest_api/basic#pagination) discovery** for each endpoint.
 * **Primary key discovery** for each entity.
-* **Endpoint relationship mapping** into `dlt` [`transformers`](../../general-usage/resource#process-resources-with-dlttransformer) (e.g., /users/ -> /user\{id\}).
+* **Endpoint relationship mapping** into `data_load_tool` [`transformers`](../../general-usage/resource#process-resources-with-dlttransformer) (e.g., /users/ -> /user\{id\}).
 * **Payload JSON path [data selector](./rest_api/basic#data-selection) discovery** for results nested in the returned JSON.
 * **[Authentication](./rest_api/basic#authentication)** discovery for an API.
 
@@ -47,7 +47,7 @@ We will create a simple example pipeline from a [PokeAPI spec](https://pokeapi.c
 
 4. After selecting your Pokemon endpoints and hitting Enter, your pipeline will be rendered.
 
-5. If you have any kind of authentication on your pipeline (this example does not), open the `.dlt/secrets.toml` and provide the credentials. You can find further settings in the `.dlt/config.toml`.
+5. If you have any kind of authentication on your pipeline (this example does not), open the `.data_load_tool/secrets.toml` and provide the credentials. You can find further settings in the `.data_load_tool/config.toml`.
 
 6. Go to the created pipeline folder and run your pipeline.
     ```sh
@@ -57,13 +57,13 @@ We will create a simple example pipeline from a [PokeAPI spec](https://pokeapi.c
 
 7. Print the pipeline info to the console to see what got loaded.
     ```sh
-    dlt pipeline pokemon_pipeline info
+    data_load_tool pipeline pokemon_pipeline info
     ```
 
 8. You can now also install Streamlit to see a preview of the data; you should have loaded 40 Pokemons and their details.
     ```sh
     pip install pandas streamlit
-    dlt pipeline pokemon_pipeline show
+    data_load_tool pipeline pokemon_pipeline show
     ```
 
 9. You can go to our docs at https://dlthub.com/docs to learn how to modify the generated pipeline to load to many destinations, place schema contracts on your pipeline, and many other things.
@@ -80,8 +80,8 @@ When you run the `dlt-init-openapi` command above, the following files will be g
 
 ```text
 pokemon_pipeline/
-├── .dlt/
-│   ├── config.toml     # dlt config, learn more at dlthub.com/docs
+├── .data_load_tool/
+│   ├── config.toml     # data_load_tool config, learn more at dlthub.com/docs
 │   └── secrets.toml    # your secrets, only needed for APIs with auth
 ├── pokemon/
 │   └── __init__.py     # your rest_api dictionary, learn more below
@@ -152,7 +152,7 @@ The generated dictionary will look something like this:
 ```
 
 :::info
-You can edit this file to adapt the behavior of the dlt rest_api accordingly. Please read our [dlt rest_api](./rest_api) docs to learn how to configure the rest_api source and check out our detailed [Google Colab example](https://colab.research.google.com/drive/1MRZvguOTZj1MlkEGzjiso8lQ_wr1MJRI?usp=sharing#scrollTo=LHGxzf1Ev_yr).
+You can edit this file to adapt the behavior of the data_load_tool rest_api accordingly. Please read our [data_load_tool rest_api](./rest_api) docs to learn how to configure the rest_api source and check out our detailed [Google Colab example](https://colab.research.google.com/drive/1MRZvguOTZj1MlkEGzjiso8lQ_wr1MJRI?usp=sharing#scrollTo=LHGxzf1Ev_yr).
 :::
 
 ## CLI command
@@ -199,7 +199,7 @@ $ dlt-init-openapi pokemon --url ... --config config.yml
 ```
 
 ## Telemetry
-We track your usage of this tool similarly to how we track other commands in the dlt core library. Read more about this and how to disable it [here](../../reference/telemetry).
+We track your usage of this tool similarly to how we track other commands in the data_load_tool core library. Read more about this and how to disable it [here](../../reference/telemetry).
 
 ## Prior work
 This project started as a fork of [openapi-python-client](https://github.com/openapi-generators/openapi-python-client). Pretty much all parts are heavily changed or completely replaced, but some lines of code still exist, and we like to acknowledge the many good ideas we got from the original project :)

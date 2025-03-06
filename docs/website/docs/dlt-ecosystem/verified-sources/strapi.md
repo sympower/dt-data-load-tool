@@ -1,6 +1,6 @@
 ---
 title: Strapi
-description: dlt verified source for Strapi API
+description: data_load_tool verified source for Strapi API
 keywords: [strapi api, strapi verified source, strapi]
 ---
 import Header from './_source-info-header.md';
@@ -15,7 +15,7 @@ content management systems without having to write a lot of custom code.
 Since Strapi's available endpoints vary based on your Strapi setup, ensure you recognize the ones
 you'll ingest to transfer data to your warehouse.
 
-This Strapi `dlt` verified source and
+This Strapi `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/strapi_pipeline.py)
 loads data using the “Strapi API” to the destination of your choice.
 
@@ -36,7 +36,7 @@ Sources and resources that can be loaded using this verified source are:
 1. Fill in Name, Description, and Duration.
 1. Choose a token type: Read Only, Full Access, or custom (with find and findOne selected).
 1. Save to view your API token.
-1. Copy it for dlt secrets setup.
+1. Copy it for data_load_tool secrets setup.
 
 > Note: The Strapi UI, which is described here, might change.
 > The full guide is available at [this link.](https://docs.strapi.io/user-docs/settings/API-tokens)
@@ -48,7 +48,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init strapi duckdb
+   data_load_tool init strapi duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -66,7 +66,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -111,7 +111,7 @@ For more information, read the [General usage: Credentials.](../../general-usage
    the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the `pipeline_name` for the above pipeline example is `strapi`, you may also use any
@@ -121,7 +121,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `strapi_source`
@@ -129,20 +129,20 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 This function retrieves data from Strapi.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def strapi_source(
     endpoints: List[str],
-    api_secret_key: str = dlt.secrets.value,
-    domain: str = dlt.secrets.value,
+    api_secret_key: str = data_load_tool.secrets.value,
+    domain: str = data_load_tool.secrets.value,
 ) -> Iterable[DltResource]:
    ...
 ```
 
 `endpoints`: Collections to fetch data from.
 
-`api_secret_key`: API secret key for authentication, defaults to dlt secrets.
+`api_secret_key`: API secret key for authentication, defaults to data_load_tool secrets.
 
-`domain`: Strapi API domain name, defaults to dlt secrets.
+`domain`: Strapi API domain name, defaults to data_load_tool secrets.
 
 
 ## Customization
@@ -154,7 +154,7 @@ verified source.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
         pipeline_name="strapi",  # Use a custom name if desired
         destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dataset_name="strapi_data"  # Use a custom name if desired

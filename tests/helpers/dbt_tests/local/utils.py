@@ -1,13 +1,13 @@
 import contextlib
 from typing import Iterator, NamedTuple
 
-from dlt.common.configuration.utils import add_config_to_env
-from dlt.common.destination.client import DestinationClientDwhConfiguration
-from dlt.common.runners import Venv
-from dlt.common.typing import StrAny
+from data_load_tool.common.configuration.utils import add_config_to_env
+from data_load_tool.common.destination.client import DestinationClientDwhConfiguration
+from data_load_tool.common.runners import Venv
+from data_load_tool.common.typing import StrAny
 
-from dlt.helpers.dbt.configuration import DBTRunnerConfiguration
-from dlt.helpers.dbt.runner import DBTPackageRunner, create_runner
+from data_load_tool.helpers.dbt.configuration import DBTRunnerConfiguration
+from data_load_tool.helpers.dbt.runner import DBTPackageRunner, create_runner
 
 from tests.load.utils import cm_yield_client, delete_dataset
 from tests.utils import TEST_STORAGE_ROOT, init_test_logging

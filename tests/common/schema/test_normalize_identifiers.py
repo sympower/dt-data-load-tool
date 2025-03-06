@@ -3,17 +3,17 @@ import os
 from typing import Callable
 import pytest
 
-from dlt.common import json
-from dlt.common.configuration import resolve_configuration
-from dlt.common.configuration.container import Container
-from dlt.common.normalizers.naming.naming import NamingConvention
-from dlt.common.storages import SchemaStorageConfiguration
-from dlt.common.destination.capabilities import DestinationCapabilitiesContext
-from dlt.common.normalizers.naming import snake_case, direct
-from dlt.common.schema import TColumnSchema, Schema, TStoredSchema, utils, TTableSchema
-from dlt.common.schema.exceptions import TableIdentifiersFrozen
-from dlt.common.schema.typing import SIMPLE_REGEX_PREFIX
-from dlt.common.storages import SchemaStorage
+from data_load_tool.common import json
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.normalizers.naming.naming import NamingConvention
+from data_load_tool.common.storages import SchemaStorageConfiguration
+from data_load_tool.common.destination.capabilities import DestinationCapabilitiesContext
+from data_load_tool.common.normalizers.naming import snake_case, direct
+from data_load_tool.common.schema import TColumnSchema, Schema, TStoredSchema, utils, TTableSchema
+from data_load_tool.common.schema.exceptions import TableIdentifiersFrozen
+from data_load_tool.common.schema.typing import SIMPLE_REGEX_PREFIX
+from data_load_tool.common.storages import SchemaStorage
 
 from tests.common.cases.normalizers import sql_upper
 from tests.common.utils import load_json_case, load_yml_case
@@ -299,8 +299,8 @@ def test_update_normalizers() -> None:
 
 def test_normalize_default_hints(schema_storage_no_import: SchemaStorage) -> None:
     # use destination caps to force naming convention
-    from dlt.common.destination import DestinationCapabilitiesContext
-    from dlt.common.configuration.container import Container
+    from data_load_tool.common.destination import DestinationCapabilitiesContext
+    from data_load_tool.common.configuration.container import Container
 
     eth_V11 = load_yml_case("schemas/eth/ethereum_schema_v11")
     orig_schema = Schema.from_dict(eth_V11)

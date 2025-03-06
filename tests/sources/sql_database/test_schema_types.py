@@ -1,6 +1,6 @@
 import sqlalchemy as sa
 
-from dlt.sources.sql_database.schema_types import get_table_references
+from data_load_tool.sources.sql_database.schema_types import get_table_references
 
 
 def test_get_table_references() -> None:

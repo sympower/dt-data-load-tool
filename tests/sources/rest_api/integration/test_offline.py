@@ -5,11 +5,11 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 from requests import Request, Response, Session
 
-import dlt
-from dlt.common import pendulum
-from dlt.pipeline.exceptions import PipelineStepFailed
-from dlt.sources.helpers.rest_client.paginators import BaseReferencePaginator
-from dlt.sources.rest_api import (
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.sources.helpers.rest_client.paginators import BaseReferencePaginator
+from data_load_tool.sources.rest_api import (
     ClientConfig,
     Endpoint,
     EndpointResource,
@@ -108,7 +108,7 @@ from tests.utils import assert_load_info, assert_query_data, load_table_counts
     ],
 )
 def test_load_mock_api(mock_api_server, config):
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="rest_api_mock",
         destination="duckdb",
         dataset_name="rest_api_mock",
@@ -625,7 +625,7 @@ def test_source_with_post_request(mock_api_server):
 
 
 def test_interpolate_parent_values_in_path_and_json_body(mock_api_server):
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="rest_api_mock",
         destination="duckdb",
         dataset_name="rest_api_mock",
@@ -691,7 +691,7 @@ def test_interpolate_parent_values_in_path_and_json_body(mock_api_server):
 
 
 def test_unauthorized_access_to_protected_endpoint(mock_api_server):
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="rest_api_mock",
         destination="duckdb",
         dataset_name="rest_api_mock",
@@ -806,7 +806,7 @@ def test_posts_without_key(mock_api_server):
     ],
 )
 def test_load_mock_api_typeddict_config(mock_api_server, config):
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="rest_api_mock",
         destination="duckdb",
         dataset_name="rest_api_mock",
@@ -850,7 +850,7 @@ def test_posts_with_incremental_date_conversion(mock_api_server) -> None:
             },
         ],
     }
-    RESTClient = dlt.sources.helpers.rest_client.RESTClient
+    RESTClient = data_load_tool.sources.helpers.rest_client.RESTClient
     with mock.patch.object(RESTClient, "paginate") as mock_paginate:
         source = rest_api_source(config).add_limit(1)
         _ = list(source.with_resources("posts"))
@@ -886,7 +886,7 @@ def test_incremental_values_in_param_template_with_conversion(mock_api_server) -
             },
         ],
     }
-    RESTClient = dlt.sources.helpers.rest_client.RESTClient
+    RESTClient = data_load_tool.sources.helpers.rest_client.RESTClient
     with mock.patch.object(RESTClient, "paginate") as mock_paginate:
         source = rest_api_source(config).add_limit(1)
         _ = list(source.with_resources("posts"))
@@ -1038,7 +1038,7 @@ def test_incremental_implicitly_filters_out_data(mock_api_server) -> None:
         }
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_incremental_filters_implicitly", destination="duckdb"
     )
     load_info = pipeline.run(source)
@@ -1099,7 +1099,7 @@ def test_custom_session_is_used(mock_api_server, mocker):
     ],
 )
 def test_DltResource_gets_called(mock_api_server, mocker, posts_resource_config) -> None:
-    @dlt.resource()
+    @data_load_tool.resource()
     def post_list():
         yield [{"id": "0"}, {"id": "1"}, {"id": "2"}]
 
@@ -1114,7 +1114,7 @@ def test_DltResource_gets_called(mock_api_server, mocker, posts_resource_config)
         ],
     }
 
-    RESTClient = dlt.sources.helpers.rest_client.RESTClient
+    RESTClient = data_load_tool.sources.helpers.rest_client.RESTClient
     with mock.patch.object(RESTClient, "paginate") as mock_paginate:
         source = rest_api_source(config)
         _ = list(source)

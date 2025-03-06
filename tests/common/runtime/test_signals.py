@@ -4,9 +4,9 @@ import time
 from multiprocessing.dummy import Process as DummyProcess
 from typing import Iterator
 
-from dlt.common import sleep
-from dlt.common.exceptions import SignalReceivedException
-from dlt.common.runtime import signals
+from data_load_tool.common import sleep
+from data_load_tool.common.exceptions import SignalReceivedException
+from data_load_tool.common.runtime import signals
 
 from tests.utils import skipifwindows
 

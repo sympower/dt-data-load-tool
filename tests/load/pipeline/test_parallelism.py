@@ -2,13 +2,13 @@
 Actual parallelism test with the help of custom destination
 """
 import os
-import dlt
+import data_load_tool
 import time
 from typing import Dict, Tuple
 
-from dlt.common.typing import TDataItems
-from dlt.common.schema import TTableSchema
-from dlt.common.destination.capabilities import TLoaderParallelismStrategy
+from data_load_tool.common.typing import TDataItems
+from data_load_tool.common.schema import TTableSchema
+from data_load_tool.common.destination.capabilities import TLoaderParallelismStrategy
 
 
 def run_pipeline(
@@ -27,7 +27,7 @@ def run_pipeline(
     current_executing_per_table: Dict[str, int] = {}
     max_current_executing_per_table: Dict[str, int] = {}
 
-    @dlt.destination(
+    @data_load_tool.destination(
         max_parallel_load_jobs=max_parallel_load_jobs,
         loader_parallelism_strategy=loader_parallelism_strategy,
     )
@@ -55,12 +55,12 @@ def run_pipeline(
             yield {"num": i}
 
     # we load n items for 3 tables in one run
-    p = dlt.pipeline("sink_test", destination=test_sink, dev_mode=True)
+    p = data_load_tool.pipeline("sink_test", destination=test_sink, dev_mode=True)
     p.run(
         [
-            dlt.resource(table_name="t1")(t),
-            dlt.resource(table_name="t2")(t),
-            dlt.resource(table_name="t3")(t),
+            data_load_tool.resource(table_name="t1")(t),
+            data_load_tool.resource(table_name="t2")(t),
+            data_load_tool.resource(table_name="t3")(t),
         ]
     )
 

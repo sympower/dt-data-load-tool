@@ -2,19 +2,19 @@ import io
 import pytest
 from typing import Iterator, List
 
-from dlt.common.schema import Schema
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.specs.config_section_context import ConfigSectionContext
-from dlt.common.schema.exceptions import SchemaIdentifierNormalizationCollision
-from dlt.common.utils import uniq_id
-from dlt.common.schema.typing import TWriteDisposition, TColumnSchema, TTableSchemaColumns
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.specs.config_section_context import ConfigSectionContext
+from data_load_tool.common.schema.exceptions import SchemaIdentifierNormalizationCollision
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema.typing import TWriteDisposition, TColumnSchema, TTableSchemaColumns
 
-from dlt.destinations import weaviate
-from dlt.destinations.impl.weaviate.exceptions import PropertyNameConflict
-from dlt.destinations.impl.weaviate.weaviate_client import WeaviateClient
+from data_load_tool.destinations import weaviate
+from data_load_tool.destinations.impl.weaviate.exceptions import PropertyNameConflict
+from data_load_tool.destinations.impl.weaviate.weaviate_client import WeaviateClient
 
-from dlt.common.storages.file_storage import FileStorage
-from dlt.common.schema.utils import new_table, normalize_table_identifiers
+from data_load_tool.common.storages.file_storage import FileStorage
+from data_load_tool.common.schema.utils import new_table, normalize_table_identifiers
 from tests.load.utils import (
     TABLE_ROW_ALL_DATA_TYPES,
     TABLE_UPDATE,
@@ -57,7 +57,7 @@ def ci_client() -> Iterator[WeaviateClient]:
 def make_client(naming_convention: str) -> Iterator[WeaviateClient]:
     schema = Schema(
         "test_schema",
-        {"names": f"dlt.destinations.impl.weaviate.{naming_convention}", "json": None},
+        {"names": f"data_load_tool.destinations.impl.weaviate.{naming_convention}", "json": None},
     )
     with get_client_instance(schema) as _client:
         try:
@@ -127,7 +127,7 @@ def test_case_sensitive_properties_create(client: WeaviateClient) -> None:
     assert clash_ex.value.identifier_name == "coL1"
     assert clash_ex.value.conflict_identifier_name == "col1"
     assert clash_ex.value.table_name == "ColClass"
-    assert clash_ex.value.naming_name == "dlt.destinations.impl.weaviate.naming"
+    assert clash_ex.value.naming_name == "data_load_tool.destinations.impl.weaviate.naming"
 
 
 def test_case_insensitive_properties_create(ci_client: WeaviateClient) -> None:

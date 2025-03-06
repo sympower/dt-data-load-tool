@@ -13,9 +13,9 @@ from typing import List, Dict
 
 import tomlkit
 import yaml
-import dlt.cli.echo as fmt
+import data_load_tool.cli.echo as fmt
 
-from dlt.common import json
+from data_load_tool.common import json
 
 from utils import collect_markdown_files
 

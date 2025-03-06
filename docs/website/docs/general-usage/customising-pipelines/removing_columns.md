@@ -13,12 +13,12 @@ Let's create a sample pipeline demonstrating the process of removing a column.
 1. Create a source function that creates dummy data as follows:
 
    ```py
-   import dlt
+   import data_load_tool
 
    # This function creates a dummy data source.
-   @dlt.source
+   @data_load_tool.source
    def dummy_source():
-       @dlt.resource(write_disposition="replace")
+       @data_load_tool.resource(write_disposition="replace")
        def dummy_data():
            for i in range(3):
                yield {"id": i, "name": f"Jane Washington {i}", "country_code": 40 + i}
@@ -76,8 +76,8 @@ Let's create a sample pipeline demonstrating the process of removing a column.
 5. At last, create a pipeline:
 
    ```py
-   # Integrating with a dlt pipeline
-   pipeline = dlt.pipeline(
+   # Integrating with a data_load_tool pipeline
+   pipeline = data_load_tool.pipeline(
        pipeline_name='example',
        destination='bigquery',
        dataset_name='filtered_data'

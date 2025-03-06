@@ -1,22 +1,22 @@
 from collections import namedtuple
 from typing import cast, List
 
-import dlt
-import dlt.common
-from dlt.common.configuration.exceptions import ConfigFieldMissingException
-from dlt.common.typing import TSecretStrValue
-from dlt.common.exceptions import DictValidationException
-from dlt.common.configuration.specs import configspec
+import data_load_tool
+import data_load_tool.common
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException
+from data_load_tool.common.typing import TSecretStrValue
+from data_load_tool.common.exceptions import DictValidationException
+from data_load_tool.common.configuration.specs import configspec
 
-import dlt.sources.helpers
-import dlt.sources.helpers.requests
-from dlt.sources.helpers.rest_client.paginators import HeaderLinkPaginator
-from dlt.sources.helpers.rest_client.auth import OAuth2AuthBase, APIKeyAuth
+import data_load_tool.sources.helpers
+import data_load_tool.sources.helpers.requests
+from data_load_tool.sources.helpers.rest_client.paginators import HeaderLinkPaginator
+from data_load_tool.sources.helpers.rest_client.auth import OAuth2AuthBase, APIKeyAuth
 
-from dlt.sources.helpers.rest_client.paginators import SinglePagePaginator
-from dlt.sources.helpers.rest_client.auth import HttpBasicAuth
+from data_load_tool.sources.helpers.rest_client.paginators import SinglePagePaginator
+from data_load_tool.sources.helpers.rest_client.auth import HttpBasicAuth
 
-from dlt.sources.rest_api.typing import RESTAPIConfig
+from data_load_tool.sources.rest_api.typing import RESTAPIConfig
 
 
 ConfigTest = namedtuple("ConfigTest", ["expected_message", "exception", "config"])
@@ -154,10 +154,10 @@ class CustomOAuthAuth(OAuth2AuthBase):
     pass
 
 
-@dlt.resource(name="repositories", selected=False)
+@data_load_tool.resource(name="repositories", selected=False)
 def repositories():
     """A seed list of repositories to fetch"""
-    yield [{"name": "dlt"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
+    yield [{"name": "data_load_tool"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
 
 
 VALID_CONFIGS: List[RESTAPIConfig] = [
@@ -259,7 +259,7 @@ VALID_CONFIGS: List[RESTAPIConfig] = [
             "table_name": lambda event: event["type"],
             "endpoint": {
                 "paginator": CustomPaginator(),
-                "params": {"since": dlt.sources.incremental[str]("user_id")},
+                "params": {"since": data_load_tool.sources.incremental[str]("user_id")},
             },
         },
         "resources": [
@@ -267,7 +267,7 @@ VALID_CONFIGS: List[RESTAPIConfig] = [
                 "name": "users",
                 "endpoint": {
                     "paginator": CustomPaginator(),
-                    "params": {"since": dlt.sources.incremental[str]("user_id")},
+                    "params": {"since": data_load_tool.sources.incremental[str]("user_id")},
                 },
             }
         ],
@@ -361,7 +361,7 @@ VALID_CONFIGS: List[RESTAPIConfig] = [
                 "name": "issues",
                 "endpoint": {
                     "path": "{org}/{repo}/issues/",
-                    "params": {"org": "dlt-hub", "repo": "dlt"},
+                    "params": {"org": "dlt-hub", "repo": "data_load_tool"},
                 },
             },
             {
@@ -370,7 +370,7 @@ VALID_CONFIGS: List[RESTAPIConfig] = [
                     "path": "{org}/{repo}/issues/{id}/comments",
                     "params": {
                         "org": "dlt-hub",
-                        "repo": "dlt",
+                        "repo": "data_load_tool",
                         "id": {
                             "type": "resolve",
                             "resource": "issues",

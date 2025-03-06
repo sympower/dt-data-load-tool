@@ -1,5 +1,5 @@
 import pytest
-import dlt
+import data_load_tool
 from typing import Any
 from tests.load.utils import (
     destinations_configs,
@@ -9,10 +9,10 @@ from tests.load.utils import (
 from tests.pipeline.utils import assert_data_table_counts
 
 from tests.pipeline.utils import assert_load_info
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 
-@dlt.resource(primary_key="id")
+@data_load_tool.resource(primary_key="id")
 def data_with_subtables(offset: int) -> Any:
     for _, index in enumerate(range(offset, offset + 100), 1):
         yield {
@@ -101,7 +101,7 @@ def test_switch_to_merge(destination_config: DestinationTestConfiguration, with_
         pipeline_name="test_switch_to_merge", dev_mode=True
     )
 
-    @dlt.source()
+    @data_load_tool.source()
     def source():
         return data_with_subtables(10)
 

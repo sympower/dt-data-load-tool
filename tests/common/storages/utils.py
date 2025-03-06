@@ -7,23 +7,23 @@ import gzip
 from typing import List, Sequence, Tuple
 from fsspec import AbstractFileSystem
 
-from dlt.common import pendulum, json
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.data_writers import DataWriter
-from dlt.common.schema import Schema
-from dlt.common.schema.typing import TTableSchemaColumns
-from dlt.common.storages import (
+from data_load_tool.common import pendulum, json
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.data_writers import DataWriter
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.schema.typing import TTableSchemaColumns
+from data_load_tool.common.storages import (
     LoadStorageConfiguration,
     FilesystemConfiguration,
     LoadPackageInfo,
     TPackageJobState,
     LoadStorage,
 )
-from dlt.common.storages import DataItemStorage, FileStorage
-from dlt.common.storages.fsspec_filesystem import FileItem, FileItemDict
-from dlt.common.storages.schema_storage import SchemaStorage
-from dlt.common.typing import StrAny, TDataItems
-from dlt.common.utils import uniq_id
+from data_load_tool.common.storages import DataItemStorage, FileStorage
+from data_load_tool.common.storages.fsspec_filesystem import FileItem, FileItemDict
+from data_load_tool.common.storages.schema_storage import SchemaStorage
+from data_load_tool.common.typing import StrAny, TDataItems
+from data_load_tool.common.utils import uniq_id
 
 from tests.common.utils import load_yml_case
 

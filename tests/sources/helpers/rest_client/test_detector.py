@@ -1,14 +1,14 @@
 import pytest
 
-from dlt.common import jsonpath
+from data_load_tool.common import jsonpath
 
-from dlt.sources.helpers.rest_client.detector import (
+from data_load_tool.sources.helpers.rest_client.detector import (
     PaginatorFactory,
     find_response_page_data,
     find_next_page_path,
     single_entity_path,
 )
-from dlt.sources.helpers.rest_client.paginators import (
+from data_load_tool.sources.helpers.rest_client.paginators import (
     OffsetPaginator,
     PageNumberPaginator,
     JSONLinkPaginator,

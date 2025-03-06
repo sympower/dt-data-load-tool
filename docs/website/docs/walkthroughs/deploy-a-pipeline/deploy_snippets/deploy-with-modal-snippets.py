@@ -7,10 +7,10 @@ def test_modal_snippet() -> None:
 
     # Define the Modal Image
     image = modal.Image.debian_slim().pip_install(
-        "dlt>=1.1.0",
-        "dlt[duckdb]",  # destination
-        "dlt[sql_database]",  # source (MySQL)
-        "dlt[parquet]",  # file format dependency
+        "data_load_tool>=1.1.0",
+        "data_load_tool[duckdb]",  # destination
+        "data_load_tool[sql_database]",  # source (MySQL)
+        "data_load_tool[parquet]",  # file format dependency
         "pymysql",  # database driver for MySQL source
     )
 
@@ -23,9 +23,9 @@ def test_modal_snippet() -> None:
     # @@@DLT_SNIPPET_START modal_function
     @app.function(volumes={"/data/": vol}, schedule=modal.Period(days=1), serialized=True)
     def load_tables() -> None:
-        import dlt
+        import data_load_tool
         import os
-        from dlt.sources.sql_database import sql_database
+        from data_load_tool.sources.sql_database import sql_database
 
         # Define the source database credentials; in production, you would save this as a Modal Secret which can be referenced here as an environment variable
         os.environ["SOURCES__SQL_DATABASE__CREDENTIALS"] = (
@@ -34,10 +34,10 @@ def test_modal_snippet() -> None:
         # Load tables "family" and "genome" with minimal reflection to avoid column constraint error
         source = sql_database(reflection_level="minimal").with_resources("family", "genome")
 
-        # Create dlt pipeline object
-        pipeline = dlt.pipeline(
+        # Create data_load_tool pipeline object
+        pipeline = data_load_tool.pipeline(
             pipeline_name="sql_to_duckdb_pipeline",
-            destination=dlt.destinations.duckdb(
+            destination=data_load_tool.destinations.duckdb(
                 "/data/rfam.duckdb"
             ),  # write the duckdb database file to this file location, which will get mounted to the Modal Volume
             dataset_name="sql_to_duckdb_pipeline_data",

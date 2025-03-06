@@ -1,8 +1,8 @@
 import pytest
 
-import dlt
-from dlt.destinations import filesystem
-from dlt.sources.credentials import GcpOAuthCredentials
+import data_load_tool
+from data_load_tool.destinations import filesystem
+from data_load_tool.sources.credentials import GcpOAuthCredentials
 from tests.load.utils import ALL_FILESYSTEM_DRIVERS
 
 # mark all tests as essential, do not remove
@@ -14,7 +14,7 @@ if "gs" not in ALL_FILESYSTEM_DRIVERS:
 
 def test_explicit_filesystem_credentials() -> None:
     # resolve gcp oauth
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="postgres_pipeline",
         destination=filesystem(
             "gcs://test",

@@ -2,13 +2,13 @@ import pytest
 import multiprocessing
 from typing import Type
 
-from dlt.common.runtime import signals
-from dlt.common.configuration import resolve_configuration, configspec
-from dlt.common.configuration.specs import RuntimeConfiguration
-from dlt.common.exceptions import DltException, SignalReceivedException
-from dlt.common.runners import pool_runner as runner
-from dlt.common.runtime import apply_runtime_config
-from dlt.common.runners.configuration import PoolRunnerConfiguration, TPoolType
+from data_load_tool.common.runtime import signals
+from data_load_tool.common.configuration import resolve_configuration, configspec
+from data_load_tool.common.configuration.specs import RuntimeConfiguration
+from data_load_tool.common.exceptions import DltException, SignalReceivedException
+from data_load_tool.common.runners import pool_runner as runner
+from data_load_tool.common.runtime import apply_runtime_config
+from data_load_tool.common.runners.configuration import PoolRunnerConfiguration, TPoolType
 
 from tests.common.runners.utils import (
     _TestRunnableWorkerMethod,
@@ -133,7 +133,7 @@ def test_initialize_runtime() -> None:
     config = resolve_configuration(RuntimeConfiguration())
     config.log_level = "INFO"
 
-    from dlt.common import logger
+    from data_load_tool.common import logger
 
     logger._delete_current_logger()
     logger.LOGGER = None

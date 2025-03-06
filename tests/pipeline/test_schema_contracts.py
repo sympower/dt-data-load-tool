@@ -1,15 +1,15 @@
-import dlt, os, pytest
+import data_load_tool, os, pytest
 import contextlib
 from typing import Any, Callable, Iterator, Union, Optional, Type
 
-from dlt.common.schema.typing import TSchemaContract
-from dlt.common.utils import uniq_id
-from dlt.common.schema.exceptions import DataValidationError
+from data_load_tool.common.schema.typing import TSchemaContract
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema.exceptions import DataValidationError
 
-from dlt.extract import DltResource
-from dlt.pipeline.pipeline import Pipeline
-from dlt.pipeline.exceptions import PipelineStepFailed
-from dlt.extract.exceptions import ResourceExtractionError
+from data_load_tool.extract import DltResource
+from data_load_tool.pipeline.pipeline import Pipeline
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.extract.exceptions import ResourceExtractionError
 
 from tests.pipeline.utils import load_table_counts
 from tests.utils import (
@@ -52,7 +52,7 @@ def raises_step_exception(check_raise: bool = True, expected_nested_error: Type[
 
 def items(settings: TSchemaContract) -> Any:
     # NOTE: names must be normalizeds
-    @dlt.resource(name="Items", write_disposition="append", schema_contract=settings)
+    @data_load_tool.resource(name="Items", write_disposition="append", schema_contract=settings)
     def load_items():
         for _, index in enumerate(range(0, 10), 1):
             yield {"id": index, "SomeInt": 1, "name": f"item {index}"}
@@ -61,7 +61,7 @@ def items(settings: TSchemaContract) -> Any:
 
 
 def items_with_variant(settings: TSchemaContract) -> Any:
-    @dlt.resource(name="Items", write_disposition="append", schema_contract=settings)
+    @data_load_tool.resource(name="Items", write_disposition="append", schema_contract=settings)
     def load_items():
         for _, index in enumerate(range(0, 10), 1):
             yield {"id": index, "name": f"item {index}", "SomeInt": "hello"}
@@ -70,7 +70,7 @@ def items_with_variant(settings: TSchemaContract) -> Any:
 
 
 def items_with_new_column(settings: TSchemaContract) -> Any:
-    @dlt.resource(name="Items", write_disposition="append", schema_contract=settings)
+    @data_load_tool.resource(name="Items", write_disposition="append", schema_contract=settings)
     def load_items():
         for _, index in enumerate(range(0, 10), 1):
             yield {"id": index, "name": f"item {index}", "New^Col": "hello"}
@@ -79,7 +79,7 @@ def items_with_new_column(settings: TSchemaContract) -> Any:
 
 
 def items_with_subtable(settings: TSchemaContract) -> Any:
-    @dlt.resource(name="Items", write_disposition="append", schema_contract=settings)
+    @data_load_tool.resource(name="Items", write_disposition="append", schema_contract=settings)
     def load_items():
         for _, index in enumerate(range(0, 10), 1):
             yield {
@@ -94,7 +94,7 @@ def items_with_subtable(settings: TSchemaContract) -> Any:
 
 
 def items_with_new_column_in_subtable(settings: TSchemaContract) -> Any:
-    @dlt.resource(name="Items", write_disposition="append", schema_contract=settings)
+    @data_load_tool.resource(name="Items", write_disposition="append", schema_contract=settings)
     def load_items():
         for _, index in enumerate(range(0, 10), 1):
             yield {
@@ -109,7 +109,7 @@ def items_with_new_column_in_subtable(settings: TSchemaContract) -> Any:
 
 
 def items_with_variant_in_subtable(settings: TSchemaContract) -> Any:
-    @dlt.resource(name="Items", write_disposition="append", schema_contract=settings)
+    @data_load_tool.resource(name="Items", write_disposition="append", schema_contract=settings)
     def load_items():
         for _, index in enumerate(range(0, 10), 1):
             yield {
@@ -124,7 +124,7 @@ def items_with_variant_in_subtable(settings: TSchemaContract) -> Any:
 
 
 def new_items(settings: TSchemaContract) -> Any:
-    @dlt.resource(name=NEW_ITEMS_TABLE, write_disposition="append", schema_contract=settings)
+    @data_load_tool.resource(name=NEW_ITEMS_TABLE, write_disposition="append", schema_contract=settings)
     def load_items():
         for _, index in enumerate(range(0, 10), 1):
             yield {"id": index, "some_int": 1, "name": f"item {index}"}
@@ -148,7 +148,7 @@ def run_resource(
             assert val in SCHEMA_CONTRACT
             assert key in SCHEMA_ELEMENTS
 
-    @dlt.source(name="freeze_tests", schema_contract=settings.get("source"))
+    @data_load_tool.source(name="freeze_tests", schema_contract=settings.get("source"))
     def source() -> Iterator[DltResource]:
         for idx in range(duplicates):
             resource: DltResource = resource_fun(settings.get("resource"))
@@ -175,9 +175,9 @@ def run_resource(
 def get_pipeline():
     import duckdb
 
-    return dlt.pipeline(
+    return data_load_tool.pipeline(
         pipeline_name="contracts_" + uniq_id(),
-        destination=dlt.destinations.duckdb(credentials=duckdb.connect(":memory:")),
+        destination=data_load_tool.destinations.duckdb(credentials=duckdb.connect(":memory:")),
         dev_mode=True,
     )
 
@@ -555,7 +555,7 @@ def test_data_contract_interaction() -> None:
         class Config:
             extra = Extra.forbid
 
-    @dlt.resource(name="items")
+    @data_load_tool.resource(name="items")
     def get_items():
         yield from [
             {
@@ -565,7 +565,7 @@ def test_data_contract_interaction() -> None:
             }
         ]
 
-    @dlt.resource(name="items", columns=Items)
+    @data_load_tool.resource(name="items", columns=Items)
     def get_items_with_model():
         yield from [
             {
@@ -575,7 +575,7 @@ def test_data_contract_interaction() -> None:
             }
         ]
 
-    @dlt.resource(name="items")
+    @data_load_tool.resource(name="items")
     def get_items_new_col():
         yield from [{"id": 5, "name": "dave", "amount": 6, "new_col": "hello"}]
 
@@ -602,7 +602,7 @@ def test_data_contract_interaction() -> None:
 def test_different_objects_in_one_load() -> None:
     pipeline = get_pipeline()
 
-    @dlt.resource(name="items")
+    @data_load_tool.resource(name="items")
     def get_items():
         yield {"id": 1, "name": "dave", "amount": 50}
         yield {"id": 2, "name": "dave", "amount": 50, "new_column": "some val"}
@@ -619,7 +619,7 @@ def test_dynamic_tables(table_mode: str) -> None:
     #   the tables is NOT new according to normalizer so the row is not discarded
     # remove that and it will pass because the table contains just one incomplete column so it is incomplete so it is treated as new
     # if you uncomment update code in the extract the problem probably goes away
-    @dlt.resource(name="items", table_name=lambda i: i["tables"], columns={"id": {}})
+    @data_load_tool.resource(name="items", table_name=lambda i: i["tables"], columns={"id": {}})
     def get_items():
         yield {
             "id": 1,
@@ -643,7 +643,7 @@ def test_dynamic_tables(table_mode: str) -> None:
 def test_defined_column_in_new_table(column_mode: str) -> None:
     pipeline = get_pipeline()
 
-    @dlt.resource(name="items", columns=[{"name": "id", "data_type": "bigint", "nullable": False}])
+    @data_load_tool.resource(name="items", columns=[{"name": "id", "data_type": "bigint", "nullable": False}])
     def get_items():
         yield {
             "id": 1,
@@ -662,7 +662,7 @@ def test_new_column_from_hint_and_data(column_mode: str) -> None:
     # normalizer does not know that it is a new table and discards the row
     # and it also excepts on column freeze
 
-    @dlt.resource(name="items", columns=[{"name": "id", "data_type": "bigint", "nullable": False}])
+    @data_load_tool.resource(name="items", columns=[{"name": "id", "data_type": "bigint", "nullable": False}])
     def get_items():
         yield {
             "id": 1,
@@ -681,7 +681,7 @@ def test_two_new_columns_from_two_rows(column_mode: str) -> None:
     # and adds a new column to complete tables in 2nd row
     # the test does not fail only because you clone schema in normalize
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def items():
         yield {
             "id": 1,
@@ -699,7 +699,7 @@ def test_two_new_columns_from_two_rows(column_mode: str) -> None:
 def test_dynamic_new_columns(column_mode: str) -> None:
     pipeline = get_pipeline()
 
-    # fails because dlt is not able to add _dlt_load_id to tables. I think we should do an exception for those
+    # fails because data_load_tool is not able to add _dlt_load_id to tables. I think we should do an exception for those
     # 1. schema.dlt_tables() - everything evolve
     # 2. is_dlt_column (I hope we have helper) - column evolve, data_type freeze
 
@@ -709,7 +709,7 @@ def test_dynamic_new_columns(column_mode: str) -> None:
         if item["id"] == 2:
             return [{"name": "id", "data_type": "bigint", "nullable": True}]
 
-    @dlt.resource(name="items", table_name=lambda i: "items", schema_contract={"columns": column_mode})  # type: ignore
+    @data_load_tool.resource(name="items", table_name=lambda i: "items", schema_contract={"columns": column_mode})  # type: ignore
     def get_items():
         yield {
             "id": 1,

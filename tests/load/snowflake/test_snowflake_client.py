@@ -4,11 +4,11 @@ from typing import Iterator
 from pytest_mock import MockerFixture
 import pytest
 
-from dlt.common.schema.schema import Schema
-from dlt.destinations.impl.snowflake.snowflake import SUPPORTED_HINTS, SnowflakeClient
-from dlt.destinations.job_client_impl import SqlJobClientBase
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.destinations.impl.snowflake.snowflake import SUPPORTED_HINTS, SnowflakeClient
+from data_load_tool.destinations.job_client_impl import SqlJobClientBase
 
-from dlt.destinations.sql_client import TJobQueryTags
+from data_load_tool.destinations.sql_client import TJobQueryTags
 
 from tests.cases import TABLE_UPDATE
 from tests.load.utils import yield_client_with_storage, empty_schema

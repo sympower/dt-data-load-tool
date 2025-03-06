@@ -5,29 +5,29 @@ keywords: [staging, destination]
 ---
 # Staging
 
-The goal of staging is to bring the data closer to the database engine so that the modification of the destination (final) dataset happens faster and without errors. `dlt`, when asked, creates two staging areas:
+The goal of staging is to bring the data closer to the database engine so that the modification of the destination (final) dataset happens faster and without errors. `data_load_tool`, when asked, creates two staging areas:
 1. A **staging dataset** used by the [merge and replace loads](../general-usage/incremental-loading.md#merge-incremental-loading) to deduplicate and merge data with the destination.
 2. A **staging storage** which is typically an S3/GCP bucket where [loader files](file-formats/) are copied before they are loaded by the destination.
 
 ## Staging dataset
-`dlt` creates a staging dataset when the write disposition of any of the loaded resources requires it. It creates and migrates required tables exactly like for the main dataset. Data in staging tables is truncated when the load step begins and only for tables that will participate in it.
-Such a staging dataset has the same name as the dataset passed to `dlt.pipeline` but with a `_staging` suffix in the name. Alternatively, you can provide your own staging dataset pattern or use a fixed name, identical for all the configured datasets.
+`data_load_tool` creates a staging dataset when the write disposition of any of the loaded resources requires it. It creates and migrates required tables exactly like for the main dataset. Data in staging tables is truncated when the load step begins and only for tables that will participate in it.
+Such a staging dataset has the same name as the dataset passed to `data_load_tool.pipeline` but with a `_staging` suffix in the name. Alternatively, you can provide your own staging dataset pattern or use a fixed name, identical for all the configured datasets.
 ```toml
 [destination.postgres]
 staging_dataset_name_layout="staging_%s"
 ```
-The entry above switches the pattern to a `staging_` prefix and, for example, for a dataset with the name **github_data**, `dlt` will create **staging_github_data**.
+The entry above switches the pattern to a `staging_` prefix and, for example, for a dataset with the name **github_data**, `data_load_tool` will create **staging_github_data**.
 
 To configure a static staging dataset name, you can do the following (we use the destination factory):
 ```py
-import dlt
+import data_load_tool
 
-dest_ = dlt.destinations.postgres(staging_dataset_name_layout="_dlt_staging")
+dest_ = data_load_tool.destinations.postgres(staging_dataset_name_layout="_dlt_staging")
 ```
 All pipelines using `dest_` as the destination will use the **staging_dataset** to store staging tables. Make sure that your pipelines are not overwriting each other's tables.
 
 ### Cleanup staging dataset automatically
-`dlt` does not truncate tables in the staging dataset at the end of the load. Data that is left after contains all the extracted data and may be useful for debugging.
+`data_load_tool` does not truncate tables in the staging dataset at the end of the load. Data that is left after contains all the extracted data and may be useful for debugging.
 If you prefer to truncate it, put the following line in `config.toml`:
 
 ```toml
@@ -36,7 +36,7 @@ truncate_staging_dataset=true
 ```
 
 ## Staging storage
-`dlt` allows chaining destinations where the first one (`staging`) is responsible for uploading the files from the local filesystem to the remote storage. It then generates follow-up jobs for the second destination that (typically) copy the files from remote storage into the destination.
+`data_load_tool` allows chaining destinations where the first one (`staging`) is responsible for uploading the files from the local filesystem to the remote storage. It then generates follow-up jobs for the second destination that (typically) copy the files from remote storage into the destination.
 
 Currently, only one destination, the [filesystem](destinations/filesystem.md), can be used as staging. The following destinations can copy remote files:
 
@@ -48,7 +48,7 @@ Currently, only one destination, the [filesystem](destinations/filesystem.md), c
 6. [Snowflake](destinations/snowflake.md#staging-support)
 
 ### How to use
-In essence, you need to set up two destinations and then pass them to `dlt.pipeline`. Below, we'll use `filesystem` staging with [Parquet](./file-formats/parquet) files to load into the `redshift` destination.
+In essence, you need to set up two destinations and then pass them to `data_load_tool.pipeline`. Below, we'll use `filesystem` staging with [Parquet](./file-formats/parquet) files to load into the `redshift` destination.
 
 1. **Set up the S3 bucket and filesystem staging.**
 
@@ -72,23 +72,23 @@ In essence, you need to set up two destinations and then pass them to `dlt.pipel
 
 3. **Authorize the Redshift cluster to access the staging bucket.**
 
-    By default, `dlt` will forward the credentials configured for `filesystem` to the `Redshift` COPY command. If you are fine with this, move to the next step.
+    By default, `data_load_tool` will forward the credentials configured for `filesystem` to the `Redshift` COPY command. If you are fine with this, move to the next step.
 
 4. **Chain staging to destination and request Parquet file format.**
 
-    Pass the `staging` argument to `dlt.pipeline`. It works like the destination `argument`:
+    Pass the `staging` argument to `data_load_tool.pipeline`. It works like the destination `argument`:
     ```py
-    # Create a dlt pipeline that will load
+    # Create a data_load_tool pipeline that will load
     # chess player data to the redshift destination
     # via staging on S3
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name='chess_pipeline',
         destination='redshift',
         staging='filesystem', # add this to activate the staging location
         dataset_name='player_data'
     )
     ```
-    `dlt` will automatically select an appropriate loader file format for the staging files. Below, we explicitly specify the Parquet file format (just to demonstrate how to do it):
+    `data_load_tool` will automatically select an appropriate loader file format for the staging files. Below, we explicitly specify the Parquet file format (just to demonstrate how to do it):
     ```py
     info = pipeline.run(chess_source(), loader_file_format="parquet")
     ```
@@ -98,12 +98,12 @@ In essence, you need to set up two destinations and then pass them to `dlt.pipel
     Run the pipeline script as usual.
 
 :::tip
-Please note that `dlt` does not delete loaded files from the staging storage after the load is complete, but it truncates previously loaded files.
+Please note that `data_load_tool` does not delete loaded files from the staging storage after the load is complete, but it truncates previously loaded files.
 :::
 
 ### How to prevent staging files truncation
 
-Before `dlt` loads data to the staging storage, it truncates previously loaded files. To prevent this and keep the whole history of loaded files, you can use the following parameter:
+Before `data_load_tool` loads data to the staging storage, it truncates previously loaded files. To prevent this and keep the whole history of loaded files, you can use the following parameter:
 
 ```toml
 [destination.redshift]

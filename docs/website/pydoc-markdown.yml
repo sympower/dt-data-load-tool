@@ -1,11 +1,11 @@
 loaders:
   - type: python
     search_path: [../..]
-    packages: ["dlt"]
+    packages: ["data_load_tool"]
 processors:
   - type: filter
     skip_empty_modules: true
-    expression: not name.startswith("dlt.cli") and not name.startswith("dlt.normalize") and not name.startswith("dlt.load") and default()
+    expression: not name.startswith("data_load_tool.cli") and not name.startswith("data_load_tool.normalize") and not name.startswith("data_load_tool.load") and default()
   - type: crossref
   - type: pydoc_markdown_dlt.DltProcessor
 renderer:
@@ -22,5 +22,5 @@ renderer:
     format_code: true
     source_linker:
       type: github
-      repo: dlt-hub/dlt
+      repo: dlt-hub/data_load_tool
       root: ../..

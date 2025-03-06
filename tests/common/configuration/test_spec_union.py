@@ -3,16 +3,16 @@ import os
 import pytest
 from typing import Optional, Union, Any
 
-import dlt
-from dlt.common.configuration.exceptions import InvalidNativeValue, ConfigFieldMissingException
-from dlt.common.configuration.providers import EnvironProvider
-from dlt.common.configuration.specs import CredentialsConfiguration, BaseConfiguration
-from dlt.common.configuration import configspec, resolve_configuration
-from dlt.common.configuration.specs.gcp_credentials import GcpServiceAccountCredentials
-from dlt.common.typing import TSecretStrValue
-from dlt.common.configuration.specs.connection_string_credentials import ConnectionStringCredentials
-from dlt.common.configuration.resolve import initialize_credentials
-from dlt.common.configuration.specs.exceptions import NativeValueError
+import data_load_tool
+from data_load_tool.common.configuration.exceptions import InvalidNativeValue, ConfigFieldMissingException
+from data_load_tool.common.configuration.providers import EnvironProvider
+from data_load_tool.common.configuration.specs import CredentialsConfiguration, BaseConfiguration
+from data_load_tool.common.configuration import configspec, resolve_configuration
+from data_load_tool.common.configuration.specs.gcp_credentials import GcpServiceAccountCredentials
+from data_load_tool.common.typing import TSecretStrValue
+from data_load_tool.common.configuration.specs.connection_string_credentials import ConnectionStringCredentials
+from data_load_tool.common.configuration.resolve import initialize_credentials
+from data_load_tool.common.configuration.specs.exceptions import NativeValueError
 
 from tests.common.configuration.utils import environment
 from tests.utils import preserve_environ
@@ -158,18 +158,18 @@ def test_unresolved_union() -> None:
 
 
 def test_union_decorator() -> None:
-    import dlt
+    import data_load_tool
 
     # this will generate equivalent of ZenConfig
-    @dlt.source
+    @data_load_tool.source
     def zen_source(
-        credentials: Union[ZenApiKeyCredentials, ZenEmailCredentials, str] = dlt.secrets.value,
+        credentials: Union[ZenApiKeyCredentials, ZenEmailCredentials, str] = data_load_tool.secrets.value,
         some_option: bool = False,
     ):
         # depending on what the user provides in config, ZenApiKeyCredentials or ZenEmailCredentials will be injected in credentials
         # both classes implement `auth` so you can always call it
         credentials.auth()  # type: ignore[union-attr]
-        return dlt.resource([credentials], name="credentials")
+        return data_load_tool.resource([credentials], name="credentials")
 
     # pass native value
     os.environ["CREDENTIALS"] = "email:mx:pwd"
@@ -207,13 +207,13 @@ class GoogleAnalyticsCredentialsOAuth(GoogleAnalyticsCredentialsBase):
     access_token: Optional[TSecretStrValue] = None
 
 
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def google_analytics(
     credentials: Union[
         GoogleAnalyticsCredentialsOAuth, GcpServiceAccountCredentials
-    ] = dlt.secrets.value
+    ] = data_load_tool.secrets.value
 ):
-    yield dlt.resource([credentials], name="creds")
+    yield data_load_tool.resource([credentials], name="creds")
 
 
 def test_google_auth_union(environment: Any) -> None:
@@ -239,9 +239,9 @@ class Engine:
     pass
 
 
-@dlt.source
-def sql_database(credentials: Union[ConnectionStringCredentials, Engine, str] = dlt.secrets.value):
-    yield dlt.resource([credentials], name="creds")
+@data_load_tool.source
+def sql_database(credentials: Union[ConnectionStringCredentials, Engine, str] = data_load_tool.secrets.value):
+    yield data_load_tool.resource([credentials], name="creds")
 
 
 def test_union_concrete_type(environment: Any) -> None:

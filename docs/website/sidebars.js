@@ -58,7 +58,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'dlt+',
+      label: 'data_load_tool+',
       link: {
         type: 'doc',
         id: 'plus/intro',
@@ -260,10 +260,10 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Using dlt',
+      label: 'Using data_load_tool',
       link: {
         type: 'generated-index',
-        title: 'Using dlt',
+        title: 'Using data_load_tool',
         slug: 'general-usage',
         keywords: ['concepts', 'usage'],
       },
@@ -349,7 +349,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Deploying dlt',
+      label: 'Deploying data_load_tool',
       items: [
         'walkthroughs/share-a-dataset',
         {
@@ -358,7 +358,7 @@ const sidebars = {
           link: {
             type: 'generated-index',
             title: 'Deploy a pipeline',
-            description: 'Deploy dlt pipelines with different methods.',
+            description: 'Deploy data_load_tool pipelines with different methods.',
             slug: 'walkthroughs/deploy-a-pipeline',
           },
           items: [
@@ -381,7 +381,7 @@ const sidebars = {
           link: {
             type: 'generated-index',
             title: 'Run in production',
-            description: 'How to run dlt in production.',
+            description: 'How to run data_load_tool in production.',
             slug: 'running-in-production',
             keywords: ['production'],
           },
@@ -396,7 +396,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Optimizing dlt',
+      label: 'Optimizing data_load_tool',
       items: [
         'reference/performance',
       ],
@@ -421,7 +421,7 @@ const sidebars = {
       link: {
         type: 'generated-index',
         title: 'Reference',
-        description: 'Learn more about the dlt, CLI, and the telemetry.',
+        description: 'Learn more about the data_load_tool, CLI, and the telemetry.',
         slug: 'reference',
         keywords: ['reference'],
       },

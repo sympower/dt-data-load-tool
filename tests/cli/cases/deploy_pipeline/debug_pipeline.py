@@ -1,19 +1,19 @@
-import dlt
+import data_load_tool
 
 
-@dlt.resource
-def example_resource(api_url=dlt.config.value, api_key=dlt.secrets.value, last_id=0):
+@data_load_tool.resource
+def example_resource(api_url=data_load_tool.config.value, api_key=data_load_tool.secrets.value, last_id=0):
     yield [api_url, api_key, str(last_id), "param4", "param5"]
 
 
-@dlt.source
-def example_source(api_url=dlt.config.value, api_key=dlt.secrets.value, last_id=0):
+@data_load_tool.source
+def example_source(api_url=data_load_tool.config.value, api_key=data_load_tool.secrets.value, last_id=0):
     # return all the resources to be loaded
     return example_resource(api_url, api_key, last_id)
 
 
 if __name__ == "__main__":
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="debug_pipeline",
         destination="postgres",
         dataset_name="debug_pipeline_data",

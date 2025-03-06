@@ -1,17 +1,17 @@
 import pytest
 from typing import Any, Optional
-from dlt.common.configuration.container import Container
+from data_load_tool.common.configuration.container import Container
 
-from dlt.common.configuration import (
+from data_load_tool.common.configuration import (
     configspec,
     ConfigFieldMissingException,
     resolve,
     inject_section,
 )
-from dlt.common.configuration.providers.provider import ConfigProvider
-from dlt.common.configuration.specs import BaseConfiguration, ConfigSectionContext
-from dlt.common.configuration.exceptions import LookupTrace
-from dlt.common.typing import AnyType
+from data_load_tool.common.configuration.providers.provider import ConfigProvider
+from data_load_tool.common.configuration.specs import BaseConfiguration, ConfigSectionContext
+from data_load_tool.common.configuration.exceptions import LookupTrace
+from data_load_tool.common.typing import AnyType
 
 from tests.utils import preserve_environ
 from tests.common.configuration.utils import (

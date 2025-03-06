@@ -4,23 +4,23 @@ from fnmatch import fnmatch
 from typing import Dict, Iterator, List, Sequence, Tuple
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
-from dlt.common import json
-from dlt.common.destination.capabilities import TLoaderFileFormat
-from dlt.common.schema.exceptions import CannotCoerceColumnException
-from dlt.common.schema.schema import Schema
-from dlt.common.schema.utils import new_table
-from dlt.common.storages.exceptions import SchemaNotFoundError
-from dlt.common.typing import StrAny
-from dlt.common.data_types import TDataType
-from dlt.common.storages import NormalizeStorage, LoadStorage, ParsedLoadJobFileName, PackageStorage
-from dlt.common.destination import DestinationCapabilitiesContext
-from dlt.common.configuration.container import Container
+from data_load_tool.common import json
+from data_load_tool.common.destination.capabilities import TLoaderFileFormat
+from data_load_tool.common.schema.exceptions import CannotCoerceColumnException
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.schema.utils import new_table
+from data_load_tool.common.storages.exceptions import SchemaNotFoundError
+from data_load_tool.common.typing import StrAny
+from data_load_tool.common.data_types import TDataType
+from data_load_tool.common.storages import NormalizeStorage, LoadStorage, ParsedLoadJobFileName, PackageStorage
+from data_load_tool.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.configuration.container import Container
 
-from dlt.extract.extract import ExtractStorage
-from dlt.normalize import Normalize
-from dlt.normalize.validate import validate_and_update_schema
-from dlt.normalize.worker import group_worker_files
-from dlt.normalize.exceptions import NormalizeJobFailed
+from data_load_tool.extract.extract import ExtractStorage
+from data_load_tool.normalize import Normalize
+from data_load_tool.normalize.validate import validate_and_update_schema
+from data_load_tool.normalize.worker import group_worker_files
+from data_load_tool.normalize.exceptions import NormalizeJobFailed
 
 from tests.cases import JSON_TYPED_DICT, JSON_TYPED_DICT_TYPES
 from tests.utils import (

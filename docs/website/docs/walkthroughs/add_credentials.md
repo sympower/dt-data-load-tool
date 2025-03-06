@@ -1,6 +1,6 @@
 ---
 title: Add credentials
-description: How to use dlt credentials
+description: How to use data_load_tool credentials
 keywords: [credentials, secrets.toml, environment variables]
 ---
 
@@ -8,9 +8,9 @@ keywords: [credentials, secrets.toml, environment variables]
 
 ## Adding credentials locally
 
-When using a pipeline locally, we recommend using the `.dlt/secrets.toml` method.
+When using a pipeline locally, we recommend using the `.data_load_tool/secrets.toml` method.
 
-To do so, open your dlt secrets file and match the source names and credentials to the ones in your script, for example:
+To do so, open your data_load_tool secrets file and match the source names and credentials to the ones in your script, for example:
 
 ```toml
 [sources.pipedrive]
@@ -41,12 +41,12 @@ Read more about [credential configuration.](../general-usage/credentials)
 
 To add credentials to your deployment,
 
-- either use one of the `dlt deploy` commands;
+- either use one of the `data_load_tool deploy` commands;
 - or follow the instructions to [pass credentials via code](../general-usage/credentials/advanced#example) or [environment](../general-usage/credentials/setup#environment-variables).
 
 ### Reading credentials from environment variables
 
-`dlt` supports reading credentials from the environment. For example, our `.dlt/secrets.toml` might look like:
+`data_load_tool` supports reading credentials from the environment. For example, our `.data_load_tool/secrets.toml` might look like:
 
 ```toml
 [sources.pipedrive]
@@ -61,7 +61,7 @@ private_key = "private_key" # please set me up!
 client_email = "client_email" # please set me up!
 ```
 
-If dlt tries to read this from environment variables, it will use a different naming convention.
+If data_load_tool tries to read this from environment variables, it will use a different naming convention.
 
 For environment variables, all names are capitalized and sections are separated with a double underscore "__".
 
@@ -96,7 +96,7 @@ Assume we store secrets in JSON format with the name "temp-secret":
 {"api_token": "ghp_Kskdgf98dugjf98ghd...."}
 ```
 
-Set `.dlt/secrets.toml` as:
+Set `.data_load_tool/secrets.toml` as:
 
 ```toml
 [google_secrets.credentials]
@@ -111,14 +111,14 @@ Retrieve the secrets stored in the Secret Manager as follows:
 ```py
 import json as json_lib  # Rename the json import to avoid name conflict
 
-import dlt
-from dlt.sources.helpers import requests
-from dlt.common.configuration.inject import with_config
-from dlt.common.configuration.specs import GcpServiceAccountCredentials
+import data_load_tool
+from data_load_tool.sources.helpers import requests
+from data_load_tool.common.configuration.inject import with_config
+from data_load_tool.common.configuration.specs import GcpServiceAccountCredentials
 from google.cloud import secretmanager # type: ignore[attr-defined]
 
 @with_config(sections=("google_secrets",))
-def get_secret_dict(secret_id: str, credentials: GcpServiceAccountCredentials = dlt.secrets.value) -> dict:
+def get_secret_dict(secret_id: str, credentials: GcpServiceAccountCredentials = data_load_tool.secrets.value) -> dict:
     """
     Retrieve a secret from Google Cloud Secret Manager and convert it to a dictionary.
     """
@@ -151,7 +151,7 @@ headers = {
 response = requests.get(url, headers=headers)
 
 # Set up the DLT pipeline
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="quick_start", destination="duckdb", dataset_name="mydata"
 )
 # Run the pipeline with the data from the GitHub API response
@@ -164,5 +164,5 @@ print(load_info)
 
 - **Permissions**: Ensure the service account or user credentials you are using have the necessary permissions to access the Secret Manager and the specific secrets.
 - **Secret format**: This example assumes that the secret is stored in a JSON string format. If your secret is in a different format, you will need to adjust the parsing method accordingly.
-- **Google Cloud authentication**: Make sure your environment is authenticated with Google Cloud. This can typically be done by setting credentials in `.dlt/secrets.toml` or setting the `GOOGLE_SECRETS__CREDENTIALS` environment variable to the path of your service account key file or the dict of credentials as a string.
+- **Google Cloud authentication**: Make sure your environment is authenticated with Google Cloud. This can typically be done by setting credentials in `.data_load_tool/secrets.toml` or setting the `GOOGLE_SECRETS__CREDENTIALS` environment variable to the path of your service account key file or the dict of credentials as a string.
 

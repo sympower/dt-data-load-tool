@@ -3,8 +3,8 @@ from typing import Union, List, Any, Dict
 import numpy as np
 from lancedb.embeddings import TextEmbeddingFunction  # type: ignore
 
-import dlt
-from dlt.destinations.impl.lancedb.lancedb_client import LanceDBClient
+import data_load_tool
+from data_load_tool.destinations.impl.lancedb.lancedb_client import LanceDBClient
 
 
 def assert_unordered_dicts_equal(
@@ -29,7 +29,7 @@ def assert_unordered_dicts_equal(
 
 
 def assert_table(
-    pipeline: dlt.Pipeline,
+    pipeline: data_load_tool.Pipeline,
     table_name: str,
     expected_items_count: int = None,
     items: List[Any] = None,
@@ -51,7 +51,7 @@ def assert_table(
     drop_keys = [
         "_dlt_id",
         "_dlt_load_id",
-        dlt.config.get("destination.lancedb.credentials.vector_field_name", str) or "vector",
+        data_load_tool.config.get("destination.lancedb.credentials.vector_field_name", str) or "vector",
     ]
     objects_without_dlt_or_special_keys = [
         {k: v for k, v in record.items() if k not in drop_keys} for record in records

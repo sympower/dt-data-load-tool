@@ -1,10 +1,10 @@
 ---
 title: Load data from a SQL database
-description: How to extract data from a SQL Database using dlt's SQL Database core source
+description: How to extract data from a SQL Database using data_load_tool's SQL Database core source
 keywords: [sql connector, sql database pipeline, sql database]
 ---
 
-This tutorial will show you how you can use dlt to load data from a SQL Database (PostgreSQL, MySQL, Microsoft SQL Server, Oracle, IBM DB2, etc.) into any dlt-compatible destination (Postgres, BigQuery, Snowflake, DuckDB, etc.).
+This tutorial will show you how you can use data_load_tool to load data from a SQL Database (PostgreSQL, MySQL, Microsoft SQL Server, Oracle, IBM DB2, etc.) into any dlt-compatible destination (Postgres, BigQuery, Snowflake, DuckDB, etc.).
 
 To make it easy to reproduce, we will be loading data from the [public MySQL RFam database](https://docs.rfam.org/en/latest/database.html) into a local DuckDB instance.
 
@@ -18,14 +18,14 @@ To make it easy to reproduce, we will be loading data from the [public MySQL RFa
 
 - Python 3.9 or higher installed
 - Virtual environment set up
-- dlt installed. Follow the instructions in the [installation guide](../reference/installation) to create a new virtual environment and install the `dlt` package.
+- data_load_tool installed. Follow the instructions in the [installation guide](../reference/installation) to create a new virtual environment and install the `data_load_tool` package.
 
-## 1. Create a new dlt project
+## 1. Create a new data_load_tool project
 
-Initialize a new dlt project in your current working directory using the `dlt init` command:
+Initialize a new data_load_tool project in your current working directory using the `data_load_tool init` command:
 
 ```sh
-dlt init sql_database duckdb
+data_load_tool init sql_database duckdb
 ```
 
 This is a handy CLI command that creates files and folders required for a SQL Database to DuckDB pipeline. You can easily replace `duckdb` with any other [supported destinations](../dlt-ecosystem/destinations).
@@ -33,7 +33,7 @@ This is a handy CLI command that creates files and folders required for a SQL Da
 After running this command, your project will have the following structure:
 
 ```text
-├── .dlt
+├── .data_load_tool
 │   ├── config.toml
 │   └── secrets.toml
 ├── sql_database_pipeline.py
@@ -44,12 +44,12 @@ Here’s what each file does:
 
 - `sql_database_pipeline.py`: This is the main script where you'll define your data pipeline. It contains several different examples of how you can configure your SQL Database pipeline.
 - `requirements.txt`: This file lists all the Python dependencies required for your project.
-- `.dlt/`: This directory contains the [configuration files](../general-usage/credentials/) for your project:
+- `.data_load_tool/`: This directory contains the [configuration files](../general-usage/credentials/) for your project:
     - `secrets.toml`: This file stores your credentials, API keys, tokens, and other sensitive information.
-    - `config.toml`: This file contains the configuration settings for your `dlt` project.
+    - `config.toml`: This file contains the configuration settings for your `data_load_tool` project.
 
 :::note
-When deploying your pipeline in a production environment, managing all configurations with the TOML files might not be convenient. In this case, we highly recommend using environment variables or other [configuration providers](../general-usage/credentials/setup#available-config-providers) available in dlt to store secrets and configs instead.
+When deploying your pipeline in a production environment, managing all configurations with the TOML files might not be convenient. In this case, we highly recommend using environment variables or other [configuration providers](../general-usage/credentials/setup#available-config-providers) available in data_load_tool to store secrets and configs instead.
 :::
 
 ## 2. Configure the pipeline script
@@ -64,18 +64,18 @@ Running the script as it is will execute the function `load_standalone_table_res
 The following function will load the tables `family` and `genome`.
 
 ```py
-import dlt
-from dlt.sources.sql_database import sql_database
+import data_load_tool
+from data_load_tool.sources.sql_database import sql_database
 
 def load_tables_family_and_genome():
 
-    # Create a dlt source that will load tables "family" and "genome"
+    # Create a data_load_tool source that will load tables "family" and "genome"
     source = sql_database().with_resources("family", "genome")
 
-    # Create a dlt pipeline object
-    pipeline = dlt.pipeline(
+    # Create a data_load_tool pipeline object
+    pipeline = data_load_tool.pipeline(
         pipeline_name="sql_to_duckdb_pipeline", # Custom name for the pipeline
-        destination="duckdb", # dlt destination to which the data will be loaded
+        destination="duckdb", # data_load_tool destination to which the data will be loaded
         dataset_name="sql_to_duckdb_pipeline_data" # Custom name for the dataset created in the destination
     )
 
@@ -92,14 +92,14 @@ if __name__ == '__main__':
 
 Explanation:
 - The `sql_database` source has two built-in helper functions: `sql_database()` and `sql_table()`:
-    - `sql_database()` is a [dlt source function](../general-usage/source) that iteratively loads the tables (in this example, `"family"` and `"genome"`) passed inside the `with_resource()` method.
-    - `sql_table()` is a [dlt resource function](../general-usage/resource) that loads standalone tables. For example, if we wanted to only load the table `"family"`, then we could have done it using `sql_table(table="family")`.
-- `dlt.pipeline()` creates a `dlt` pipeline with the name `"sql_to_duckdb_pipeline"` with the destination DuckDB.
+    - `sql_database()` is a [data_load_tool source function](../general-usage/source) that iteratively loads the tables (in this example, `"family"` and `"genome"`) passed inside the `with_resource()` method.
+    - `sql_table()` is a [data_load_tool resource function](../general-usage/resource) that loads standalone tables. For example, if we wanted to only load the table `"family"`, then we could have done it using `sql_table(table="family")`.
+- `data_load_tool.pipeline()` creates a `data_load_tool` pipeline with the name `"sql_to_duckdb_pipeline"` with the destination DuckDB.
 - `pipeline.run()` method loads the data into the destination.
 
 ## 3. Add credentials
 
-To successfully connect to your SQL database, you will need to pass credentials into your pipeline. dlt automatically looks for this information inside the generated TOML files.
+To successfully connect to your SQL database, you will need to pass credentials into your pipeline. data_load_tool automatically looks for this information inside the generated TOML files.
 
 Simply paste the [connection details](https://docs.rfam.org/en/latest/database.html) inside `secrets.toml` as follows:
 ```toml
@@ -132,7 +132,7 @@ Before running the pipeline, make sure to install all the necessary dependencies
     pip install pymysql
     ```
 
-    Explanation: dlt uses SQLAlchemy to connect to the source database and hence, also requires the database-specific SQLAlchemy dialect, such as `pymysql` (MySQL), `psycopg2` (Postgres), `pymssql` (MSSQL), `snowflake-sqlalchemy` (Snowflake), etc. See the [SQLAlchemy docs](https://docs.sqlalchemy.org/en/20/dialects/#external-dialects) for a full list of available dialects.
+    Explanation: data_load_tool uses SQLAlchemy to connect to the source database and hence, also requires the database-specific SQLAlchemy dialect, such as `pymysql` (MySQL), `psycopg2` (Postgres), `pymssql` (MSSQL), `snowflake-sqlalchemy` (Snowflake), etc. See the [SQLAlchemy docs](https://docs.sqlalchemy.org/en/20/dialects/#external-dialects) for a full list of available dialects.
 
 ## 5. Run the pipeline
 
@@ -141,11 +141,11 @@ After performing steps 1-4, you should now be able to successfully run the pipel
 ```sh
 python sql_database_pipeline.py
 ```
-This will create the file `sql_to_duckdb_pipeline.duckdb` in your dlt project directory, which contains the loaded data.
+This will create the file `sql_to_duckdb_pipeline.duckdb` in your data_load_tool project directory, which contains the loaded data.
 
 ## 6. Explore the data
 
-dlt comes with a built-in browser application that allows you to interact with the loaded data. To enable it, run the following command:
+data_load_tool comes with a built-in browser application that allows you to interact with the loaded data. To enable it, run the following command:
 
 ```sh
 pip install streamlit
@@ -154,7 +154,7 @@ pip install streamlit
 Next, run the following command to launch the data browser app:
 
 ```sh
-dlt pipeline sql_to_duckdb_pipeline show
+data_load_tool pipeline sql_to_duckdb_pipeline show
 ```
 
 You can explore the loaded data, run queries, and see some pipeline execution details.
@@ -163,7 +163,7 @@ You can explore the loaded data, run queries, and see some pipeline execution de
 
 ## 7. Append, replace, or merge loaded data
 
-Try running the pipeline again with `python sql_database_pipeline.py`. You will notice that all the tables have the data duplicated. This happens as dlt, by default, appends data to the destination tables in every load. This behavior can be adjusted by setting the `write_disposition` parameter inside the `pipeline.run()` method. The possible settings are:
+Try running the pipeline again with `python sql_database_pipeline.py`. You will notice that all the tables have the data duplicated. This happens as data_load_tool, by default, appends data to the destination tables in every load. This behavior can be adjusted by setting the `write_disposition` parameter inside the `pipeline.run()` method. The possible settings are:
 
 - `append`: Appends the data to the destination table. This is the default.
 - `replace`: Replaces the data in the destination table with the new data.
@@ -174,14 +174,14 @@ Try running the pipeline again with `python sql_database_pipeline.py`. You will 
 To prevent the data from being duplicated in each row, set `write_disposition` to `replace`:
 
 ```py
-import dlt
-from dlt.sources.sql_database import sql_database
+import data_load_tool
+from data_load_tool.sources.sql_database import sql_database
 
 def load_tables_family_and_genome():
 
     source = sql_database().with_resources("family", "genome")
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="sql_to_duckdb_pipeline",
         destination="duckdb",
         dataset_name="sql_to_duckdb_pipeline_data"
@@ -205,8 +205,8 @@ When you want to update the existing data as new data is loaded, you can use the
 In the previous example, we set `write_disposition="replace"` inside `pipeline.run()` which caused all the tables to be loaded with `replace`. However, it's also possible to define the `write_disposition` strategy separately for each table using the `apply_hints` method. In the example below, we use `apply_hints` on each table to specify different primary keys for merge:
 
 ```py
-import dlt
-from dlt.sources.sql_database import sql_database
+import data_load_tool
+from data_load_tool.sources.sql_database import sql_database
 
 def load_tables_family_and_genome():
 
@@ -216,7 +216,7 @@ def load_tables_family_and_genome():
     source.family.apply_hints(write_disposition="merge", primary_key="rfam_id") # merge table "family" on column "rfam_id"
     source.genome.apply_hints(write_disposition="merge", primary_key="upid") # merge table "genome" on column "upid"
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="sql_to_duckdb_pipeline",
         destination="duckdb",
         dataset_name="sql_to_duckdb_pipeline_data"
@@ -232,22 +232,22 @@ if __name__ == '__main__':
 
 ## 8. Load data incrementally
 
-Often, you don't want to load the entire dataset in each load, but rather only the new or modified data. dlt makes this easy with [incremental loading](../general-usage/incremental-loading).
+Often, you don't want to load the entire dataset in each load, but rather only the new or modified data. data_load_tool makes this easy with [incremental loading](../general-usage/incremental-loading).
 
 In the example below, we configure the table `"family"` to load incrementally based on the column `"updated"`:
 
 ```py
-import dlt
-from dlt.sources.sql_database import sql_database
+import data_load_tool
+from data_load_tool.sources.sql_database import sql_database
 
 def load_tables_family_and_genome():
 
     source = sql_database().with_resources("family", "genome")
 
     # only load rows whose "updated" value is greater than the last pipeline run
-    source.family.apply_hints(incremental=dlt.sources.incremental("updated"))
+    source.family.apply_hints(incremental=data_load_tool.sources.incremental("updated"))
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="sql_to_duckdb_pipeline",
         destination="duckdb",
         dataset_name="sql_to_duckdb_pipeline_data"
@@ -267,9 +267,9 @@ In the first run of the pipeline `python sql_database_pipeline.py`, the entire t
 
 ## What's next?
 
-Congratulations on completing the tutorial! You learned how to set up a SQL Database source in dlt and run a data pipeline to load the data into DuckDB.
+Congratulations on completing the tutorial! You learned how to set up a SQL Database source in data_load_tool and run a data pipeline to load the data into DuckDB.
 
-Interested in learning more about dlt? Here are some suggestions:
+Interested in learning more about data_load_tool? Here are some suggestions:
 - Learn more about the SQL Database source configuration in [the SQL Database source reference](../dlt-ecosystem/verified-sources/sql_database)
 - Learn how to extract [single tables and use fast `arrow` and `connectorx` backends](../dlt-ecosystem/verified-sources/sql_database/configuration.md)
 - Learn how to [rewrite table schemas and queries](../dlt-ecosystem/verified-sources/sql_database/usage.md)

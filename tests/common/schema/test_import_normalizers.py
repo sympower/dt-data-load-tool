@@ -1,12 +1,12 @@
 import os
 import pytest
 
-from dlt.common.configuration.container import Container
-from dlt.common.destination import DestinationCapabilitiesContext
-from dlt.common.normalizers.typing import TNormalizersConfig
-from dlt.common.normalizers.json.relational import DataItemNormalizer as RelationalNormalizer
-from dlt.common.normalizers.naming import snake_case, direct
-from dlt.common.normalizers.naming.exceptions import (
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.normalizers.typing import TNormalizersConfig
+from data_load_tool.common.normalizers.json.relational import DataItemNormalizer as RelationalNormalizer
+from data_load_tool.common.normalizers.naming import snake_case, direct
+from data_load_tool.common.normalizers.naming.exceptions import (
     InvalidNamingType,
     NamingTypeNotFound,
     UnknownNamingModule,
@@ -14,7 +14,7 @@ from dlt.common.normalizers.naming.exceptions import (
 from tests.common.normalizers.custom_normalizers import (
     DataItemNormalizer as CustomRelationalNormalizer,
 )
-from dlt.common.schema.normalizers import (
+from data_load_tool.common.schema.normalizers import (
     DEFAULT_NAMING_NAMESPACE,
     configured_normalizers,
     import_normalizers,
@@ -83,7 +83,7 @@ def test_naming_from_reference() -> None:
     with pytest.raises(UnknownNamingModule):
         naming_from_reference("custom_normalizers")
 
-    # temporarily add current file dir to paths and import module that clash with dlt predefined (no path)
+    # temporarily add current file dir to paths and import module that clash with data_load_tool predefined (no path)
     import sys
 
     try:
@@ -104,8 +104,8 @@ def test_naming_from_reference() -> None:
 
     # non standard location
     assert (
-        naming_from_reference("dlt.destinations.impl.weaviate.naming").name()
-        == "dlt.destinations.impl.weaviate.naming"
+        naming_from_reference("data_load_tool.destinations.impl.weaviate.naming").name()
+        == "data_load_tool.destinations.impl.weaviate.naming"
     )
 
     # import module
@@ -127,7 +127,7 @@ def test_import_normalizers() -> None:
     assert naming.max_length is None
     assert json_normalizer is RelationalNormalizer
     assert config["names"] == "snake_case"
-    assert config["json"] == {"module": "dlt.common.normalizers.json.relational"}
+    assert config["json"] == {"module": "data_load_tool.common.normalizers.json.relational"}
 
     os.environ["SCHEMA__NAMING"] = "direct"
     os.environ["SCHEMA__JSON_NORMALIZER"] = (
@@ -144,22 +144,22 @@ def test_import_normalizers() -> None:
 def test_import_normalizers_with_defaults() -> None:
     explicit = configured_normalizers()
     default_: TNormalizersConfig = {
-        "names": "dlt.destinations.impl.weaviate.naming",
+        "names": "data_load_tool.destinations.impl.weaviate.naming",
         "json": {"module": "tests.common.normalizers.custom_normalizers"},
     }
     config, naming, json_normalizer = import_normalizers(explicit, default_)
 
-    assert config["names"] == "dlt.destinations.impl.weaviate.naming"
+    assert config["names"] == "data_load_tool.destinations.impl.weaviate.naming"
     assert config["json"] == {"module": "tests.common.normalizers.custom_normalizers"}
-    assert naming.name() == "dlt.destinations.impl.weaviate.naming"
+    assert naming.name() == "data_load_tool.destinations.impl.weaviate.naming"
     assert json_normalizer is CustomRelationalNormalizer
 
     # correctly overrides
     explicit["names"] = "sql_cs_v1"
-    explicit["json"] = {"module": "dlt.common.normalizers.json.relational"}
+    explicit["json"] = {"module": "data_load_tool.common.normalizers.json.relational"}
     config, naming, json_normalizer = import_normalizers(explicit, default_)
     assert config["names"] == "sql_cs_v1"
-    assert config["json"] == {"module": "dlt.common.normalizers.json.relational"}
+    assert config["json"] == {"module": "data_load_tool.common.normalizers.json.relational"}
     assert naming.name() == "sql_cs_v1"
     assert json_normalizer is RelationalNormalizer
 
@@ -191,7 +191,7 @@ def test_import_normalizers_with_caps() -> None:
 
     # max table nesting generates relational normalizer
     default_: TNormalizersConfig = {
-        "names": "dlt.destinations.impl.weaviate.naming",
+        "names": "data_load_tool.destinations.impl.weaviate.naming",
         "json": {"module": "tests.common.normalizers.custom_normalizers"},
     }
     destination_caps.max_table_nesting = 0
@@ -210,9 +210,9 @@ def test_import_invalid_naming_module() -> None:
         import_normalizers(configured_normalizers("unknown"))
     assert py_ex.value.naming_module == "unknown"
     with pytest.raises(UnknownNamingModule) as py_ex:
-        import_normalizers(configured_normalizers("dlt.common.tests"))
-    assert py_ex.value.naming_module == "dlt.common.tests"
+        import_normalizers(configured_normalizers("data_load_tool.common.tests"))
+    assert py_ex.value.naming_module == "data_load_tool.common.tests"
     with pytest.raises(InvalidNamingType) as py_ex2:
-        import_normalizers(configured_normalizers("dlt.pipeline.helpers"))
-    assert py_ex2.value.naming_module == "dlt.pipeline"
+        import_normalizers(configured_normalizers("data_load_tool.pipeline.helpers"))
+    assert py_ex2.value.naming_module == "data_load_tool.pipeline"
     assert py_ex2.value.naming_class == "helpers"

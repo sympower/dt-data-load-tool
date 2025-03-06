@@ -6,28 +6,28 @@ import google
 import pytest
 import sqlfluff
 
-import dlt
-from dlt.common.configuration import resolve_configuration
-from dlt.common.configuration.specs import (
+import data_load_tool
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.configuration.specs import (
     GcpServiceAccountCredentialsWithoutDefaults,
     GcpServiceAccountCredentials,
 )
-from dlt.common.destination.exceptions import DestinationSchemaTampered
-from dlt.common.pendulum import pendulum
-from dlt.common.schema import Schema, utils
-from dlt.common.schema.exceptions import SchemaIdentifierNormalizationCollision
-from dlt.common.utils import custom_environ
-from dlt.common.utils import uniq_id
-from dlt.destinations import bigquery
-from dlt.destinations.adapters import bigquery_adapter
-from dlt.destinations.exceptions import DestinationSchemaWillNotUpdate
-from dlt.destinations.impl.bigquery.bigquery import BigQueryClient
-from dlt.destinations.impl.bigquery.bigquery_adapter import (
+from data_load_tool.common.destination.exceptions import DestinationSchemaTampered
+from data_load_tool.common.pendulum import pendulum
+from data_load_tool.common.schema import Schema, utils
+from data_load_tool.common.schema.exceptions import SchemaIdentifierNormalizationCollision
+from data_load_tool.common.utils import custom_environ
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations import bigquery
+from data_load_tool.destinations.adapters import bigquery_adapter
+from data_load_tool.destinations.exceptions import DestinationSchemaWillNotUpdate
+from data_load_tool.destinations.impl.bigquery.bigquery import BigQueryClient
+from data_load_tool.destinations.impl.bigquery.bigquery_adapter import (
     PARTITION_HINT,
     CLUSTER_HINT,
 )
-from dlt.destinations.impl.bigquery.configuration import BigQueryClientConfiguration
-from dlt.extract import DltResource
+from data_load_tool.destinations.impl.bigquery.configuration import BigQueryClientConfiguration
+from data_load_tool.extract import DltResource
 from tests.load.utils import (
     destinations_configs,
     DestinationTestConfiguration,
@@ -262,7 +262,7 @@ def test_bigquery_partition_by_date(
 ) -> None:
     pipeline = destination_config.setup_pipeline(f"bigquery_{uniq_id()}", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         write_disposition="merge",
         primary_key="my_date_column",
         columns={
@@ -279,7 +279,7 @@ def test_bigquery_partition_by_date(
                 "my_date_column": pendulum.from_timestamp(1700784000 + i * 50_000).date(),
             }
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def demo_source() -> DltResource:
         return demo_resource
 
@@ -305,7 +305,7 @@ def test_bigquery_no_partition_by_date(
 ) -> None:
     pipeline = destination_config.setup_pipeline(f"bigquery_{uniq_id()}", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         write_disposition="merge",
         primary_key="my_date_column",
         columns={
@@ -322,7 +322,7 @@ def test_bigquery_no_partition_by_date(
                 "my_date_column": pendulum.from_timestamp(1700784000 + i * 50_000).date(),
             }
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def demo_source() -> DltResource:
         return demo_resource
 
@@ -348,7 +348,7 @@ def test_bigquery_partition_by_timestamp(
 ) -> None:
     pipeline = destination_config.setup_pipeline(f"bigquery_{uniq_id()}", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         write_disposition="merge",
         primary_key="my_timestamp_column",
         columns={
@@ -365,7 +365,7 @@ def test_bigquery_partition_by_timestamp(
                 "my_timestamp_column": pendulum.from_timestamp(1700784000 + i * 50_000),
             }
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def demo_source() -> DltResource:
         return demo_resource
 
@@ -391,7 +391,7 @@ def test_bigquery_no_partition_by_timestamp(
 ) -> None:
     pipeline = destination_config.setup_pipeline(f"bigquery_{uniq_id()}", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         write_disposition="merge",
         primary_key="my_timestamp_column",
         columns={
@@ -408,7 +408,7 @@ def test_bigquery_no_partition_by_timestamp(
                 "my_timestamp_column": pendulum.from_timestamp(1700784000 + i * 50_000),
             }
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def demo_source() -> DltResource:
         return demo_resource
 
@@ -434,7 +434,7 @@ def test_bigquery_partition_by_integer(
 ) -> None:
     pipeline = destination_config.setup_pipeline(f"bigquery_{uniq_id()}", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         columns={"some_int": {"data_type": "bigint", "partition": True, "nullable": False}},
     )
     def demo_resource() -> Iterator[Dict[str, int]]:
@@ -443,7 +443,7 @@ def test_bigquery_partition_by_integer(
                 "some_int": i,
             }
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def demo_source() -> DltResource:
         return demo_resource
 
@@ -469,7 +469,7 @@ def test_bigquery_no_partition_by_integer(
 ) -> None:
     pipeline = destination_config.setup_pipeline(f"bigquery_{uniq_id()}", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         columns={"some_int": {"data_type": "bigint", "partition": False, "nullable": False}},
     )
     def demo_resource() -> Iterator[Dict[str, int]]:
@@ -478,7 +478,7 @@ def test_bigquery_no_partition_by_integer(
                 "some_int": i,
             }
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def demo_source() -> DltResource:
         return demo_resource
 
@@ -501,7 +501,7 @@ def drop_bigquery_schema() -> Iterator[None]:
 
 
 def test_adapter_no_hints_parsing() -> None:
-    @dlt.resource(columns=[{"name": "int_col", "data_type": "bigint"}])
+    @data_load_tool.resource(columns=[{"name": "int_col", "data_type": "bigint"}])
     def some_data() -> Iterator[Dict[str, str]]:
         yield from next(sequence_generator())
 
@@ -511,7 +511,7 @@ def test_adapter_no_hints_parsing() -> None:
 
 
 def test_adapter_hints_parsing_partitioning_more_than_one_column() -> None:
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "col1", "data_type": "bigint"},
             {"name": "col2", "data_type": "bigint"},
@@ -530,7 +530,7 @@ def test_adapter_hints_parsing_partitioning_more_than_one_column() -> None:
 
 
 def test_adapter_hints_parsing_partitioning() -> None:
-    @dlt.resource(columns=[{"name": "int_col", "data_type": "bigint"}])
+    @data_load_tool.resource(columns=[{"name": "int_col", "data_type": "bigint"}])
     def some_data() -> Iterator[Dict[str, str]]:
         yield from next(sequence_generator())
 
@@ -560,11 +560,11 @@ def test_adapter_on_data() -> None:
 def test_adapter_hints_partitioning(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(columns=[{"name": "col1", "data_type": "bigint"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "bigint"}])
     def no_hints() -> Iterator[Dict[str, int]]:
         yield from [{"col1": i} for i in range(10)]
 
-    @dlt.resource(columns=[{"name": "col1", "data_type": "date"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "date"}])
     def date_no_hints() -> Iterator[Dict[str, pendulum.Date]]:
         yield from [{"col1": pendulum.now().add(days=i).date()} for i in range(10)]
 
@@ -575,7 +575,7 @@ def test_adapter_hints_partitioning(
         partition_expiration_days=3,
     )
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def sources() -> List[DltResource]:
         return [no_hints, hints, date_hints]
 
@@ -609,7 +609,7 @@ def test_adapter_hints_partitioning(
 
 
 def test_adapter_hints_parsing_round_half_away_from_zero() -> None:
-    @dlt.resource(columns=[{"name": "col1", "data_type": "wei"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "wei"}])
     def hints() -> Iterator[Dict[str, float]]:
         yield from [{"col1": float(i)} for i in range(10)]
 
@@ -632,13 +632,13 @@ def test_adapter_hints_parsing_round_half_away_from_zero() -> None:
 def test_adapter_hints_round_half_away_from_zero(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(columns=[{"name": "col1", "data_type": "wei"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "wei"}])
     def no_hints() -> Iterator[Dict[str, float]]:
         yield from [{"col1": float(i)} for i in range(10)]
 
     hints = bigquery_adapter(no_hints.with_name(new_name="hints"), round_half_away_from_zero="col1")
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def sources() -> List[DltResource]:
         return [no_hints, hints]
 
@@ -672,7 +672,7 @@ def test_adapter_hints_round_half_away_from_zero(
 
 
 def test_adapter_hints_parsing_round_half_even() -> None:
-    @dlt.resource(columns=[{"name": "double_col", "data_type": "double"}])
+    @data_load_tool.resource(columns=[{"name": "double_col", "data_type": "double"}])
     def some_data() -> Iterator[Dict[str, float]]:
         yield from [{"double_col": float(i)} for i in range(3)]
 
@@ -694,13 +694,13 @@ def test_adapter_hints_parsing_round_half_even() -> None:
 def test_adapter_hints_round_half_even(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(columns=[{"name": "col1", "data_type": "wei"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "wei"}])
     def no_hints() -> Iterator[Dict[str, float]]:
         yield from [{"col1": float(i)} for i in range(10)]
 
     hints = bigquery_adapter(no_hints.with_name(new_name="hints"), round_half_even="col1")
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def sources() -> List[DltResource]:
         return [no_hints, hints]
 
@@ -732,7 +732,7 @@ def test_adapter_hints_round_half_even(
 
 
 def test_adapter_hints_parsing_clustering() -> None:
-    @dlt.resource(columns=[{"name": "int_col", "data_type": "bigint"}])
+    @data_load_tool.resource(columns=[{"name": "int_col", "data_type": "bigint"}])
     def some_data() -> Iterator[Dict[str, str]]:
         yield from next(sequence_generator())
 
@@ -747,7 +747,7 @@ def test_adapter_hints_parsing_clustering() -> None:
 
 
 def test_adapter_hints_parsing_multiple_clustering() -> None:
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "col1", "data_type": "bigint"},
             {"name": "col2", "data_type": "text"},
@@ -764,7 +764,7 @@ def test_adapter_hints_parsing_multiple_clustering() -> None:
 
 
 def test_adapter_hints_merge() -> None:
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "col1", "data_type": "text"},
             {"name": "col2", "data_type": "bigint"},
@@ -783,7 +783,7 @@ def test_adapter_hints_merge() -> None:
 
 
 def test_adapter_hints_unset() -> None:
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "col1", "data_type": "text"},
             {"name": "col2", "data_type": "bigint"},
@@ -809,7 +809,7 @@ def test_adapter_hints_unset() -> None:
 def test_adapter_hints_multiple_clustering(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "col1", "data_type": "bigint"},
             {"name": "col2", "data_type": "text"},
@@ -832,7 +832,7 @@ def test_adapter_hints_multiple_clustering(
         no_hints.with_name(new_name="hints"), cluster=["col1", "col2", "col3", "col4"]
     )
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def sources() -> List[DltResource]:
         return [no_hints, hints]
 
@@ -876,13 +876,13 @@ def test_adapter_hints_multiple_clustering(
 def test_adapter_hints_clustering(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(columns=[{"name": "col1", "data_type": "text"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "text"}])
     def no_hints() -> Iterator[Dict[str, str]]:
         yield from [{"col1": str(i)} for i in range(10)]
 
     hints = bigquery_adapter(no_hints.with_name(new_name="hints"), cluster="col1")
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def sources() -> List[DltResource]:
         return [no_hints, hints]
 
@@ -914,7 +914,7 @@ def test_adapter_hints_clustering(
 
 
 def test_adapter_hints_empty() -> None:
-    @dlt.resource(columns=[{"name": "int_col", "data_type": "bigint"}])
+    @data_load_tool.resource(columns=[{"name": "int_col", "data_type": "bigint"}])
     def some_data() -> Iterator[Dict[str, str]]:
         yield from next(sequence_generator())
 
@@ -926,7 +926,7 @@ def test_adapter_hints_empty() -> None:
 
 
 def test_adapter_hints_round_mutual_exclusivity_requirement() -> None:
-    @dlt.resource(columns=[{"name": "double_col", "data_type": "double"}])
+    @data_load_tool.resource(columns=[{"name": "double_col", "data_type": "double"}])
     def some_data() -> Iterator[Dict[str, str]]:
         yield from next(sequence_generator())
 
@@ -945,7 +945,7 @@ def test_adapter_hints_round_mutual_exclusivity_requirement() -> None:
 
 
 def test_adapter_additional_table_hints_parsing_table_description() -> None:
-    @dlt.resource(columns=[{"name": "double_col", "data_type": "double"}])
+    @data_load_tool.resource(columns=[{"name": "double_col", "data_type": "double"}])
     def some_data() -> Iterator[Dict[str, str]]:
         yield from next(sequence_generator())
 
@@ -966,7 +966,7 @@ def test_adapter_additional_table_hints_parsing_table_description() -> None:
 def test_adapter_additional_table_hints_table_description(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(columns=[{"name": "col1", "data_type": "text"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "text"}])
     def no_hints() -> Iterator[Dict[str, str]]:
         yield from [{"col1": str(i)} for i in range(10)]
 
@@ -975,7 +975,7 @@ def test_adapter_additional_table_hints_table_description(
         table_description="Once upon a time a small table got hinted.",
     )
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def sources() -> List[DltResource]:
         return [no_hints, hints]
 
@@ -1008,7 +1008,7 @@ def test_adapter_additional_table_hints_table_description(
 def test_adapter_additional_table_hints_table_description_with_alter_table(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(columns=[{"name": "col1", "data_type": "text"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "text"}])
     def no_hints() -> Iterator[Dict[str, str]]:
         yield from [{"col1": str(i)} for i in range(10)]
 
@@ -1017,7 +1017,7 @@ def test_adapter_additional_table_hints_table_description_with_alter_table(
         table_description="Once upon a time a small table got hinted.",
     )
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def sources() -> List[DltResource]:
         return [no_hints, hints]
 
@@ -1029,7 +1029,7 @@ def test_adapter_additional_table_hints_table_description_with_alter_table(
     pipeline.run(sources())
 
     mod_hints = bigquery_adapter(
-        dlt.resource([{"col2": "ABC"}], name="hints"),
+        data_load_tool.resource([{"col2": "ABC"}], name="hints"),
         table_description="Once upon a time a small table got hinted twice.",
     )
     pipeline.run(mod_hints)
@@ -1049,7 +1049,7 @@ def test_adapter_additional_table_hints_table_description_with_alter_table(
 
 
 def test_adapter_additional_table_hints_parsing_table_expiration() -> None:
-    @dlt.resource(columns=[{"name": "double_col", "data_type": "double"}])
+    @data_load_tool.resource(columns=[{"name": "double_col", "data_type": "double"}])
     def some_data() -> Iterator[Dict[str, str]]:
         yield from next(sequence_generator())
 

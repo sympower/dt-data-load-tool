@@ -1,17 +1,17 @@
 """Unit tests for readable db api dataset and relation"""
-import dlt
+import data_load_tool
 import pytest
 
-import dlt.destinations.dataset
-from dlt.destinations.dataset.exceptions import (
+import data_load_tool.destinations.dataset
+from data_load_tool.destinations.dataset.exceptions import (
     ReadableRelationHasQueryException,
     ReadableRelationUnknownColumnException,
 )
 
 
 def test_query_builder() -> None:
-    dataset = dlt.destinations.dataset.dataset(
-        dlt.destinations.duckdb(destination_name="duck_db"), "pipeline_dataset"
+    dataset = data_load_tool.destinations.dataset.dataset(
+        data_load_tool.destinations.duckdb(destination_name="duck_db"), "pipeline_dataset"
     )
 
     # default query for a table
@@ -58,8 +58,8 @@ def test_query_builder() -> None:
 
 
 def test_copy_and_chaining() -> None:
-    dataset = dlt.destinations.dataset.dataset(
-        dlt.destinations.duckdb(destination_name="duck_db"), "pipeline_dataset"
+    dataset = data_load_tool.destinations.dataset.dataset(
+        data_load_tool.destinations.duckdb(destination_name="duck_db"), "pipeline_dataset"
     )
 
     # create releation and set some stuff on it
@@ -85,8 +85,8 @@ def test_copy_and_chaining() -> None:
 
 
 def test_computed_schema_columns() -> None:
-    dataset = dlt.destinations.dataset.dataset(
-        dlt.destinations.duckdb(destination_name="duck_db"), "pipeline_dataset"
+    dataset = data_load_tool.destinations.dataset.dataset(
+        data_load_tool.destinations.duckdb(destination_name="duck_db"), "pipeline_dataset"
     )
     relation = dataset.items
 
@@ -114,8 +114,8 @@ def test_computed_schema_columns() -> None:
 
 
 def test_prevent_changing_relation_with_query() -> None:
-    dataset = dlt.destinations.dataset.dataset(
-        dlt.destinations.duckdb(destination_name="duck_db"), "pipeline_dataset"
+    dataset = data_load_tool.destinations.dataset.dataset(
+        data_load_tool.destinations.duckdb(destination_name="duck_db"), "pipeline_dataset"
     )
     relation = dataset("SELECT * FROM something")
 

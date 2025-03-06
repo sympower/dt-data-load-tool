@@ -22,11 +22,11 @@ from typing_extensions import Annotated, get_args, get_origin
 from enum import Enum
 
 from datetime import datetime, date, time  # noqa: I251
-from dlt.common import Decimal
-from dlt.common import json
-from dlt.common.schema.typing import TColumnType
+from data_load_tool.common import Decimal
+from data_load_tool.common import json
+from data_load_tool.common.schema.typing import TColumnType
 
-from dlt.common.libs.pydantic import (
+from data_load_tool.common.libs.pydantic import (
     DltConfig,
     pydantic_to_table_schema_columns,
     apply_schema_contract_to_model,
@@ -36,7 +36,7 @@ from dlt.common.libs.pydantic import (
 )
 from pydantic import UUID4, BaseModel, Json, AnyHttpUrl, ConfigDict, ValidationError
 
-from dlt.common.schema.exceptions import DataValidationError
+from data_load_tool.common.schema.exceptions import DataValidationError
 
 
 class StrEnum(str, Enum):
@@ -731,7 +731,7 @@ def test_typed_dict_by_python_version():
     """when using typeddict in pydantic, it should be imported
     from typing_extensions in python 3.11 and earlier and typing
     in python 3.12 and later.
-    Here we test that this is properly set up in dlt.
+    Here we test that this is properly set up in data_load_tool.
     """
 
     class MyModel(BaseModel):

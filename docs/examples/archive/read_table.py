@@ -1,6 +1,6 @@
-import dlt
-from dlt.destinations import postgres
-from dlt.common.data_types.type_helpers import py_type_to_sc_type
+import data_load_tool
+from data_load_tool.destinations import postgres
+from data_load_tool.common.data_types.type_helpers import py_type_to_sc_type
 
 from docs.examples.sources.sql_query import query_table, query_sql
 
@@ -27,7 +27,7 @@ items = query_sql("select *  from mainnet_2_ethereum.blocks__transactions limit 
 # you can find a docker compose file that spins up required instance in tests/load/postgres
 # note: run the script without required env variables to see info on possible secret configurations that were tried
 
-info = dlt.pipeline().run(
+info = data_load_tool.pipeline().run(
     items, destination=postgres, dataset_name="ethereum", table_name="transactions"
 )
 print(info)

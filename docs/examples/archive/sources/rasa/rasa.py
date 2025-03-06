@@ -1,12 +1,12 @@
 from typing import Any, Iterator
 
-import dlt
-from dlt.common.typing import StrAny, TDataItem, TDataItems
-from dlt.common.time import timestamp_within
-from dlt.extract.resource import DltResource
+import data_load_tool
+from data_load_tool.common.typing import StrAny, TDataItem, TDataItems
+from data_load_tool.common.time import timestamp_within
+from data_load_tool.extract.resource import DltResource
 
 
-@dlt.source
+@data_load_tool.source
 def rasa(
     data_from: DltResource,
     /,
@@ -30,12 +30,12 @@ def rasa(
     """
 
     # the data_from can be a file, database table (see sql_query.py), kafka topic, rabbitmq queue etc.
-    @dlt.transformer(data_from=data_from)
+    @data_load_tool.transformer(data_from=data_from)
     def events(source_events: TDataItems) -> Iterator[TDataItem]:
         # recover start_timestamp from state if given
         if store_last_timestamp:
             start_timestamp = max(
-                initial_timestamp or 0, dlt.current.source_state().get("start_timestamp", 0)
+                initial_timestamp or 0, data_load_tool.current.source_state().get("start_timestamp", 0)
             )
         # we expect tracker store events here
         last_timestamp: int = None
@@ -60,9 +60,9 @@ def rasa(
                 if "model_id" in source_event:
                     event["model_id"] = source_event["model_id"]
 
-                yield dlt.mark.with_table_name(event, "event")
+                yield data_load_tool.mark.with_table_name(event, "event")
                 # yield original event
-                yield dlt.mark.with_table_name(source_event, "event_" + event_type)
+                yield data_load_tool.mark.with_table_name(source_event, "event_" + event_type)
 
         # events may be a single item or list of items
         if isinstance(source_events, list):
@@ -73,6 +73,6 @@ def rasa(
 
         # write state so we can restart
         if store_last_timestamp and last_timestamp:
-            dlt.current.source_state()["start_timestamp"] = last_timestamp
+            data_load_tool.current.source_state()["start_timestamp"] = last_timestamp
 
     return events

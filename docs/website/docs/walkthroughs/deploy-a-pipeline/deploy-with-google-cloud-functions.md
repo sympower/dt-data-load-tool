@@ -6,19 +6,19 @@ keywords: [how to, deploy a pipeline, Cloud Function]
 
 # Deploy a pipeline with Google Cloud Functions
 
-This guide shows you how to deploy a pipeline using the gcloud shell and dlt CLI commands. To deploy a pipeline using this method, you must have a working knowledge of GCP and its associated services, such as Cloud Functions, IAM and permissions, and GCP service accounts.
+This guide shows you how to deploy a pipeline using the gcloud shell and data_load_tool CLI commands. To deploy a pipeline using this method, you must have a working knowledge of GCP and its associated services, such as Cloud Functions, IAM and permissions, and GCP service accounts.
 
 To deploy a pipeline with GCP Cloud Functions, navigate to the directory on your local machine or cloud repository (e.g., GitHub, Bitbucket) from where the function code is to be deployed.
 
 ## 1. Setup pipeline
 
-1. In this guide, we'll be setting up the dlt
+1. In this guide, we'll be setting up the data_load_tool
    [Notion verified source](../../dlt-ecosystem/verified-sources/notion). However, you can use any verified source or create a custom one to suit your needs.
 1. In the terminal:
    - Run the following command to initialize the verified source with Notion and create a pipeline example with BigQuery as the target.
 
      ```sh
-     dlt init notion bigquery
+     data_load_tool init notion bigquery
      ```
 
    - After the command executes, new files and folders with the necessary configurations are created in the main directory where the command was executed.
@@ -87,5 +87,5 @@ To manually trigger the created function, you can open the trigger URL created b
 in the address bar. The message "Pipeline run successfully!" confirms that the pipeline was
 successfully run and the data was successfully loaded into the destination.
 
-That's it! Have fun using dlt in Google Cloud Functions!
+That's it! Have fun using data_load_tool in Google Cloud Functions!
 

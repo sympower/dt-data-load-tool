@@ -6,7 +6,7 @@ keywords: [destination, schema, data, access, retrieval]
 
 # Accessing loaded data in Python
 
-This guide explains how to access and manipulate data that has been loaded into your destination using the `dlt` Python library. After running your pipelines and loading data, you can use the `ReadableDataset` and `ReadableRelation` classes to interact with your data programmatically.
+This guide explains how to access and manipulate data that has been loaded into your destination using the `data_load_tool` Python library. After running your pipelines and loading data, you can use the `ReadableDataset` and `ReadableRelation` classes to interact with your data programmatically.
 
 **Note:** The `ReadableDataset` and `ReadableRelation` objects are **lazy-loading**. They will only query and retrieve data when you perform an action that requires it, such as fetching data into a DataFrame or iterating over the data. This means that simply creating these objects does not load data into memory, making your code more efficient.
 
@@ -179,7 +179,7 @@ If you install the amazing [ibis](https://ibis-project.org/) library, you can us
 pip install ibis-framework
 ```
 
-dlt will then wrap an `ibis.UnboundTable` with a `ReadableIbisRelation` object under the hood that will allow you to modify the query of a reltaion using ibis expressions:
+data_load_tool will then wrap an `ibis.UnboundTable` with a `ReadableIbisRelation` object under the hood that will allow you to modify the query of a reltaion using ibis expressions:
 
 ```py
 # now that ibis is installed, we can get a dataset with ibis relations
@@ -231,7 +231,7 @@ Keep in mind that you can use only methods that modify the executed query and no
 
 ## Supported destinations
 
-All SQL and filesystem destinations supported by `dlt` can utilize this data access interface. For filesystem destinations, `dlt` [uses **DuckDB** under the hood](./sql-client.md#the-filesystem-sql-client) to create views from Parquet or JSONL files dynamically. This allows you to query data stored in files using the same interface as you would with SQL databases. If you plan on accessing data in buckets or the filesystem a lot this way, it is advised to load data as Parquet instead of JSONL, as **DuckDB** is able to only load the parts of the data actually needed for the query to work.
+All SQL and filesystem destinations supported by `data_load_tool` can utilize this data access interface. For filesystem destinations, `data_load_tool` [uses **DuckDB** under the hood](./sql-client.md#the-filesystem-sql-client) to create views from Parquet or JSONL files dynamically. This allows you to query data stored in files using the same interface as you would with SQL databases. If you plan on accessing data in buckets or the filesystem a lot this way, it is advised to load data as Parquet instead of JSONL, as **DuckDB** is able to only load the parts of the data actually needed for the query to work.
 
 ## Examples
 
@@ -286,14 +286,14 @@ When using custom SQL queries with `dataset()`, methods like `limit` and `select
 
 ### Loading a `ReadableRelation` into a pipeline table
 
-Since the `iter_arrow` and `iter_df` methods are generators that iterate over the full `ReadableRelation` in chunks, you can use them as a resource for another (or even the same) `dlt` pipeline:
+Since the `iter_arrow` and `iter_df` methods are generators that iterate over the full `ReadableRelation` in chunks, you can use them as a resource for another (or even the same) `data_load_tool` pipeline:
 
 ```py
 # Create a readable relation with a limit of 1m rows
 limited_items_relation = dataset.items.limit(1_000_000)
 
 # Create a new pipeline
-other_pipeline = dlt.pipeline(pipeline_name="other_pipeline", destination="duckdb")
+other_pipeline = data_load_tool.pipeline(pipeline_name="other_pipeline", destination="duckdb")
 
 # We can now load these 1m rows into this pipeline in 10k chunks
 other_pipeline.run(limited_items_relation.iter_arrow(chunk_size=10_000), table_name="limited_items")

@@ -1,7 +1,7 @@
-import dlt
+import data_load_tool
 
 
-@dlt.source
+@data_load_tool.source
 def s():
     return []
 
@@ -10,6 +10,6 @@ def f():
     pass
 
 
-@dlt.resource(standalone=True)
+@data_load_tool.resource(standalone=True)
 def r():
     yield [1, 2, 3]

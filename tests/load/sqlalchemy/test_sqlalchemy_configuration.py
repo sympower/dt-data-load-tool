@@ -2,8 +2,8 @@ import pytest
 
 import sqlalchemy as sa
 
-from dlt.common.configuration import resolve_configuration
-from dlt.destinations.impl.sqlalchemy.configuration import (
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.destinations.impl.sqlalchemy.configuration import (
     SqlalchemyClientConfiguration,
     SqlalchemyCredentials,
 )

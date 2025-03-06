@@ -76,7 +76,7 @@ jobs:
         run: poetry install --no-interaction -E clickhouse --with providers -E parquet --with sentry-sdk --with pipeline && poetry run pip install ibis-framework[duckdb,postgres,bigquery,snowflake,mssql,clickhouse]
 
       - name: create secrets.toml
-        run: pwd && echo "$DLT_SECRETS_TOML" > tests/.dlt/secrets.toml
+        run: pwd && echo "$DLT_SECRETS_TOML" > tests/.data_load_tool/secrets.toml
 
       # OSS ClickHouse
       - run: |

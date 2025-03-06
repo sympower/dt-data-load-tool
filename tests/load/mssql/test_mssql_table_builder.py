@@ -1,14 +1,14 @@
 import pytest
 import sqlfluff
 
-from dlt.common.utils import uniq_id
-from dlt.common.schema import Schema
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema import Schema
 
-pytest.importorskip("dlt.destinations.impl.mssql.mssql", reason="MSSQL ODBC driver not installed")
+pytest.importorskip("data_load_tool.destinations.impl.mssql.mssql", reason="MSSQL ODBC driver not installed")
 
-from dlt.destinations import mssql
-from dlt.destinations.impl.mssql.mssql import MsSqlJobClient
-from dlt.destinations.impl.mssql.configuration import MsSqlClientConfiguration, MsSqlCredentials
+from data_load_tool.destinations import mssql
+from data_load_tool.destinations.impl.mssql.mssql import MsSqlJobClient
+from data_load_tool.destinations.impl.mssql.configuration import MsSqlClientConfiguration, MsSqlCredentials
 
 from tests.load.utils import TABLE_UPDATE, empty_schema
 

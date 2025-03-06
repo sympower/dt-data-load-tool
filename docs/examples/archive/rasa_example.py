@@ -1,7 +1,7 @@
 import os
 
-import dlt
-from dlt.destinations import bigquery, postgres
+import data_load_tool
+from data_load_tool.destinations import bigquery, postgres
 
 from .sources.jsonl import jsonl_files
 from .sources.rasa import rasa
@@ -19,7 +19,7 @@ credentials = "postgres://loader@localhost:5432/dlt_data"
 # for the simplicity let's use jsonl source to read all files with events in a directory
 event_files = jsonl_files([file for file in os.scandir("docs/examples/data/rasa_trackers")])
 
-info = dlt.pipeline(
+info = data_load_tool.pipeline(
     dev_mode=True,
     destination=postgres,
     # export_schema_path=...  # uncomment to see the final schema in the folder you want
@@ -33,4 +33,4 @@ info = dlt.pipeline(
 print(info)
 
 # uncomment to see the final schema
-# print(dlt.pipeline().default_schema.to_pretty_yaml())
+# print(data_load_tool.pipeline().default_schema.to_pretty_yaml())

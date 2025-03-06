@@ -8,9 +8,9 @@ from enum import Enum
 
 from pendulum.tz import UTC
 
-from dlt.common import Decimal, Wei, json, pendulum
-from dlt.common.json import _DATETIME, custom_pua_decode_nested
-from dlt.common.data_types import coerce_value, py_type_to_sc_type, TDataType
+from data_load_tool.common import Decimal, Wei, json, pendulum
+from data_load_tool.common.json import _DATETIME, custom_pua_decode_nested
+from data_load_tool.common.data_types import coerce_value, py_type_to_sc_type, TDataType
 
 from tests.cases import JSON_TYPED_DICT, JSON_TYPED_DICT_TYPES
 

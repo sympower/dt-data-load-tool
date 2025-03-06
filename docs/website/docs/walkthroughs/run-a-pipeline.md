@@ -17,10 +17,10 @@ Once you have [created a new pipeline](create-a-pipeline) or
 like the one below that loads data from the [chess.com](https://www.chess.com) API:
 
 ```py
-import dlt
+import data_load_tool
 
 if __name__ == "__main__":
-    pipeline = dlt.pipeline(pipeline_name="chess_pipeline", destination='duckdb', dataset_name="games_data")
+    pipeline = data_load_tool.pipeline(pipeline_name="chess_pipeline", destination='duckdb', dataset_name="games_data")
     # get data for a few famous players
     data = chess_source(['magnuscarlsen', 'rpragchess'], start_month="2022/11", end_month="2022/12")
     load_info = pipeline.run(data)
@@ -86,13 +86,13 @@ You can quickly inspect the generated tables, the data, see how many rows were l
 table, do SQL queries, etc., by executing the following command from the same folder as your script:
 
 ```sh
-dlt pipeline chess_pipeline show
+data_load_tool pipeline chess_pipeline show
 ```
 
 This will launch a Streamlit app, which you can open in your browser:
 
 ```text
-Found pipeline chess_pipeline in /home/user-name/.dlt/pipelines
+Found pipeline chess_pipeline in /home/user-name/.data_load_tool/pipelines
 
 Collecting usage statistics. To deactivate, set browser.gatherUsageStats to False.
 
@@ -105,34 +105,34 @@ Collecting usage statistics. To deactivate, set browser.gatherUsageStats to Fals
 
 ## 4. Inspect a load process
 
-`dlt` loads data in the form of **load packages**. Each package contains several jobs with data for
+`data_load_tool` loads data in the form of **load packages**. Each package contains several jobs with data for
 particular tables. The packages are identified by **load_id**, which you can see in the printout
 above or obtain by running the following command:
 
 ```sh
-dlt pipeline chess_pipeline info
+data_load_tool pipeline chess_pipeline info
 ```
 
 You can inspect the package, get a list of jobs, and in the case of failed ones, get the associated error
 messages.
 - See the most recent load package info:
   ```sh
-  dlt pipeline chess_pipeline load-package
+  data_load_tool pipeline chess_pipeline load-package
   ```
 - See package info with a given load id:
   ```sh
-  dlt pipeline chess_pipeline load-package 1679931001.985323
+  data_load_tool pipeline chess_pipeline load-package 1679931001.985323
   ```
 - Also, see the schema changes introduced in the package:
   ```sh
-  dlt pipeline -v chess_pipeline load-package
+  data_load_tool pipeline -v chess_pipeline load-package
   ```
 
-`dlt` stores the trace of the most recent data load. The trace contains information on the pipeline
+`data_load_tool` stores the trace of the most recent data load. The trace contains information on the pipeline
 processing steps: `extract`, `normalize`, and `load`. It also shows the last `load_info`:
 
 ```sh
-dlt pipeline chess_pipeline trace
+data_load_tool pipeline chess_pipeline trace
 ```
 
 You can access all this information in your pipeline script, save `load_info` and trace to the
@@ -140,29 +140,29 @@ destination, etc. Please refer to
 [Running in production](../running-in-production/running.md#inspect-and-save-the-load-info-and-trace)
 for more details.
 
-## Run dlt in Notebooks
+## Run data_load_tool in Notebooks
 
 ### Colab
-You'll need to install `dlt` like any other dependency:
+You'll need to install `data_load_tool` like any other dependency:
 ```sh
-!pip install dlt
+!pip install data_load_tool
 ```
 
 You can configure secrets using **Secrets** sidebar. Just create a variable with the name `secrets.toml` and paste
-the content of the **toml** file from your `.dlt` folder into it. We support `config.toml` variable as well.
+the content of the **toml** file from your `.data_load_tool` folder into it. We support `config.toml` variable as well.
 
 :::note
-`dlt` will not reload the secrets automatically. Please restart your interpreter in Colab options when you add/change
+`data_load_tool` will not reload the secrets automatically. Please restart your interpreter in Colab options when you add/change
 content of the variables above.
 :::
 
 
 ## Troubleshooting
 
-What happens if something goes wrong? In most cases, the `dlt` `run` command raises exceptions. We put a
+What happens if something goes wrong? In most cases, the `data_load_tool` `run` command raises exceptions. We put a
 lot of effort into making the exception messages easy to understand. Reading them is the first step
 to solving your problem. Let us know if you come across one that is not clear to you
-[here](https://github.com/dlt-hub/dlt/issues/new).
+[here](https://github.com/dlt-hub/data_load_tool/issues/new).
 
 ### Missing secret or configuration values
 
@@ -172,7 +172,7 @@ The most common exception that you will encounter looks like this. Here we modif
 ```sh
 CREDENTIALS="postgres://loader@localhost:5432/dlt_data" python chess_pipeline.py
 ...
-dlt.common.configuration.exceptions.ConfigFieldMissingException: Following fields are missing: ['password'] in configuration with spec PostgresCredentials
+data_load_tool.common.configuration.exceptions.ConfigFieldMissingException: Following fields are missing: ['password'] in configuration with spec PostgresCredentials
     for field "password" config providers and keys were tried in the following order:
         In Environment Variables key CHESS_PIPELINE__DESTINATION__POSTGRES__CREDENTIALS__PASSWORD was not found.
         In Environment Variables key CHESS_PIPELINE__DESTINATION__CREDENTIALS__PASSWORD was not found.
@@ -192,8 +192,8 @@ Please refer to https://dlthub.com/docs/general-usage/credentials/ for more info
 What does this exception tell you?
 
 1. You are missing a `password` field ("Following fields are missing: \['password'\]").
-1. `dlt` tried to look for the password in `secrets.toml` and environment variables.
-1. `dlt` tried several locations or keys in which the password could be stored, starting from
+1. `data_load_tool` tried to look for the password in `secrets.toml` and environment variables.
+1. `data_load_tool` tried several locations or keys in which the password could be stored, starting from
    more precise to more general.
 
 How to fix that?
@@ -211,16 +211,16 @@ credentials.password="loader"
 
 > 💡 Make sure you run the script from the same folder in which it is saved. For example,
 > `python chess_demo/chess.py` will run the script from the `chess_demo` folder, but the current working
-> directory is the folder above. This prevents `dlt` from finding `chess_demo/.dlt/secrets.toml` and
+> directory is the folder above. This prevents `data_load_tool` from finding `chess_demo/.data_load_tool/secrets.toml` and
 > filling in credentials.
 
 ### Failed API or database connections and other exceptions
 
-`dlt` will raise a `PipelineStepFailed` exception to inform you of a problem encountered during
+`data_load_tool` will raise a `PipelineStepFailed` exception to inform you of a problem encountered during
 the execution of a particular step. You can catch those in code:
 
 ```py
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 try:
     pipeline.run(data)
@@ -232,11 +232,11 @@ except PipelineStepFailed as step_failed:
 Or use the `trace` command to review the last exception. Here we provided a wrong PostgreSQL password:
 
 ```sh
-dlt pipeline chess_pipeline trace
+data_load_tool pipeline chess_pipeline trace
 ```
 
 ```text
-Found pipeline chess_pipeline in /home/user-name/.dlt/pipelines
+Found pipeline chess_pipeline in /home/user-name/.data_load_tool/pipelines
 Run started at 2023-03-28T09:13:56.277016+00:00 and FAILED in 0.01 seconds with 1 steps.
 Step run FAILED in 0.01 seconds.
 Failed due to: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  password authentication failed for user "loader"
@@ -244,9 +244,9 @@ Failed due to: connection to server at "localhost" (127.0.0.1), port 5432 failed
 
 ### Failed jobs in load package
 
-In rare cases, some jobs in a load package will fail in such a way that `dlt` will not be able
+In rare cases, some jobs in a load package will fail in such a way that `data_load_tool` will not be able
 to load it, even if it retries the process. In that case, the job is marked as failed, and additional
-information is available. Please note that ([if not otherwise configured](../running-in-production//running.md#failed-jobs)), `dlt` **will raise
+information is available. Please note that ([if not otherwise configured](../running-in-production//running.md#failed-jobs)), `data_load_tool` **will raise
 an exception on failed jobs and abort the package**. Aborted packages cannot be retried.
 
 ```text
@@ -262,17 +262,17 @@ What now?
 Investigate further with the following command:
 
 ```sh
-dlt pipeline chess_pipeline failed-jobs
+data_load_tool pipeline chess_pipeline failed-jobs
 ```
 
 To get the following output:
 
 ```text
-Found pipeline chess_pipeline in /home/user-name/.dlt/pipelines
+Found pipeline chess_pipeline in /home/user-name/.data_load_tool/pipelines
 Checking failed jobs in load id '1679996953.776288'
 JOB: players_games.80eb41650c.0.jsonl(players_games)
 JOB file type: jsonl
-JOB file path: /home/user-name/.dlt/pipelines/chess_pipeline/load/loaded/1679996953.776288/failed_jobs/players_games.80eb41650c.0.jsonl
+JOB file path: /home/user-name/.data_load_tool/pipelines/chess_pipeline/load/loaded/1679996953.776288/failed_jobs/players_games.80eb41650c.0.jsonl
 a random fail occurred
 ```
 

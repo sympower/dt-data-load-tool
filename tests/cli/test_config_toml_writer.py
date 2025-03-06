@@ -2,9 +2,9 @@ from typing import ClassVar, List, Optional, Final
 import pytest
 import tomlkit
 
-from dlt.cli.config_toml_writer import write_value, WritableConfigValue, write_values
-from dlt.common.configuration.specs import configspec
-from dlt.common.destination.client import DEFAULT_FILE_LAYOUT
+from data_load_tool.cli.config_toml_writer import write_value, WritableConfigValue, write_values
+from data_load_tool.common.configuration.specs import configspec
+from data_load_tool.common.destination.client import DEFAULT_FILE_LAYOUT
 
 EXAMPLE_COMMENT = "# please set me up!"
 
@@ -164,8 +164,8 @@ def test_write_values_without_defaults(example_toml):
 
 
 def test_write_spec_without_defaults(example_toml) -> None:
-    from dlt.destinations.impl.snowflake.configuration import SnowflakeClientConfiguration
-    from dlt.destinations.impl.filesystem.configuration import (
+    from data_load_tool.destinations.impl.snowflake.configuration import SnowflakeClientConfiguration
+    from data_load_tool.destinations.impl.filesystem.configuration import (
         FilesystemDestinationClientConfiguration,
     )
 

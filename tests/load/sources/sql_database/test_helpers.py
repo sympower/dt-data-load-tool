@@ -4,14 +4,14 @@ from dataclasses import dataclass
 
 import pytest
 
-import dlt
-from dlt.common.typing import TDataItem
+import data_load_tool
+from data_load_tool.common.typing import TDataItem
 
-from dlt.common.exceptions import MissingDependencyException
+from data_load_tool.common.exceptions import MissingDependencyException
 
 try:
-    from dlt.sources.sql_database.helpers import TableLoader, TableBackend
-    from dlt.sources.sql_database.schema_types import table_to_columns
+    from data_load_tool.sources.sql_database.helpers import TableLoader, TableBackend
+    from data_load_tool.sources.sql_database.schema_types import table_to_columns
     from tests.load.sources.sql_database.sql_source import SQLAlchemySourceDB
     import sqlalchemy as sa
 except (MissingDependencyException, ModuleNotFoundError):
@@ -42,7 +42,7 @@ def test_cursor_or_unique_column_not_in_table(
             backend,
             table,
             table_to_columns(table),
-            incremental=dlt.sources.incremental("not_a_column"),
+            incremental=data_load_tool.sources.incremental("not_a_column"),
         )
 
 
@@ -53,7 +53,7 @@ def test_make_query_incremental_max(
     """Verify query is generated according to incremental settings"""
 
     incremental = MockIncremental(
-        last_value=dlt.common.pendulum.now(),
+        last_value=data_load_tool.common.pendulum.now(),
         last_value_func=max,
         cursor_path="created_at",
         row_order="asc",
@@ -83,7 +83,7 @@ def test_make_query_incremental_min(
     sql_source_db: SQLAlchemySourceDB, backend: TableBackend
 ) -> None:
     incremental = MockIncremental(
-        last_value=dlt.common.pendulum.now(),
+        last_value=data_load_tool.common.pendulum.now(),
         last_value_func=min,
         cursor_path="created_at",
         row_order="desc",
@@ -120,11 +120,11 @@ def test_make_query_incremental_on_cursor_value_missing_set(
     cursor_value_missing: str,
 ) -> None:
     incremental = MockIncremental(
-        last_value=dlt.common.pendulum.now(),
+        last_value=data_load_tool.common.pendulum.now(),
         last_value_func=max,
         cursor_path="created_at",
         row_order="asc",
-        end_value=None if not with_end_value else dlt.common.pendulum.now().add(hours=1),
+        end_value=None if not with_end_value else data_load_tool.common.pendulum.now().add(hours=1),
         on_cursor_value_missing=cursor_value_missing,
     )
 
@@ -205,7 +205,7 @@ def test_make_query_incremental_on_cursor_value_missing_no_last_value(
 def test_make_query_incremental_end_value(
     sql_source_db: SQLAlchemySourceDB, backend: TableBackend
 ) -> None:
-    now = dlt.common.pendulum.now()
+    now = data_load_tool.common.pendulum.now()
 
     incremental = MockIncremental(
         last_value=now,
@@ -241,11 +241,11 @@ def test_make_query_incremental_any_fun(
     sql_source_db: SQLAlchemySourceDB, backend: TableBackend
 ) -> None:
     incremental = MockIncremental(
-        last_value=dlt.common.pendulum.now(),
+        last_value=data_load_tool.common.pendulum.now(),
         last_value_func=lambda x: x[-1],
         cursor_path="created_at",
         row_order="asc",
-        end_value=dlt.common.pendulum.now(),
+        end_value=data_load_tool.common.pendulum.now(),
         on_cursor_value_missing="raise",
     )
 
@@ -347,7 +347,7 @@ def test_make_query_incremental_range_start_open(
     sql_source_db: SQLAlchemySourceDB, backend: TableBackend, last_value_func: Callable[[Any], Any]
 ) -> None:
     incremental = MockIncremental(
-        last_value=dlt.common.pendulum.now(),
+        last_value=data_load_tool.common.pendulum.now(),
         last_value_func=last_value_func,
         cursor_path="created_at",
         end_value=None,
@@ -382,7 +382,7 @@ def test_make_query_incremental_range_end_closed(
     sql_source_db: SQLAlchemySourceDB, backend: TableBackend, last_value_func: Callable[[Any], Any]
 ) -> None:
     incremental = MockIncremental(
-        last_value=dlt.common.pendulum.now(),
+        last_value=data_load_tool.common.pendulum.now(),
         last_value_func=last_value_func,
         cursor_path="created_at",
         end_value=None,

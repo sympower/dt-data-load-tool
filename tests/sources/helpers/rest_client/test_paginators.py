@@ -6,7 +6,7 @@ import pytest
 from requests.models import Response, Request
 from requests import Session
 
-from dlt.sources.helpers.rest_client.paginators import (
+from data_load_tool.sources.helpers.rest_client.paginators import (
     SinglePagePaginator,
     OffsetPaginator,
     PageNumberPaginator,

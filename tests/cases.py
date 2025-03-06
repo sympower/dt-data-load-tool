@@ -8,18 +8,18 @@ from string import ascii_lowercase
 import random
 import secrets
 
-from dlt.common import Decimal, pendulum, json
-from dlt.common.data_types import TDataType
-from dlt.common.schema.utils import new_column
-from dlt.common.typing import StrAny, TDataItems
-from dlt.common.wei import Wei
-from dlt.common.time import (
+from data_load_tool.common import Decimal, pendulum, json
+from data_load_tool.common.data_types import TDataType
+from data_load_tool.common.schema.utils import new_column
+from data_load_tool.common.typing import StrAny, TDataItems
+from data_load_tool.common.wei import Wei
+from data_load_tool.common.time import (
     ensure_pendulum_datetime,
     reduce_pendulum_datetime_precision,
     ensure_pendulum_time,
     ensure_pendulum_date,
 )
-from dlt.common.schema import TColumnSchema, TTableSchemaColumns
+from data_load_tool.common.schema import TColumnSchema, TTableSchemaColumns
 
 from tests.utils import TPythonTableFormat, TestDataItemFormat, arrow_item_from_pandas
 
@@ -366,14 +366,14 @@ def arrow_table_all_data_types(
         data["decimal"] = [Decimal(str(round(random.uniform(0, 100), 4))) for _ in range(num_rows)]
 
     if include_decimal_default_precision:
-        from dlt.common.arithmetics import DEFAULT_NUMERIC_PRECISION
+        from data_load_tool.common.arithmetics import DEFAULT_NUMERIC_PRECISION
 
         data["decimal_default_precision"] = [
             Decimal(int("1" * DEFAULT_NUMERIC_PRECISION)) for _ in range(num_rows)
         ]
 
     if include_decimal_arrow_max_precision:
-        from dlt.common.libs.pyarrow import ARROW_DECIMAL_MAX_PRECISION
+        from data_load_tool.common.libs.pyarrow import ARROW_DECIMAL_MAX_PRECISION
 
         data["decimal_arrow_max_precision"] = [
             Decimal(int("1" * ARROW_DECIMAL_MAX_PRECISION)) for _ in range(num_rows)
@@ -402,8 +402,8 @@ def arrow_table_all_data_types(
 
 
 def prepare_shuffled_tables() -> Tuple[Any, Any, Any]:
-    from dlt.common.libs.pyarrow import remove_columns
-    from dlt.common.libs.pyarrow import pyarrow as pa
+    from data_load_tool.common.libs.pyarrow import remove_columns
+    from data_load_tool.common.libs.pyarrow import pyarrow as pa
 
     table, _, _ = arrow_table_all_data_types(
         "arrow-table",

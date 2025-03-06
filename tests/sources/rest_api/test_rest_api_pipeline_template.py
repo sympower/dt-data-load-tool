@@ -1,7 +1,7 @@
 import os
-import dlt
+import data_load_tool
 import pytest
-from dlt.common.typing import TSecretStrValue
+from data_load_tool.common.typing import TSecretStrValue
 
 
 @pytest.mark.parametrize(
@@ -12,12 +12,12 @@ from dlt.common.typing import TSecretStrValue
     ),
 )
 def test_all_examples(example_name: str) -> None:
-    from dlt.sources._core_source_templates import rest_api_pipeline
+    from data_load_tool.sources._core_source_templates import rest_api_pipeline
 
     # reroute token location from secrets
-    github_token: TSecretStrValue = dlt.secrets.get("sources.github.access_token")
+    github_token: TSecretStrValue = data_load_tool.secrets.get("sources.github.access_token")
     if not github_token:
         # try to get GITHUB TOKEN which is available on github actions, fallback to None if not available
         github_token = os.environ.get("GITHUB_TOKEN", None)
-    dlt.secrets["sources.rest_api_pipeline.github.access_token"] = github_token
+    data_load_tool.secrets["sources.rest_api_pipeline.github.access_token"] = github_token
     getattr(rest_api_pipeline, example_name)()

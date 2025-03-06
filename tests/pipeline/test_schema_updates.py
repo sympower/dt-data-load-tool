@@ -1,15 +1,15 @@
 import os
 
-import dlt
+import data_load_tool
 
 
 def test_schema_updates() -> None:
     os.environ["COMPLETED_PROB"] = "1.0"  # make it complete immediately
-    p = dlt.pipeline(pipeline_name="test_schema_updates", dev_mode=True, destination="dummy")
+    p = data_load_tool.pipeline(pipeline_name="test_schema_updates", dev_mode=True, destination="dummy")
 
-    @dlt.source()
+    @data_load_tool.source()
     def source():
-        @dlt.resource()
+        @data_load_tool.resource()
         def resource():
             yield [1, 2, 3]
 

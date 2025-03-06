@@ -3,12 +3,12 @@ from typing import Iterator
 import pytest
 import tempfile
 
-import dlt
-from dlt.common.runners import Venv
-from dlt.common.schema.schema import Schema
-from dlt.common.utils import uniq_id
-from dlt.helpers.dbt import create_venv
-from dlt.helpers.dbt.exceptions import DBTProcessingError, PrerequisitesException
+import data_load_tool
+from data_load_tool.common.runners import Venv
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.helpers.dbt import create_venv
+from data_load_tool.helpers.dbt.exceptions import DBTProcessingError, PrerequisitesException
 
 from tests.pipeline.utils import select_data
 from tests.load.utils import destinations_configs, DestinationTestConfiguration
@@ -47,7 +47,7 @@ def test_run_jaffle_package(
         )
     pipeline = destination_config.setup_pipeline("jaffle_jaffle", dev_mode=True)
     # get runner, pass the env from fixture
-    dbt = dlt.dbt.package(pipeline, "https://github.com/dbt-labs/jaffle_shop.git", venv=dbt_venv)
+    dbt = data_load_tool.dbt.package(pipeline, "https://github.com/dbt-labs/jaffle_shop.git", venv=dbt_venv)
     # no default schema
     assert pipeline.default_schema_name is None
     # inject default schema otherwise dataset is not deleted
@@ -92,7 +92,7 @@ def test_run_chess_dbt(destination_config: DestinationTestConfiguration, dbt_ven
     )
     assert pipeline.default_schema_name is None
     # get the runner for the "dbt_transform" package
-    transforms = dlt.dbt.package(pipeline, "docs/examples/chess/dbt_transform", venv=dbt_venv)
+    transforms = data_load_tool.dbt.package(pipeline, "docs/examples/chess/dbt_transform", venv=dbt_venv)
     assert pipeline.default_schema_name is None
     # there's no data so the source tests will fail
     with pytest.raises(PrerequisitesException):
@@ -152,7 +152,7 @@ def test_run_chess_dbt_to_other_dataset(
     pipeline.config.use_single_dataset = False
     # assert pipeline.default_schema_name is None
     # get the runner for the "dbt_transform" package
-    transforms = dlt.dbt.package(pipeline, "docs/examples/chess/dbt_transform", venv=dbt_venv)
+    transforms = data_load_tool.dbt.package(pipeline, "docs/examples/chess/dbt_transform", venv=dbt_venv)
     # assert pipeline.default_schema_name is None
     # load data
     info = pipeline.run(chess(max_players=5, month=9), **destination_config.run_kwargs)

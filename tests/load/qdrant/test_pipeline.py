@@ -3,14 +3,14 @@ from typing import Iterator
 from tempfile import TemporaryDirectory
 import os
 
-import dlt
-from dlt.common import json
-from dlt.common.utils import uniq_id
-from dlt.common.typing import DictStrStr
+import data_load_tool
+from data_load_tool.common import json
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.typing import DictStrStr
 
-from dlt.destinations.adapters import qdrant_adapter
-from dlt.destinations.impl.qdrant.qdrant_adapter import qdrant_adapter, VECTORIZE_HINT
-from dlt.destinations.impl.qdrant.qdrant_job_client import QdrantClient
+from data_load_tool.destinations.adapters import qdrant_adapter
+from data_load_tool.destinations.impl.qdrant.qdrant_adapter import qdrant_adapter, VECTORIZE_HINT
+from data_load_tool.destinations.impl.qdrant.qdrant_job_client import QdrantClient
 from tests.pipeline.utils import assert_load_info
 from tests.load.qdrant.utils import drop_active_pipeline_data, assert_collection
 from tests.load.utils import sequence_generator
@@ -29,7 +29,7 @@ def drop_qdrant_data() -> Iterator[None]:
 def test_adapter_and_hints() -> None:
     generator_instance1 = sequence_generator()
 
-    @dlt.resource(columns=[{"name": "content", "data_type": "text"}])
+    @data_load_tool.resource(columns=[{"name": "content", "data_type": "text"}])
     def some_data():
         yield from next(generator_instance1)
 
@@ -46,7 +46,7 @@ def test_adapter_and_hints() -> None:
 def test_basic_state_and_schema() -> None:
     generator_instance1 = sequence_generator()
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield from next(generator_instance1)
 
@@ -55,7 +55,7 @@ def test_basic_state_and_schema() -> None:
         embed=["content"],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_append",
         destination="qdrant",
         dataset_name="test_pipeline_append_dataset" + uniq_id(),
@@ -81,7 +81,7 @@ def test_pipeline_append() -> None:
     generator_instance1 = sequence_generator()
     generator_instance2 = sequence_generator()
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield from next(generator_instance1)
 
@@ -90,7 +90,7 @@ def test_pipeline_append() -> None:
         embed=["content"],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_append",
         destination="qdrant",
         dataset_name="TestPipelineAppendDataset" + uniq_id(),
@@ -120,7 +120,7 @@ def test_explicit_append() -> None:
         {"doc_id": 3, "content": "3"},
     ]
 
-    @dlt.resource(primary_key="doc_id")
+    @data_load_tool.resource(primary_key="doc_id")
     def some_data():
         yield data
 
@@ -129,7 +129,7 @@ def test_explicit_append() -> None:
         embed=["content"],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_append",
         destination="qdrant",
         dataset_name="TestPipelineAppendDataset" + uniq_id(),
@@ -154,7 +154,7 @@ def test_pipeline_replace() -> None:
     generator_instance1 = sequence_generator()
     generator_instance2 = sequence_generator()
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield from next(generator_instance1)
 
@@ -165,7 +165,7 @@ def test_pipeline_replace() -> None:
 
     uid = uniq_id()
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_replace",
         destination="qdrant",
         dataset_name="test_pipeline_replace_dataset"
@@ -220,7 +220,7 @@ def test_pipeline_merge() -> None:
         },
     ]
 
-    @dlt.resource(primary_key="doc_id")
+    @data_load_tool.resource(primary_key="doc_id")
     def movies_data():
         yield data
 
@@ -229,7 +229,7 @@ def test_pipeline_merge() -> None:
         embed=["description"],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="movies",
         destination="qdrant",
         dataset_name="TestPipelineAppendDataset" + uniq_id(),
@@ -263,13 +263,13 @@ def test_pipeline_with_schema_evolution():
         },
     ]
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def some_data():
         yield data
 
     qdrant_adapter(some_data, embed=["content"])
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_pipeline_append",
         destination="qdrant",
         dataset_name="TestSchemaEvolutionDataset" + uniq_id(),
@@ -308,7 +308,7 @@ def test_pipeline_with_schema_evolution():
 
 
 def test_merge_github_nested() -> None:
-    p = dlt.pipeline(destination="qdrant", dataset_name="github1", dev_mode=True)
+    p = data_load_tool.pipeline(destination="qdrant", dataset_name="github1", dev_mode=True)
     assert p.dataset_name.startswith("github1_202")
 
     with open(
@@ -354,7 +354,7 @@ def test_merge_github_nested() -> None:
 
 def test_empty_dataset_allowed() -> None:
     # dataset_name is optional so dataset name won't be autogenerated when not explicitly passed
-    p = dlt.pipeline(destination="qdrant", dev_mode=True)
+    p = data_load_tool.pipeline(destination="qdrant", dev_mode=True)
     client: QdrantClient = p.destination_client()  # type: ignore[assignment]
 
     assert p.dataset_name is None
@@ -371,10 +371,10 @@ def test_qdrant_local_parallelism_disabled(preserve_environ) -> None:
     os.environ["DATA_WRITER__FILE_MAX_ITEMS"] = "20"
 
     with TemporaryDirectory() as tmpdir:
-        p = dlt.pipeline(destination=dlt.destinations.qdrant(path=tmpdir))
+        p = data_load_tool.pipeline(destination=data_load_tool.destinations.qdrant(path=tmpdir))
 
         # Data writer limit ensures that we create multiple load files to the same table
-        @dlt.resource
+        @data_load_tool.resource
         def q_data():
             for i in range(222):
                 yield {"doc_id": i, "content": f"content {i}"}

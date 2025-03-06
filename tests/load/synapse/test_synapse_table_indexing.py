@@ -2,11 +2,11 @@ import os
 import pytest
 from typing import Iterator, List, Any, Union
 
-import dlt
-from dlt.common.schema import TColumnSchema
+import data_load_tool
+from data_load_tool.common.schema import TColumnSchema
 
-from dlt.destinations.adapters import synapse_adapter
-from dlt.destinations.impl.synapse.synapse_adapter import TTableIndexType
+from data_load_tool.destinations.adapters import synapse_adapter
+from data_load_tool.destinations.impl.synapse.synapse_adapter import TTableIndexType
 
 from tests.load.utils import TABLE_UPDATE, TABLE_ROW_ALL_DATA_TYPES
 from tests.load.synapse.utils import get_storage_table_index_type
@@ -34,7 +34,7 @@ def test_default_table_index_type_configuration(
     # Configure default_table_index_type.
     os.environ["DESTINATION__SYNAPSE__DEFAULT_TABLE_INDEX_TYPE"] = table_index_type
 
-    @dlt.resource(
+    @data_load_tool.resource(
         name="items_without_table_index_type_specified",
         write_disposition="append",
         columns=column_schema,
@@ -42,7 +42,7 @@ def test_default_table_index_type_configuration(
     def items_without_table_index_type_specified() -> Iterator[Any]:
         yield TABLE_ROW_ALL_DATA_TYPES
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name=f"test_default_table_index_type_{table_index_type}",
         destination="synapse",
         dataset_name=f"test_default_table_index_type_{table_index_type}",
@@ -65,13 +65,13 @@ def test_default_table_index_type_configuration(
             # For data tables, the applied table index type should be the default value.
             assert applied_table_index_type == job_client.config.default_table_index_type  # type: ignore[attr-defined]
         elif table_name in pipeline.default_schema.dlt_table_names():
-            # For dlt tables, the applied table index type should always be "heap".
+            # For data_load_tool tables, the applied table index type should always be "heap".
             assert applied_table_index_type == "heap"
 
     # Test overriding the default_table_index_type from a resource configuration.
     if job_client.config.default_table_index_type == "heap":  # type: ignore[attr-defined]
 
-        @dlt.resource(
+        @data_load_tool.resource(
             name="items_with_table_index_type_specified",
             write_disposition="append",
             columns=column_schema,
@@ -100,7 +100,7 @@ def test_resource_table_index_type_configuration(
 ) -> None:
     os.environ["DESTINATION__REPLACE_STRATEGY"] = "insert-from-staging"
 
-    @dlt.resource(
+    @data_load_tool.resource(
         name="items_with_table_index_type_specified",
         write_disposition="replace",
         columns=column_schema,
@@ -108,7 +108,7 @@ def test_resource_table_index_type_configuration(
     def items_with_table_index_type_specified() -> Iterator[Any]:
         yield TABLE_ROW_ALL_DATA_TYPES
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name=f"test_table_index_type_{table_index_type}",
         destination="synapse",
         dataset_name=f"test_table_index_type_{table_index_type}",
@@ -133,5 +133,5 @@ def test_resource_table_index_type_configuration(
             # configured in the resource.
             assert applied_table_index_type == table_index_type
         elif table_name in pipeline.default_schema.dlt_table_names():
-            # For dlt tables, the applied table index type should always be "heap".
+            # For data_load_tool tables, the applied table index type should always be "heap".
             assert applied_table_index_type == "heap"

@@ -1,4 +1,4 @@
-from dlt.destinations import duckdb, redshift, postgres, bigquery, filesystem
+from data_load_tool.destinations import duckdb, redshift, postgres, bigquery, filesystem
 
 
 # callables to capabilities

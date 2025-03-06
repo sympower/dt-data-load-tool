@@ -1,6 +1,6 @@
 ---
 title: Airtable
-description: dlt verified source for Airtable
+description: data_load_tool verified source for Airtable
 keywords: [airtable api, airtable verified source, airtable]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 [Airtable](https://www.airtable.com/) is a cloud-based platform that merges spreadsheet and database functionalities for easy
 data management and collaboration.
 
-This Airtable `dlt` verified source and
+This Airtable `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/airtable_pipeline.py)
 loads data using the “Airtable API” to the destination of your choice.
 
@@ -65,7 +65,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init airtable duckdb
+   data_load_tool init airtable duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -83,7 +83,7 @@ For more information, read the guide on [how to add a verified source.](../../wa
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe.
 
    Use the following format for service account authentication:
@@ -95,7 +95,7 @@ For more information, read the guide on [how to add a verified source.](../../wa
 
 1. Finally, enter credentials for your chosen destination as per the [docs](../destinations/).
 
-1. Next, you need to configure ".dlt/config.toml", which looks like:
+1. Next, you need to configure ".data_load_tool/config.toml", which looks like:
 
    ```toml
    [sources.airtable]
@@ -127,7 +127,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the `pipeline_name` for the above pipeline example is `airtable`, you
@@ -137,7 +137,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `airtable_source`
@@ -145,11 +145,11 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 This function retrieves tables from a given Airtable base.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def airtable_source(
-    base_id: str = dlt.config.value,
+    base_id: str = data_load_tool.config.value,
     table_names: Optional[List[str]] = None,
-    access_token: str = dlt.secrets.value,
+    access_token: str = data_load_tool.secrets.value,
 ) -> Iterable[DltResource]:
    ...
 ```
@@ -189,7 +189,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
         pipeline_name="airtable",  # Use a custom name if desired
         destination="duckdb",      # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dataset_name="airtable_data"  # Use a custom name if desired

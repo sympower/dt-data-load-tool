@@ -1,6 +1,6 @@
 ---
 title: Google Analytics
-description: dlt verified source for Google Analytics API
+description: data_load_tool verified source for Google Analytics API
 keywords: [google analytics api, google analytics verified source, google analytics]
 ---
 import Header from './_source-info-header.md';
@@ -13,7 +13,7 @@ import Header from './_source-info-header.md';
 service for web analytics that tracks and provides data regarding user engagement with your website
 or application.
 
-This Google Analytics `dlt` verified source and
+This Google Analytics `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/google_analytics_pipeline.py)
 loads data using the "Google Analytics API" to the destination of your choice.
 
@@ -134,7 +134,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init google_analytics duckdb
+   data_load_tool init google_analytics duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -152,7 +152,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -195,8 +195,8 @@ For more information, read the guide on [how to add a verified source](../../wal
 1. You can also specify the parameters of the API requests such as dimensions and metrics to get
    your desired data.
 
-1. An example of how you can pass all of this to `dlt` is to simply insert it in the
-   `.dlt/config.toml` file as below:
+1. An example of how you can pass all of this to `data_load_tool` is to simply insert it in the
+   `.data_load_tool/config.toml` file as below:
 
    ```toml
    [sources.google_analytics]
@@ -210,7 +210,7 @@ For more information, read the guide on [how to add a verified source](../../wal
    > Include request parameters in a queries list. The data from each request fills a table, with
    > resources named by resource name, with dimensions. See the above example for reference.
 
-1. To use queries from `.dlt/config.toml`, run the `simple_load_config()` function in
+1. To use queries from `.data_load_tool/config.toml`, run the `simple_load_config()` function in
    [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/google_analytics_pipeline.py).
 
 For more information, read the [General Usage: Credentials.](../../general-usage/credentials)
@@ -229,7 +229,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is
    `dlt_google_analytics_pipeline`, but you may also use any custom name instead.
@@ -238,7 +238,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `simple_load`
@@ -247,11 +247,11 @@ This function returns a list of resources including metadata, metrics, and dimen
 the Google Analytics API.
 
 ```py
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def google_analytics(
-    credentials: Union[ GcpOAuthCredentials, GcpServiceAccountCredentials ] = dlt.secrets.value,
-    property_id: int = dlt.config.value,
-    queries: List[DictStrAny] = dlt.config.value,
+    credentials: Union[ GcpOAuthCredentials, GcpServiceAccountCredentials ] = data_load_tool.secrets.value,
+    property_id: int = data_load_tool.config.value,
+    queries: List[DictStrAny] = data_load_tool.config.value,
     start_date: Optional[str] = START_DATE_STRING,
     rows_per_page: int = 1000,
 ) -> List[DltResource]:
@@ -276,7 +276,7 @@ set to 1000.
 This function retrieves all the metrics and dimensions for a report from a Google Analytics project.
 
 ```py
-@dlt.resource(selected=False)
+@data_load_tool.resource(selected=False)
 def get_metadata(client: Resource, property_id: int) -> Iterator[Metadata]:
    ...
 ```
@@ -291,7 +291,7 @@ def get_metadata(client: Resource, property_id: int) -> Iterator[Metadata]:
 This transformer function extracts data using metadata and populates a table called "metrics" with the data from each metric.
 
 ```py
-@dlt.transformer(data_from=get_metadata, write_disposition="replace", name="metrics")
+@data_load_tool.transformer(data_from=get_metadata, write_disposition="replace", name="metrics")
 def metrics_table(metadata: Metadata) -> Iterator[TDataItem]:
     for metric in metadata.metrics:
         yield to_dict(metric)
@@ -309,7 +309,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="google_analytics",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="GA4_data"  # Use a custom name if desired

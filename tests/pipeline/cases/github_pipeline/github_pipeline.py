@@ -1,9 +1,9 @@
 import sys
 
-import dlt
+import data_load_tool
 
-from dlt.common.typing import TDataItem
-from dlt.common import json, pendulum
+from data_load_tool.common.typing import TDataItem
+from data_load_tool.common import json, pendulum
 
 
 def convert_dates(item: TDataItem) -> TDataItem:
@@ -11,9 +11,9 @@ def convert_dates(item: TDataItem) -> TDataItem:
     return item
 
 
-@dlt.source(root_key=True)
+@data_load_tool.source(root_key=True)
 def github():
-    @dlt.resource(  # type: ignore
+    @data_load_tool.resource(  # type: ignore
         table_name="issues",
         write_disposition="merge",
         primary_key="id",
@@ -21,7 +21,7 @@ def github():
         columns={"assignee": {"data_type": "complex"}},
     )
     def load_issues(
-        created_at=dlt.sources.incremental[pendulum.DateTime]("created_at"),  # noqa: B008
+        created_at=data_load_tool.sources.incremental[pendulum.DateTime]("created_at"),  # noqa: B008
     ):
         # we should be in TEST_STORAGE folder
         with open(
@@ -40,11 +40,11 @@ if __name__ == "__main__":
     dest_ = sys.argv[1]
     if dest_ == "filesystem":
         import os
-        from dlt.destinations import filesystem
+        from data_load_tool.destinations import filesystem
 
         dest_ = filesystem(os.path.abspath(os.path.join("_storage", "data")))  # type: ignore
 
-    p = dlt.pipeline("dlt_github_pipeline", destination=dest_, dataset_name="github_3")
+    p = data_load_tool.pipeline("dlt_github_pipeline", destination=dest_, dataset_name="github_3")
     github_source = github()
     if len(sys.argv) > 2:
         # load only N issues

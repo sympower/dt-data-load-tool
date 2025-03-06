@@ -3,11 +3,11 @@ from copy import deepcopy
 import pytest
 import sqlfluff
 
-from dlt.common.utils import uniq_id
-from dlt.common.schema import Schema, utils
-from dlt.destinations import snowflake
-from dlt.destinations.impl.snowflake.snowflake import SnowflakeClient, SUPPORTED_HINTS
-from dlt.destinations.impl.snowflake.configuration import (
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema import Schema, utils
+from data_load_tool.destinations import snowflake
+from data_load_tool.destinations.impl.snowflake.snowflake import SnowflakeClient, SUPPORTED_HINTS
+from data_load_tool.destinations.impl.snowflake.configuration import (
     SnowflakeClientConfiguration,
     SnowflakeCredentials,
 )

@@ -1,13 +1,13 @@
 ---
 title: Pipeline
-description: Explanation of what a dlt pipeline is
+description: Explanation of what a data_load_tool pipeline is
 keywords: [pipeline, source, full refresh, dev mode]
 ---
 
 # Pipeline
 
 A [pipeline](glossary.md#pipeline) is a connection that moves data from your Python code to a
-[destination](glossary.md#destination). The pipeline accepts `dlt` [sources](source.md) or
+[destination](glossary.md#destination). The pipeline accepts `data_load_tool` [sources](source.md) or
 [resources](resource.md), as well as generators, async generators, lists, and any iterables.
 Once the pipeline runs, all resources are evaluated and the data is loaded at the destination.
 
@@ -16,21 +16,21 @@ Example:
 This pipeline will load a list of objects into a DuckDB table named "three":
 
 ```py
-import dlt
+import data_load_tool
 
-pipeline = dlt.pipeline(destination="duckdb", dataset_name="sequence")
+pipeline = data_load_tool.pipeline(destination="duckdb", dataset_name="sequence")
 
 info = pipeline.run([{'id':1}, {'id':2}, {'id':3}], table_name="three")
 
 print(info)
 ```
 
-You instantiate a pipeline by calling the `dlt.pipeline` function with the following arguments:
+You instantiate a pipeline by calling the `data_load_tool.pipeline` function with the following arguments:
 
 - `pipeline_name`: a name of the pipeline that will be used to identify it in trace and monitoring
-  events and to restore its state and data schemas on subsequent runs. If not provided, `dlt` will
+  events and to restore its state and data schemas on subsequent runs. If not provided, `data_load_tool` will
   create a pipeline name from the file name of the currently executing Python module.
-- `destination`: a name of the [destination](../dlt-ecosystem/destinations) to which dlt
+- `destination`: a name of the [destination](../dlt-ecosystem/destinations) to which data_load_tool
   will load the data. It may also be provided to the `run` method of the `pipeline`.
 - `dataset_name`: a name of the dataset to which the data will be loaded. A dataset is a logical
   group of tables, i.e., `schema` in relational databases or a folder grouping many files. It may also be
@@ -43,7 +43,7 @@ To load the data, you call the `run` method and pass your data in the `data` arg
 
 Arguments:
 
-- `data` (the first argument) may be a dlt source, resource, generator function, or any Iterator or
+- `data` (the first argument) may be a data_load_tool source, resource, generator function, or any Iterator or
   Iterable (i.e., a list or the result of the `map` function).
 - `write_disposition` controls how to write data to a table. Defaults to "append".
   - `append` will always add new data at the end of the table.
@@ -56,13 +56,13 @@ Arguments:
 Example: This pipeline will load the data the generator `generate_rows(10)` produces:
 
 ```py
-import dlt
+import data_load_tool
 
 def generate_rows(nr):
     for i in range(nr):
         yield {'id':1}
 
-pipeline = dlt.pipeline(destination='bigquery', dataset_name='sql_database_data')
+pipeline = data_load_tool.pipeline(destination='bigquery', dataset_name='sql_database_data')
 
 info = pipeline.run(generate_rows(10))
 
@@ -71,12 +71,12 @@ print(info)
 
 ## Pipeline working directory
 
-Each pipeline that you create with `dlt` stores extracted files, load packages, inferred schemas,
+Each pipeline that you create with `data_load_tool` stores extracted files, load packages, inferred schemas,
 execution traces, and the [pipeline state](state.md) in a folder in the local filesystem. The default
-location for such folders is in the user's home directory: `~/.dlt/pipelines/<pipeline_name>`.
+location for such folders is in the user's home directory: `~/.data_load_tool/pipelines/<pipeline_name>`.
 
 You can inspect stored artifacts using the command
-[dlt pipeline info](../reference/command-line-interface.md#dlt-pipeline) and
+[data_load_tool pipeline info](../reference/command-line-interface.md#dlt-pipeline) and
 [programmatically](../walkthroughs/run-a-pipeline.md#4-inspect-a-load-process).
 
 > 💡 A pipeline with a given name looks for its working directory in the location above - so if you have two
@@ -85,32 +85,32 @@ You can inspect stored artifacts using the command
 > argument when creating the pipeline.
 
 > 💡 You can attach a `Pipeline` instance to an existing working folder, without creating a new
-> pipeline with `dlt.attach`.
+> pipeline with `data_load_tool.attach`.
 
 ### Separate working environments with `pipelines_dir`
 
 You can run several pipelines with the same name but with different configurations, for example, to target development, staging, or production environments.
 Set the `pipelines_dir` argument to store all the working folders in a specific place. For example:
 ```py
-import dlt
-from dlt.common.pipeline import get_dlt_pipelines_dir
+import data_load_tool
+from data_load_tool.common.pipeline import get_dlt_pipelines_dir
 
 dev_pipelines_dir = os.path.join(get_dlt_pipelines_dir(), "dev")
-pipeline = dlt.pipeline(destination="duckdb", dataset_name="sequence", pipelines_dir=dev_pipelines_dir)
+pipeline = data_load_tool.pipeline(destination="duckdb", dataset_name="sequence", pipelines_dir=dev_pipelines_dir)
 ```
-This code stores the pipeline working folder in `~/.dlt/pipelines/dev/<pipeline_name>`. Note that you need to pass this `~/.dlt/pipelines/dev/`
+This code stores the pipeline working folder in `~/.data_load_tool/pipelines/dev/<pipeline_name>`. Note that you need to pass this `~/.data_load_tool/pipelines/dev/`
 into all CLI commands to get info/trace for that pipeline.
 
 ## Do experiments with dev mode
 
 If you [create a new pipeline script](../walkthroughs/create-a-pipeline.md), you will be
 experimenting a lot. If you want each time the pipeline resets its state and loads data to a
-new dataset, set the `dev_mode` argument of the `dlt.pipeline` method to True. Each time the
-pipeline is created, `dlt` adds a datetime-based suffix to the dataset name.
+new dataset, set the `dev_mode` argument of the `data_load_tool.pipeline` method to True. Each time the
+pipeline is created, `data_load_tool` adds a datetime-based suffix to the dataset name.
 
 ## Refresh pipeline data and state
 
-You can reset parts or all of your sources by using the `refresh` argument to `dlt.pipeline` or the pipeline's `run` or `extract` method.
+You can reset parts or all of your sources by using the `refresh` argument to `data_load_tool.pipeline` or the pipeline's `run` or `extract` method.
 That means when you run the pipeline, the sources/resources being processed will have their state reset and their tables either dropped or truncated,
 depending on which refresh mode is used.
 
@@ -131,14 +131,14 @@ This erases schema history for the selected sources and only the latest version 
 :::
 
 ```py
-import dlt
+import data_load_tool
 
-pipeline = dlt.pipeline("airtable_demo", destination="duckdb")
+pipeline = data_load_tool.pipeline("airtable_demo", destination="duckdb")
 pipeline.run(airtable_emojis(), refresh="drop_sources")
 ```
-In the example above, we instruct `dlt` to wipe the pipeline state belonging to the `airtable_emojis` source and drop all the database tables in `duckdb` to
+In the example above, we instruct `data_load_tool` to wipe the pipeline state belonging to the `airtable_emojis` source and drop all the database tables in `duckdb` to
 which data was loaded. The `airtable_emojis` source had two resources named "📆 Schedule" and "💰 Budget" loading to tables "_schedule" and "_budget". Here's
-what `dlt` does step by step:
+what `data_load_tool` does step by step:
 1. Collects a list of tables to drop by looking for all the tables in the schema that are created in the destination.
 2. Removes existing pipeline state associated with the `airtable_emojis` source.
 3. Resets the schema associated with the `airtable_emojis` source.
@@ -153,20 +153,20 @@ Limits the refresh to the resources being processed in `pipeline.run` or `pipeli
 Tables belonging to those resources are dropped, and their resource state is wiped (that includes incremental state).
 The tables are deleted both from the pipeline's schema and from the destination database.
 
-Source level state keys are not deleted in this mode (i.e., `dlt.state()[<'my_key>'] = '<my_value>'`)
+Source level state keys are not deleted in this mode (i.e., `data_load_tool.state()[<'my_key>'] = '<my_value>'`)
 
 :::caution
 This erases schema history for all affected sources, and only the latest schema version is stored.
 :::
 
 ```py
-import dlt
+import data_load_tool
 
-pipeline = dlt.pipeline("airtable_demo", destination="duckdb")
+pipeline = data_load_tool.pipeline("airtable_demo", destination="duckdb")
 pipeline.run(airtable_emojis().with_resources("📆 Schedule"), refresh="drop_resources")
 ```
 Above, we request that the state associated with the "📆 Schedule" resource is reset, and the table generated by it ("_schedule") is dropped. Other resources,
-tables, and state are not affected. Please check `drop_sources` for a step-by-step description of what `dlt` does internally.
+tables, and state are not affected. Please check `drop_sources` for a step-by-step description of what `data_load_tool` does internally.
 
 ### Selectively truncate tables and reset resource state with `drop_data`
 
@@ -175,9 +175,9 @@ reset the cursor state and fully reload the data from the `initial_value`.
 
 The schema remains unmodified in this case.
 ```py
-import dlt
+import data_load_tool
 
-pipeline = dlt.pipeline("airtable_demo", destination="duckdb")
+pipeline = data_load_tool.pipeline("airtable_demo", destination="duckdb")
 pipeline.run(airtable_emojis().with_resources("📆 Schedule"), refresh="drop_data")
 ```
 Above, the incremental state of the "📆 Schedule" is reset before the `extract` step so data is fully reacquired. Just before the `load` step starts,
@@ -186,7 +186,7 @@ the "_schedule" is truncated, and new (full) table data will be inserted/copied.
 ## Display the loading progress
 
 You can add a progress monitor to the pipeline. Typically, its role is to visually assure the user that
-the pipeline run is progressing. dlt supports 4 progress monitors out of the box:
+the pipeline run is progressing. data_load_tool supports 4 progress monitors out of the box:
 
 - [enlighten](https://github.com/Rockhopper-Technologies/enlighten) - a status bar with progress
   bars that also allows for logging.
@@ -204,7 +204,7 @@ list above as in the following example:
 ```py
 # create a pipeline loading chess data that dumps
 # progress to stdout every 10 seconds (the default)
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="chess_pipeline",
     destination='duckdb',
     dataset_name="chess_players_games_data",
@@ -219,21 +219,21 @@ from airflow.operators.python import get_current_context  # noqa
 
 # log each minute to Airflow task logger
 ti = get_current_context()["ti"]
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="chess_pipeline",
     destination='duckdb',
     dataset_name="chess_players_games_data",
-    progress=dlt.progress.log(60, ti.log)
+    progress=data_load_tool.progress.log(60, ti.log)
 )
 ```
 
 ```py
 # set tqdm bar color to yellow
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="chess_pipeline",
     destination='duckdb',
     dataset_name="chess_players_games_data",
-    progress=dlt.progress.tqdm(colour="yellow")
+    progress=data_load_tool.progress.tqdm(colour="yellow")
 )
 ```
 

@@ -1,18 +1,18 @@
 ---
 name: Bug Report
-description: Report a problem with dlt
+description: Report a problem with data_load_tool
 labels: ["kind:bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting a bug for dlt! Please fill out the sections below.
+        Thanks for reporting a bug for data_load_tool! Please fill out the sections below.
         If you are not sure if this is a bug or not, please join our [Slack](https://dlthub.com/community)
         and ask in the #3-technical-help channel.
   - type: input
     attributes:
-      label: dlt version
-      description: What dlt version are you using? You can find this information in the output of `dlt --version`.
+      label: data_load_tool version
+      description: What data_load_tool version are you using? You can find this information in the output of `data_load_tool --version`.
     validations:
       required: true
   - type: textarea
@@ -26,7 +26,7 @@ body:
   - type: textarea
     attributes:
       label: Expected behavior
-      description: Describe your expectation of how dlt should behave.
+      description: Describe your expectation of how data_load_tool should behave.
       placeholder: >
         Elaborate on why you believe the observed behavior is incorrect. Including exact error messages,
         log fragments or screenshots. Attach files by dragging and dropping here.
@@ -90,13 +90,13 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: dlt data source
+      label: data_load_tool data source
       description: What data source are you using?
       placeholder: >
-        E.g. dlt verified source, API, CSV, etc.
+        E.g. data_load_tool verified source, API, CSV, etc.
   - type: dropdown
     attributes:
-      label: dlt destination
+      label: data_load_tool destination
       description: What type of destination are you using?
       multiple: true
       options:

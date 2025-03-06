@@ -1,5 +1,5 @@
 import inspect
-from dlt.common.utils import get_module_name
+from data_load_tool.common.utils import get_module_name
 
 
 def find_my_module():

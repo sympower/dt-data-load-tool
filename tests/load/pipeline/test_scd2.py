@@ -5,16 +5,16 @@ from typing import List, Dict, Any, Optional
 from datetime import date, datetime, timezone  # noqa: I251
 from contextlib import nullcontext as does_not_raise
 
-import dlt
-from dlt.common.typing import TAnyDateTime
-from dlt.common.pendulum import pendulum
-from dlt.common.pipeline import LoadInfo
-from dlt.common.data_types.typing import TDataType
-from dlt.common.schema.typing import DEFAULT_VALIDITY_COLUMN_NAMES
-from dlt.common.normalizers.json.helpers import get_row_hash
-from dlt.common.normalizers.naming.snake_case import NamingConvention as SnakeCaseNamingConvention
-from dlt.common.time import ensure_pendulum_datetime, reduce_pendulum_datetime_precision
-from dlt.extract.resource import DltResource
+import data_load_tool
+from data_load_tool.common.typing import TAnyDateTime
+from data_load_tool.common.pendulum import pendulum
+from data_load_tool.common.pipeline import LoadInfo
+from data_load_tool.common.data_types.typing import TDataType
+from data_load_tool.common.schema.typing import DEFAULT_VALIDITY_COLUMN_NAMES
+from data_load_tool.common.normalizers.json.helpers import get_row_hash
+from data_load_tool.common.normalizers.naming.snake_case import NamingConvention as SnakeCaseNamingConvention
+from data_load_tool.common.time import ensure_pendulum_datetime, reduce_pendulum_datetime_precision
+from data_load_tool.extract.resource import DltResource
 
 from tests.cases import arrow_table_all_data_types
 from tests.load.utils import (
@@ -33,7 +33,7 @@ from tests.utils import TPythonTableFormat
 FROM, TO = DEFAULT_VALIDITY_COLUMN_NAMES
 
 
-def get_load_package_created_at(pipeline: dlt.Pipeline, load_info: LoadInfo) -> datetime:
+def get_load_package_created_at(pipeline: data_load_tool.Pipeline, load_info: LoadInfo) -> datetime:
     """Returns `created_at` property of load package state."""
     load_id = load_info.asdict()["loads_ids"][0]
     created_at = (
@@ -51,7 +51,7 @@ def strip_timezone(ts: TAnyDateTime) -> pendulum.DateTime:
 
 
 def get_table(
-    pipeline: dlt.Pipeline,
+    pipeline: data_load_tool.Pipeline,
     table_name: str,
     sort_column: str = None,
     include_root_id: bool = True,
@@ -101,7 +101,7 @@ def test_core_functionality(
         pytest.skip("test `validity_column_names` configuration only for `postgres`")
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="dim_test",
         write_disposition={
             "disposition": "merge",
@@ -136,7 +136,7 @@ def test_core_functionality(
     assert not table["columns"]["_dlt_id"]["unique"]
 
     # assert load results
-    # NOTE: we are also testing deterministic dlt ids. they should NEVER change or
+    # NOTE: we are also testing deterministic data_load_tool ids. they should NEVER change or
     #  we are going to break user's loaded data. so don't fix the test fix the code if that happens
     ts_1 = get_load_package_created_at(p, info)
     assert_load_info(info)
@@ -252,7 +252,7 @@ def test_core_functionality(
 def test_child_table(destination_config: DestinationTestConfiguration, simple: bool) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="dim_test", write_disposition={"disposition": "merge", "strategy": "scd2"}
     )
     def r(data):
@@ -407,7 +407,7 @@ def test_child_table(destination_config: DestinationTestConfiguration, simple: b
 def test_grandchild_table(destination_config: DestinationTestConfiguration) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="dim_test", write_disposition={"disposition": "merge", "strategy": "scd2"}
     )
     def r(data):
@@ -500,7 +500,7 @@ def test_grandchild_table(destination_config: DestinationTestConfiguration) -> N
 def test_record_reinsert(destination_config: DestinationTestConfiguration) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="dim_test", write_disposition={"disposition": "merge", "strategy": "scd2"}
     )
     def r(data):
@@ -560,7 +560,7 @@ def test_record_reinsert(destination_config: DestinationTestConfiguration) -> No
 def test_validity_column_name_conflict(destination_config: DestinationTestConfiguration) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="dim_test",
         write_disposition={
             "disposition": "merge",
@@ -615,7 +615,7 @@ def test_active_record_timestamp(
 
     with context:
 
-        @dlt.resource(
+        @data_load_tool.resource(
             table_name="dim_test",
             write_disposition={
                 "disposition": "merge",
@@ -648,7 +648,7 @@ def test_boundary_timestamp(
     ts3 = date(2024, 8, 20)  # earlier than ts1 and ts2
     ts4 = "i_am_not_a_timestamp"
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="dim_test",
         write_disposition={
             "disposition": "merge",
@@ -741,7 +741,7 @@ def test_merge_key_natural_key(
 ) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         merge_key="nk",
         write_disposition={"disposition": "merge", "strategy": "scd2"},
     )
@@ -816,7 +816,7 @@ def test_merge_key_compound_natural_key(
 ) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         merge_key=["first_name", "last_name"],
         write_disposition={"disposition": "merge", "strategy": "scd2"},
     )
@@ -871,7 +871,7 @@ def test_merge_key_partition(
 ) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         merge_key="date",
         write_disposition={"disposition": "merge", "strategy": "scd2"},
     )
@@ -940,10 +940,10 @@ def test_arrow_custom_hash(
     if item_type == "pandas":
         orig_table = table.copy(deep=True)
 
-    from dlt.sources.helpers.transform import add_row_hash_to_table
+    from data_load_tool.sources.helpers.transform import add_row_hash_to_table
 
     def _make_scd2_r(table_: Any) -> DltResource:
-        return dlt.resource(
+        return data_load_tool.resource(
             table_,
             name="tabular",
             write_disposition={
@@ -990,7 +990,7 @@ def test_arrow_custom_hash(
 def test_user_provided_row_hash(destination_config: DestinationTestConfiguration) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="dim_test",
         write_disposition={
             "disposition": "merge",

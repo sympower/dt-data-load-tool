@@ -1,12 +1,12 @@
 ---
-title: Optimizing dlt
-description: Scale-up, parallelize and finetune dlt pipelines
+title: Optimizing data_load_tool
+description: Scale-up, parallelize and finetune data_load_tool pipelines
 keywords: [scaling, parallelism, finetuning]
 ---
 
-# Optimizing dlt
+# Optimizing data_load_tool
 
-This page contains a collection of tips and tricks to optimize dlt pipelines for speed, scalability and memory footprint. Keep in mind that dlt works in [three discreet stages](./explainers/how-dlt-works) that all have their own performance characteristics.
+This page contains a collection of tips and tricks to optimize data_load_tool pipelines for speed, scalability and memory footprint. Keep in mind that data_load_tool works in [three discreet stages](./explainers/how-dlt-works) that all have their own performance characteristics.
 
 
 ## Optimizing the extract stage
@@ -50,7 +50,7 @@ Instead of using Python Requests directly, you can use the built-in [requests wr
 
 
 ### Use built-in JSON parser
-`dlt` uses **orjson** if available. If not, it falls back to **simplejson**. The built-in parsers serialize several Python types:
+`data_load_tool` uses **orjson** if available. If not, it falls back to **simplejson**. The built-in parsers serialize several Python types:
 - Decimal
 - DateTime, Date
 - Dataclasses
@@ -58,14 +58,14 @@ Instead of using Python Requests directly, you can use the built-in [requests wr
 Import the module as follows for use in your sources, resources and transformers:
 
 ```py
-from dlt.common import json
+from data_load_tool.common import json
 ```
 
 For custom types support you can add a custom user-defined encoder like this:
 
 ```py
-from dlt.common import json
-from dlt.common.json import JsonSerializable
+from data_load_tool.common import json
+from data_load_tool.common.json import JsonSerializable
 from pydantic import AnyUrl
 
 def my_custom_encoder(obj: Any) -> JsonSerializable:
@@ -91,10 +91,10 @@ DLT_USE_JSON=simplejson
 
 
 ## Overall Memory and disk management
-`dlt` buffers data in memory to speed up processing and uses the file system to pass data between the **extract** and **normalize** stages. You can control the size of the buffers and the size and number of the files to fine-tune memory and CPU usage. These settings also impact parallelism, which is explained in the next chapter.
+`data_load_tool` buffers data in memory to speed up processing and uses the file system to pass data between the **extract** and **normalize** stages. You can control the size of the buffers and the size and number of the files to fine-tune memory and CPU usage. These settings also impact parallelism, which is explained in the next chapter.
 
 ### Controlling in-memory buffers
-`dlt` maintains in-memory buffers when writing intermediary files in the **extract** and **normalize** stages. The size of the buffers is controlled by specifying the number of data items held in them. Data is appended to open files when the item buffer is full, after which the buffer is cleared. You can specify the buffer size via environment variables or in `config.toml` to be more or less granular:
+`data_load_tool` maintains in-memory buffers when writing intermediary files in the **extract** and **normalize** stages. The size of the buffers is controlled by specifying the number of data items held in them. Data is appended to open files when the item buffer is full, after which the buffer is cleared. You can specify the buffer size via environment variables or in `config.toml` to be more or less granular:
 * set all buffers (both extract and normalize)
 * set extract buffers separately from normalize buffers
 * set extract buffers for a particular source or resource
@@ -102,17 +102,17 @@ DLT_USE_JSON=simplejson
 <!--@@@DLT_SNIPPET ./performance_snippets/toml-snippets.toml::buffer_toml-->
 
 
-The default buffer is actually set to a moderately low value (**5000 items**), so unless you are trying to run `dlt`
+The default buffer is actually set to a moderately low value (**5000 items**), so unless you are trying to run `data_load_tool`
 on IoT sensors or other tiny infrastructures, you might actually want to increase it to speed up
 processing.
 
 ### Controlling intermediary file size and rotation
-`dlt` writes data to intermediary files. You can control the file size and the number of created files by setting the maximum number of data items stored in a single file or the maximum single file size. Keep in mind that the file size is computed after compression has been performed.
-* `dlt` uses a custom version of the [JSON file format](../dlt-ecosystem/file-formats/jsonl.md) between the **extract** and **normalize** stages.
+`data_load_tool` writes data to intermediary files. You can control the file size and the number of created files by setting the maximum number of data items stored in a single file or the maximum single file size. Keep in mind that the file size is computed after compression has been performed.
+* `data_load_tool` uses a custom version of the [JSON file format](../dlt-ecosystem/file-formats/jsonl.md) between the **extract** and **normalize** stages.
 * Files created between the **normalize** and **load** stages are the same files that will be loaded to the destination.
 
 :::tip
-The default setting is to not rotate the files, so if you have a resource with millions of records, `dlt` will still create a single intermediary file to normalize and a single file to load. **If you want such data to be normalized and loaded in parallel, you must enable file rotation as described below.**
+The default setting is to not rotate the files, so if you have a resource with millions of records, `data_load_tool` will still create a single intermediary file to normalize and a single file to load. **If you want such data to be normalized and loaded in parallel, you must enable file rotation as described below.**
 :::
 :::note
 Some file formats (e.g., Parquet) do not support schema changes when writing a single file, and in that case, they are automatically rotated when new columns are discovered.
@@ -160,8 +160,8 @@ The `parallelized=True` argument wraps the resources in a generator that yields 
 The `parallelized` flag in the `resource` and `transformer` decorators is supported for:
 
 * Generator functions (as shown in the example)
-* Generators without functions (e.g., `dlt.resource(name='some_data', parallelized=True)(iter(range(100)))`)
-* `dlt.transformer` decorated functions. These can be either generator functions or regular functions that return one value
+* Generators without functions (e.g., `data_load_tool.resource(name='some_data', parallelized=True)(iter(range(100)))`)
+* `data_load_tool.transformer` decorated functions. These can be either generator functions or regular functions that return one value
 
 You can control the number of workers in the thread pool with the **workers** setting. The default number of workers is **5**. Below, you see a few ways to do that with different granularity.
 <!--@@@DLT_SNIPPET ./performance_snippets/toml-snippets.toml::extract_workers_toml-->
@@ -197,7 +197,7 @@ The default is to not parallelize normalization and to perform it in the main pr
 :::
 
 :::note
-Normalization is CPU-bound and can easily saturate all your cores. Never allow `dlt` to use all cores on your local machine.
+Normalization is CPU-bound and can easily saturate all your cores. Never allow `data_load_tool` to use all cores on your local machine.
 :::
 
 :::caution
@@ -212,13 +212,13 @@ start_method="spawn"
 :::
 
 ### Load
-The **load** stage uses a thread pool for parallelization. Loading is input/output-bound. `dlt` avoids any processing of the content of the load package produced by the normalizer. By default, loading happens in 20 threads, each loading a single file.
+The **load** stage uses a thread pool for parallelization. Loading is input/output-bound. `data_load_tool` avoids any processing of the content of the load package produced by the normalizer. By default, loading happens in 20 threads, each loading a single file.
 
 As before, **if you have just a single table with millions of records, you should enable [file rotation in the normalizer](#controlling-intermediary-file-size-and-rotation)**. Then the number of parallel load jobs is controlled by the `workers` config setting.
 
 <!--@@@DLT_SNIPPET ./performance_snippets/toml-snippets.toml::normalize_workers_2_toml-->
 
-The **normalize** stage in `dlt` uses a process pool to create load packages concurrently, and the settings for `file_max_items` and `file_max_bytes` play a crucial role in determining the size of data chunks. Lower values for these settings reduce the size of each chunk sent to the destination database, which is particularly helpful for managing memory constraints on the database server. By default, `dlt` writes all data rows into one large intermediary file, attempting to load all data at once. Configuring these settings enables file rotation, splitting the data into smaller, more manageable chunks. This not only improves performance but also minimizes memory-related issues when working with large tables containing millions of records.
+The **normalize** stage in `data_load_tool` uses a process pool to create load packages concurrently, and the settings for `file_max_items` and `file_max_bytes` play a crucial role in determining the size of data chunks. Lower values for these settings reduce the size of each chunk sent to the destination database, which is particularly helpful for managing memory constraints on the database server. By default, `data_load_tool` writes all data rows into one large intermediary file, attempting to load all data at once. Configuring these settings enables file rotation, splitting the data into smaller, more manageable chunks. This not only improves performance but also minimizes memory-related issues when working with large tables containing millions of records.
 
 #### Controlling destination items size
 The intermediary files generated during the **normalize** stage are also used in the **load** stage. Therefore, adjusting `file_max_items` and `file_max_bytes` in the **normalize** stage directly impacts the size and number of data chunks sent to the destination, influencing loading behavior and performance.
@@ -230,7 +230,7 @@ The example below simulates the loading of a large database table with 1,000,000
 * We use JSONL to load data to duckdb. We rotate JSONL files each 100,000 items so 10 files will be created.
 * We use 11 threads to load the data (10 JSON files + state file).
 
-<!--@@@DLT_SNIPPET ./performance_snippets/.dlt/config.toml::parallel_config_toml-->
+<!--@@@DLT_SNIPPET ./performance_snippets/.data_load_tool/config.toml::parallel_config_toml-->
 
 
 
@@ -242,14 +242,14 @@ The example below simulates the loading of a large database table with 1,000,000
 ### Source decomposition for serial and parallel resource execution
 
 You can decompose a pipeline into strongly connected components with
-`source().decompose(strategy="scc")`. The method returns a list of dlt sources, each containing a
+`source().decompose(strategy="scc")`. The method returns a list of data_load_tool sources, each containing a
 single component. The method ensures that no resource is executed twice.
 
 **Serial decomposition:**
 
 You can load such sources as tasks serially in the order presented in the list. Such a DAG is safe for
 pipelines that use the state internally.
-[It is used internally by our Airflow mapper to construct DAGs.](https://github.com/dlt-hub/dlt/blob/devel/dlt/helpers/airflow_helper.py)
+[It is used internally by our Airflow mapper to construct DAGs.](https://github.com/dlt-hub/data_load_tool/blob/devel/data_load_tool/helpers/airflow_helper.py)
 
 **Parallel decomposition**
 
@@ -298,9 +298,9 @@ You can also run pipelines in parallel across multiple machines. Please consult 
 
 ### Pitfalls
 
-Due to the way `dlt` works, there are a few general pitfalls to be aware of:
+Due to the way `data_load_tool` works, there are a few general pitfalls to be aware of:
 
-1. Do not run pipelines with the same name and working dir in parallel on the same machine. dlt will not be able to manage state and temporary files properly if you do this.
+1. Do not run pipelines with the same name and working dir in parallel on the same machine. data_load_tool will not be able to manage state and temporary files properly if you do this.
 
 2. If you're running multiple pipelines in parallel that write to the same destination dataset and use a staging area, make sure to do one of the following:
     - Assign a unique subfolder in the staging destination bucket for each pipeline, or
@@ -312,12 +312,12 @@ Due to the way `dlt` works, there are a few general pitfalls to be aware of:
 [`staging_dataset_name_layout` setting.](../dlt-ecosystem/staging#staging-dataset)
 
 ## Keep pipeline working folder in a bucket on constrained environments.
-`dlt` stores extracted data in load packages in order to load them atomically. In case you extract a lot of data at once (ie. backfill) or
+`data_load_tool` stores extracted data in load packages in order to load them atomically. In case you extract a lot of data at once (ie. backfill) or
 your runtime env has constrained local storage (ie. cloud functions) you can keep your data on a bucket by using [FUSE](https://github.com/libfuse/libfuse) or
 any other option which your cloud provider supplies.
 
-`dlt` users rename when saving files and  "committing" packages (folder rename). Those may be not supported on bucket filesystems. Often
-`rename` is translated into `copy` automatically. In other cases `dlt` will fallback to copy itself.
+`data_load_tool` users rename when saving files and  "committing" packages (folder rename). Those may be not supported on bucket filesystems. Often
+`rename` is translated into `copy` automatically. In other cases `data_load_tool` will fallback to copy itself.
 
 In case of cloud function and gs bucket mounts, increasing the rename limit for folders is possible:
 ```hcl
@@ -338,7 +338,7 @@ volumes {
 ```
 ## Handling storage limits
 
-If your storage reaches its limit, you are likely running dlt in a cloud environment with restricted disk space. To prevent issues, mount an external cloud storage location and set the `DLT_DATA_DIR` environment variable to point to it. This ensures that dlt uses the mounted storage as its data directory instead of local disk space.
+If your storage reaches its limit, you are likely running data_load_tool in a cloud environment with restricted disk space. To prevent issues, mount an external cloud storage location and set the `DLT_DATA_DIR` environment variable to point to it. This ensures that data_load_tool uses the mounted storage as its data directory instead of local disk space.
 
 
 ### Setting `DLT_DATA_DIR`
@@ -356,4 +356,4 @@ os.environ["DLT_DATA_DIR"] = data_dir
 
 # Rest of your pipeline code
 ```
-This directs dlt to use the specified external storage for all data operations, preventing local storage constraints.
+This directs data_load_tool to use the specified external storage for all data operations, preventing local storage constraints.

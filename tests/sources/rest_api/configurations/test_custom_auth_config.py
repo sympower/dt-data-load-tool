@@ -3,9 +3,9 @@ from typing import Any, Dict, cast
 
 import pytest
 
-from dlt.sources import rest_api
-from dlt.sources.helpers.rest_client.auth import APIKeyAuth, OAuth2ClientCredentials
-from dlt.sources.rest_api.typing import ApiKeyAuthConfig, AuthConfig, RESTAPIConfig
+from data_load_tool.sources import rest_api
+from data_load_tool.sources.helpers.rest_client.auth import APIKeyAuth, OAuth2ClientCredentials
+from data_load_tool.sources.rest_api.typing import ApiKeyAuthConfig, AuthConfig, RESTAPIConfig
 
 
 class CustomOAuth2(OAuth2ClientCredentials):

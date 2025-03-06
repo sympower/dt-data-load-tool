@@ -11,13 +11,13 @@ from airflow.models import TaskInstance
 from airflow.utils.state import DagRunState
 from airflow.utils.types import DagRunType
 
-import dlt
-from dlt.common import logger, pendulum
-from dlt.common.utils import set_working_dir, uniq_id
-from dlt.common.normalizers.naming.snake_case import NamingConvention as SnakeCaseNamingConvention
+import data_load_tool
+from data_load_tool.common import logger, pendulum
+from data_load_tool.common.utils import set_working_dir, uniq_id
+from data_load_tool.common.normalizers.naming.snake_case import NamingConvention as SnakeCaseNamingConvention
 
-from dlt.helpers.airflow_helper import PipelineTasksGroup, DEFAULT_RETRY_BACKOFF
-from dlt.pipeline.exceptions import CannotRestorePipelineException, PipelineStepFailed
+from data_load_tool.helpers.airflow_helper import PipelineTasksGroup, DEFAULT_RETRY_BACKOFF
+from data_load_tool.pipeline.exceptions import CannotRestorePipelineException, PipelineStepFailed
 
 from tests.pipeline.utils import load_table_counts
 from tests.utils import TEST_STORAGE_ROOT
@@ -41,60 +41,60 @@ default_args = {
 }
 
 
-@dlt.source
+@data_load_tool.source
 def mock_data_source():
-    @dlt.resource(selected=True)
+    @data_load_tool.resource(selected=True)
     def _r_init():
         yield ["-", "x", "!"]
 
-    @dlt.resource(selected=False)
+    @data_load_tool.resource(selected=False)
     def _r1():
         yield ["a", "b", "c"]
 
-    @dlt.transformer(data_from=_r1, selected=True)
+    @data_load_tool.transformer(data_from=_r1, selected=True)
     def _t1(items, suffix):
         yield list(map(lambda i: i + "_" + suffix, items))
 
-    @dlt.transformer(data_from=_r1)
+    @data_load_tool.transformer(data_from=_r1)
     def _t2(items, mul):
         yield items * mul
 
-    @dlt.transformer(data_from=_r1)
+    @data_load_tool.transformer(data_from=_r1)
     def _t3(items, mul):
         for item in items:
             yield item.upper() * mul
 
     # add something to init
-    @dlt.transformer(data_from=_r_init)
+    @data_load_tool.transformer(data_from=_r_init)
     def _t_init_post(items):
         for item in items:
             yield item * 2
 
-    @dlt.resource
+    @data_load_tool.resource
     def _r_isolee():
         yield from ["AX", "CV", "ED"]
 
     return _r_init, _t_init_post, _r1, _t1("POST"), _t2(3), _t3(2), _r_isolee
 
 
-@dlt.source
+@data_load_tool.source
 def mock_data_single_resource():
-    @dlt.resource(selected=True)
+    @data_load_tool.resource(selected=True)
     def resource():
         yield ["-", "x", "!"]
 
     return resource
 
 
-@dlt.source
+@data_load_tool.source
 def mock_data_incremental_source():
-    @dlt.resource
+    @data_load_tool.resource
     def resource1(a: str = None, b=None, c=None):
         yield ["s", "a"]
 
-    @dlt.resource
+    @data_load_tool.resource
     def resource2(
-        updated_at: dlt.sources.incremental[str] = dlt.sources.incremental(
+        updated_at: data_load_tool.sources.incremental[str] = data_load_tool.sources.incremental(
             "updated_at", initial_value="1970-01-01T00:00:00Z"
         )
     ):
@@ -103,51 +103,51 @@ def mock_data_incremental_source():
     return resource1, resource2
 
 
-@dlt.source(section="mock_data_source_state")
+@data_load_tool.source(section="mock_data_source_state")
 def mock_data_source_state():
-    @dlt.resource(selected=True)
+    @data_load_tool.resource(selected=True)
     def _r_init():
-        dlt.current.source_state()["counter"] = 1
-        dlt.current.source_state()["end_counter"] = 1
+        data_load_tool.current.source_state()["counter"] = 1
+        data_load_tool.current.source_state()["end_counter"] = 1
         yield ["-", "x", "!"]
 
-    @dlt.resource(selected=False)
+    @data_load_tool.resource(selected=False)
     def _r1():
-        dlt.current.source_state()["counter"] += 1
-        dlt.current.resource_state()["counter"] = 1
+        data_load_tool.current.source_state()["counter"] += 1
+        data_load_tool.current.resource_state()["counter"] = 1
         yield from ["a", "b", "c"]
 
-    @dlt.transformer(data_from=_r1, selected=True)
+    @data_load_tool.transformer(data_from=_r1, selected=True)
     def _t1(items, suffix):
-        dlt.current.source_state()["counter"] += 1
-        dlt.current.resource_state("_r1")["counter"] += 1
-        dlt.current.resource_state()["counter"] = 1
+        data_load_tool.current.source_state()["counter"] += 1
+        data_load_tool.current.resource_state("_r1")["counter"] += 1
+        data_load_tool.current.resource_state()["counter"] = 1
         yield list(map(lambda i: i + "_" + suffix, items))
 
-    @dlt.transformer(data_from=_r1)
+    @data_load_tool.transformer(data_from=_r1)
     def _t2(items, mul):
-        dlt.current.source_state()["counter"] += 1
-        dlt.current.resource_state("_r1")["counter"] += 1
-        dlt.current.resource_state()["counter"] = 1
+        data_load_tool.current.source_state()["counter"] += 1
+        data_load_tool.current.resource_state("_r1")["counter"] += 1
+        data_load_tool.current.resource_state()["counter"] = 1
         yield items * mul
 
-    @dlt.transformer(data_from=_r1)
+    @data_load_tool.transformer(data_from=_r1)
     def _t3(items, mul):
-        dlt.current.source_state()["counter"] += 1
-        dlt.current.resource_state("_r1")["counter"] += 1
-        dlt.current.resource_state()["counter"] = 1
+        data_load_tool.current.source_state()["counter"] += 1
+        data_load_tool.current.resource_state("_r1")["counter"] += 1
+        data_load_tool.current.resource_state()["counter"] = 1
         for item in items:
             yield item.upper() * mul
 
     # add something to init
-    @dlt.transformer(data_from=_r_init)
+    @data_load_tool.transformer(data_from=_r_init)
     def _t_init_post(items):
         for item in items:
             yield item * 2
 
-    @dlt.resource
+    @data_load_tool.resource
     def _r_isolee():
-        dlt.current.source_state()["end_counter"] += 1
+        data_load_tool.current.source_state()["end_counter"] += 1
         yield from ["AX", "CV", "ED"]
 
     return _r_init, _t_init_post, _r1, _t1("POST"), _t2(3), _t3(2), _r_isolee
@@ -155,10 +155,10 @@ def mock_data_source_state():
 
 def test_regular_run() -> None:
     # run the pipeline normally
-    pipeline_standalone = dlt.pipeline(
+    pipeline_standalone = data_load_tool.pipeline(
         pipeline_name="pipeline_standalone",
         dataset_name="mock_data_" + uniq_id(),
-        destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+        destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
     )
     pipeline_standalone.run(mock_data_source())
     pipeline_standalone_counts = load_table_counts(
@@ -174,10 +174,10 @@ def test_regular_run() -> None:
             "pipeline_dag_regular", local_data_folder=TEST_STORAGE_ROOT, wipe_local_data=False
         )
 
-        pipeline_dag_regular = dlt.pipeline(
+        pipeline_dag_regular = data_load_tool.pipeline(
             pipeline_name="pipeline_dag_regular",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+            destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
         )
         assert pipeline_dag_regular.get_local_state_val("initial_cwd").startswith(
             os.path.abspath(TEST_STORAGE_ROOT)
@@ -202,9 +202,9 @@ def test_regular_run() -> None:
     dag_def.test()
     # we should be able to attach to pipeline state created within Airflow
 
-    pipeline_dag_regular = dlt.attach(
+    pipeline_dag_regular = data_load_tool.attach(
         pipeline_name="pipeline_dag_regular",
-        destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+        destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
     )
     pipeline_dag_regular_counts = load_table_counts(
         pipeline_dag_regular,
@@ -221,7 +221,7 @@ def test_regular_run() -> None:
         )
 
         # set duckdb to be outside of pipeline folder which is dropped on each task
-        pipeline_dag_decomposed = dlt.pipeline(
+        pipeline_dag_decomposed = data_load_tool.pipeline(
             pipeline_name="pipeline_dag_decomposed",
             dataset_name="mock_data_" + uniq_id(),
             destination="duckdb",
@@ -242,7 +242,7 @@ def test_regular_run() -> None:
     assert tasks_list[1].task_id == "pipeline_dag_decomposed.mock_data_source__t1-_t2-_t3"
     assert tasks_list[2].task_id == "pipeline_dag_decomposed.mock_data_source__r_isolee"
     dag_def.test()
-    pipeline_dag_decomposed = dlt.attach(
+    pipeline_dag_decomposed = data_load_tool.attach(
         pipeline_name="pipeline_dag_decomposed",
     )
     pipeline_dag_decomposed_counts = load_table_counts(
@@ -255,10 +255,10 @@ def test_regular_run() -> None:
 def test_run() -> None:
     task: PythonOperator = None
 
-    pipeline_standalone = dlt.pipeline(
+    pipeline_standalone = data_load_tool.pipeline(
         pipeline_name="pipeline_standalone",
         dataset_name="mock_data_" + uniq_id(),
-        destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+        destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
     )
     pipeline_standalone.run(mock_data_source())
     pipeline_standalone_counts = load_table_counts(
@@ -273,10 +273,10 @@ def test_run() -> None:
         )
 
         # set duckdb to be outside of pipeline folder which is dropped on each task
-        pipeline_dag_regular = dlt.pipeline(
+        pipeline_dag_regular = data_load_tool.pipeline(
             pipeline_name="pipeline_dag_regular",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(destination_name="dag_regular_b"),
+            destination=data_load_tool.destinations.duckdb(destination_name="dag_regular_b"),
         )
         task = tasks.run(pipeline_dag_regular, mock_data_source())
 
@@ -285,7 +285,7 @@ def test_run() -> None:
 
     dag_def.test()
 
-    pipeline_dag_regular = dlt.attach(
+    pipeline_dag_regular = data_load_tool.attach(
         pipeline_name="pipeline_dag_regular",
     )
     assert pipeline_dag_regular.first_run is False
@@ -300,10 +300,10 @@ def test_run() -> None:
 
 
 def test_parallel_run():
-    pipeline_standalone = dlt.pipeline(
+    pipeline_standalone = data_load_tool.pipeline(
         pipeline_name="pipeline_parallel",
         dataset_name="mock_data_" + uniq_id(),
-        destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+        destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
     )
     pipeline_standalone.run(mock_data_source())
     pipeline_standalone_counts = load_table_counts(
@@ -322,10 +322,10 @@ def test_parallel_run():
         )
 
         # set duckdb to be outside of pipeline folder which is dropped on each task
-        pipeline_dag_parallel = dlt.pipeline(
+        pipeline_dag_parallel = data_load_tool.pipeline(
             pipeline_name="pipeline_dag_parallel",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(credentials=quackdb_path),
+            destination=data_load_tool.destinations.duckdb(credentials=quackdb_path),
         )
         tasks_list = tasks.add_run(
             pipeline_dag_parallel,
@@ -340,9 +340,9 @@ def test_parallel_run():
     assert len(tasks_list) == 4
     dag_def.test()
 
-    pipeline_dag_parallel = dlt.attach(
+    pipeline_dag_parallel = data_load_tool.attach(
         pipeline_name="pipeline_dag_parallel",
-        destination=dlt.destinations.duckdb(credentials=quackdb_path),
+        destination=data_load_tool.destinations.duckdb(credentials=quackdb_path),
     )
     results = load_table_counts(
         pipeline_dag_parallel,
@@ -358,10 +358,10 @@ def test_parallel_run():
 
 
 def test_parallel_incremental():
-    pipeline_standalone = dlt.pipeline(
+    pipeline_standalone = data_load_tool.pipeline(
         pipeline_name="pipeline_parallel",
         dataset_name="mock_data_" + uniq_id(),
-        destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+        destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
     )
     pipeline_standalone.run(mock_data_incremental_source())
 
@@ -375,7 +375,7 @@ def test_parallel_incremental():
         )
 
         # set duckdb to be outside of pipeline folder which is dropped on each task
-        pipeline_dag_parallel = dlt.pipeline(
+        pipeline_dag_parallel = data_load_tool.pipeline(
             pipeline_name="pipeline_dag_parallel",
             dataset_name="mock_data_" + uniq_id(),
             destination="duckdb",
@@ -389,7 +389,7 @@ def test_parallel_incremental():
             provide_context=True,
         )
 
-    with mock.patch("dlt.helpers.airflow_helper.logger.warn") as warn_mock:
+    with mock.patch("data_load_tool.helpers.airflow_helper.logger.warn") as warn_mock:
         dag_def = dag_parallel()
         dag_def.test()
         warn_mock.assert_has_calls(
@@ -406,10 +406,10 @@ def test_parallel_incremental():
 
 
 def test_parallel_isolated_run():
-    pipeline_standalone = dlt.pipeline(
+    pipeline_standalone = data_load_tool.pipeline(
         pipeline_name="pipeline_parallel",
         dataset_name="mock_data_" + uniq_id(),
-        destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+        destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
     )
     pipeline_standalone.run(mock_data_source())
     pipeline_standalone_counts = load_table_counts(
@@ -426,10 +426,10 @@ def test_parallel_isolated_run():
         )
 
         # set duckdb to be outside of pipeline folder which is dropped on each task
-        pipeline_dag_parallel = dlt.pipeline(
+        pipeline_dag_parallel = data_load_tool.pipeline(
             pipeline_name="pipeline_dag_parallel",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(),
+            destination=data_load_tool.destinations.duckdb(),
         )
         tasks_list = tasks.add_run(
             pipeline_dag_parallel,
@@ -447,7 +447,7 @@ def test_parallel_isolated_run():
     results = {}
     snake_case = SnakeCaseNamingConvention()
     for i in range(0, 3):
-        pipeline_dag_parallel = dlt.attach(
+        pipeline_dag_parallel = data_load_tool.attach(
             pipeline_name=snake_case.normalize_identifier(
                 dag_def.tasks[i].task_id.replace("pipeline_dag_parallel.", "")[:-2]
             ),
@@ -467,10 +467,10 @@ def test_parallel_isolated_run():
 
 
 def test_parallel_run_single_resource():
-    pipeline_standalone = dlt.pipeline(
+    pipeline_standalone = data_load_tool.pipeline(
         pipeline_name="pipeline_parallel",
         dataset_name="mock_data_" + uniq_id(),
-        destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+        destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
     )
     pipeline_standalone.run(mock_data_single_resource())
     pipeline_standalone_counts = load_table_counts(
@@ -487,7 +487,7 @@ def test_parallel_run_single_resource():
         )
 
         # set duckdb to be outside of pipeline folder which is dropped on each task
-        pipeline_dag_parallel = dlt.pipeline(
+        pipeline_dag_parallel = data_load_tool.pipeline(
             pipeline_name="pipeline_dag_parallel",
             dataset_name="mock_data_" + uniq_id(),
             destination="duckdb",
@@ -504,7 +504,7 @@ def test_parallel_run_single_resource():
     dag_def = dag_parallel()
     assert len(tasks_list) == 2
     dag_def.test()
-    pipeline_dag_parallel = dlt.attach(
+    pipeline_dag_parallel = data_load_tool.attach(
         pipeline_name="pipeline_dag_parallel",
     )
     pipeline_dag_decomposed_counts = load_table_counts(
@@ -530,7 +530,7 @@ def test_parallel_run_single_resource():
 #     def dag_fail_3():
 #         tasks = PipelineTasksGroup("pipeline_fail_3", local_data_folder=TEST_STORAGE_ROOT, wipe_local_data=False)
 
-#         pipeline_fail_3 = dlt.pipeline(
+#         pipeline_fail_3 = data_load_tool.pipeline(
 #             pipeline_name="pipeline_fail_3", dataset_name="mock_data_" + uniq_id(), destination="duckdb", credentials=":pipeline:")
 #         tasks.add_run(pipeline_fail_3, _fail_3, decompose="serialize", trigger_rule="all_done", retries=0, provide_context=True)
 
@@ -539,7 +539,7 @@ def test_run_with_retry() -> None:
     retries = 2
     now = pendulum.now()
 
-    @dlt.resource
+    @data_load_tool.resource
     def _fail_3():
         nonlocal retries
         retries -= 1
@@ -554,10 +554,10 @@ def test_run_with_retry() -> None:
             "pipeline_fail_3", local_data_folder=TEST_STORAGE_ROOT, wipe_local_data=False
         )
 
-        pipeline_fail_3 = dlt.pipeline(
+        pipeline_fail_3 = data_load_tool.pipeline(
             pipeline_name="pipeline_fail_3",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+            destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
         )
         tasks.add_run(
             pipeline_fail_3, _fail_3, trigger_rule="all_done", retries=0, provide_context=True
@@ -580,10 +580,10 @@ def test_run_with_retry() -> None:
             wipe_local_data=False,
         )
 
-        pipeline_fail_3 = dlt.pipeline(
+        pipeline_fail_3 = data_load_tool.pipeline(
             pipeline_name="pipeline_fail_3",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+            destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
         )
         tasks.add_run(
             pipeline_fail_3, _fail_3, trigger_rule="all_done", retries=0, provide_context=True
@@ -608,10 +608,10 @@ def test_run_with_retry() -> None:
             wipe_local_data=False,
         )
 
-        pipeline_fail_3 = dlt.pipeline(
+        pipeline_fail_3 = data_load_tool.pipeline(
             pipeline_name="pipeline_fail_3",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+            destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
         )
         tasks.add_run(
             pipeline_fail_3, _fail_3, trigger_rule="all_done", retries=0, provide_context=True
@@ -638,7 +638,7 @@ def test_run_decomposed_with_state_wipe() -> None:
             save_trace_info=True,
         )
 
-        pipeline_dag_regular = dlt.pipeline(
+        pipeline_dag_regular = data_load_tool.pipeline(
             pipeline_name=pipeline_name, dataset_name=dataset_name, destination="duckdb"
         )
         tasks.add_run(
@@ -655,9 +655,9 @@ def test_run_decomposed_with_state_wipe() -> None:
 
     # pipeline local state was destroyed
     with pytest.raises(CannotRestorePipelineException):
-        dlt.attach(pipeline_name=pipeline_name)
+        data_load_tool.attach(pipeline_name=pipeline_name)
 
-    pipeline_dag_regular = dlt.pipeline(
+    pipeline_dag_regular = data_load_tool.pipeline(
         pipeline_name=pipeline_name, dataset_name=dataset_name, destination="duckdb"
     )
     pipeline_dag_regular.sync_destination()
@@ -687,7 +687,7 @@ def test_run_multiple_sources() -> None:
             pipeline_name, local_data_folder=TEST_STORAGE_ROOT, wipe_local_data=True
         )
 
-        pipeline_dag_regular = dlt.pipeline(
+        pipeline_dag_regular = data_load_tool.pipeline(
             pipeline_name=pipeline_name, dataset_name=dataset_name, destination="duckdb"
         )
         st_tasks = tasks.add_run(
@@ -712,7 +712,7 @@ def test_run_multiple_sources() -> None:
     dag_def: DAG = dag_serialize()
     dag_def.test()
 
-    pipeline_dag_serial = dlt.pipeline(
+    pipeline_dag_serial = data_load_tool.pipeline(
         pipeline_name=pipeline_name, dataset_name=dataset_name, destination="duckdb"
     )
     pipeline_dag_serial.sync_destination()
@@ -751,7 +751,7 @@ def test_run_multiple_sources() -> None:
             pipeline_name, local_data_folder=TEST_STORAGE_ROOT, wipe_local_data=True
         )
 
-        pipeline_dag_regular = dlt.pipeline(
+        pipeline_dag_regular = data_load_tool.pipeline(
             pipeline_name=pipeline_name, dataset_name=dataset_name, destination="duckdb"
         )
         tasks.add_run(
@@ -775,7 +775,7 @@ def test_run_multiple_sources() -> None:
     dag_def = dag_parallel()
     dag_def.test()
 
-    pipeline_dag_parallel = dlt.pipeline(
+    pipeline_dag_parallel = data_load_tool.pipeline(
         pipeline_name=pipeline_name, dataset_name=dataset_name, destination="duckdb"
     )
     pipeline_dag_parallel.sync_destination()
@@ -804,7 +804,7 @@ def test_run_multiple_sources() -> None:
             pipeline_name, local_data_folder=TEST_STORAGE_ROOT, wipe_local_data=True
         )
 
-        pipeline_dag_regular = dlt.pipeline(
+        pipeline_dag_regular = data_load_tool.pipeline(
             pipeline_name=pipeline_name, dataset_name=dataset_name, destination="duckdb"
         )
         pd_tasks = tasks.add_run(
@@ -830,7 +830,7 @@ def test_run_multiple_sources() -> None:
     dag_def = dag_mixed()
     dag_def.test()
 
-    pipeline_dag_mixed = dlt.pipeline(
+    pipeline_dag_mixed = data_load_tool.pipeline(
         pipeline_name=pipeline_name, dataset_name=dataset_name, destination="duckdb"
     )
     pipeline_dag_mixed.sync_destination()
@@ -882,10 +882,10 @@ def test_task_already_added():
 
         source = mock_data_source()
 
-        pipe = dlt.pipeline(
+        pipe = data_load_tool.pipeline(
             pipeline_name="test_pipeline",
             dataset_name="mock_data",
-            destination=dlt.destinations.duckdb(
+            destination=data_load_tool.destinations.duckdb(
                 credentials=os.path.join("_storage", "test_pipeline.duckdb")
             ),
         )
@@ -930,7 +930,7 @@ def test_task_already_added():
 
 
 def callable_source():
-    @dlt.resource
+    @data_load_tool.resource
     def test_res():
         context = get_current_context()
         yield [
@@ -951,17 +951,17 @@ def test_run_callable() -> None:
             "callable_dag_group", local_data_folder=TEST_STORAGE_ROOT, wipe_local_data=False
         )
 
-        call_dag = dlt.pipeline(
+        call_dag = data_load_tool.pipeline(
             pipeline_name="callable_dag",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(destination_name="callable_dag_db"),
+            destination=data_load_tool.destinations.duckdb(destination_name="callable_dag_db"),
         )
         tasks.run(call_dag, callable_source)
 
     dag_def: DAG = dag_regular()
     dag_def.test()
 
-    pipeline_dag = dlt.attach(pipeline_name="callable_dag")
+    pipeline_dag = data_load_tool.attach(pipeline_name="callable_dag")
 
     with pipeline_dag.sql_client() as client:
         with client.execute_query("SELECT * FROM test_res") as result:
@@ -987,16 +987,16 @@ def test_on_before_run() -> None:
             "callable_dag_group", local_data_folder=TEST_STORAGE_ROOT, wipe_local_data=False
         )
 
-        call_dag = dlt.pipeline(
+        call_dag = data_load_tool.pipeline(
             pipeline_name="callable_dag",
             dataset_name="mock_data_" + uniq_id(),
-            destination=dlt.destinations.duckdb(credentials=quackdb_path),
+            destination=data_load_tool.destinations.duckdb(credentials=quackdb_path),
         )
         tasks.run(call_dag, mock_data_source, on_before_run=on_before_run)
 
     dag_def: DAG = dag_regular()
 
-    with mock.patch("dlt.helpers.airflow_helper.logger.info") as logger_mock:
+    with mock.patch("data_load_tool.helpers.airflow_helper.logger.info") as logger_mock:
         dag_def.test()
         logger_mock.assert_has_calls(
             [

@@ -7,19 +7,19 @@ keywords: [how to, adjust a schema]
 # Adjust a schema
 
 When you [create](create-a-pipeline.md) and then [run](run-a-pipeline.md) a pipeline, you may want
-to manually inspect and change the [schema](../general-usage/schema.md) that `dlt` generated for
+to manually inspect and change the [schema](../general-usage/schema.md) that `data_load_tool` generated for
 you. Here's how you do it.
 
 ## 1. Export your schemas on each run
 
-Set up an export folder by providing the `export_schema_path` argument to `dlt.pipeline` to save the
-schema. Set up an import folder from which `dlt` will read your modifications by providing
+Set up an export folder by providing the `export_schema_path` argument to `data_load_tool.pipeline` to save the
+schema. Set up an import folder from which `data_load_tool` will read your modifications by providing
 the `import_schema_path` argument.
 
 Following our example in [run a pipeline](run-a-pipeline.md):
 
 ```py
-dlt.pipeline(
+data_load_tool.pipeline(
     import_schema_path="schemas/import",
     export_schema_path="schemas/export",
     pipeline_name="chess_pipeline",
@@ -36,7 +36,7 @@ schemas
     |---export/
 ```
 
-Rather than providing the paths in the `dlt.pipeline` function, you can also set them
+Rather than providing the paths in the `data_load_tool.pipeline` function, you can also set them
 in the `config.toml` file:
 
 ```toml
@@ -57,7 +57,7 @@ and was used to load it into the destination (e.g., `duckdb`).
 Now look at the import schema (in the import folder): it contains only the tables, columns, and
 hints that were explicitly declared in the `chess` source. You'll use this schema to make
 modifications, typically by pasting relevant snippets from your export schema and modifying them.
-You should keep the import schema as simple as possible and let `dlt` do the rest.
+You should keep the import schema as simple as possible and let `data_load_tool` do the rest.
 
 💡 How importing a schema works:
 
@@ -74,12 +74,12 @@ You should keep the import schema as simple as possible and let `dlt` do the res
 In the next steps, we'll experiment a lot; you will be warned to set `dev_mode=True` until we are done experimenting.
 
 :::caution
-`dlt` will **not modify** tables after they are created.
+`data_load_tool` will **not modify** tables after they are created.
 So if you have a YAML file, and you change it (e.g., change a data type or add a hint),
 then you need to **delete the dataset**
 or set `dev_mode=True`:
 ```py
-dlt.pipeline(
+data_load_tool.pipeline(
     import_schema_path="schemas/import",
     export_schema_path="schemas/export",
     pipeline_name="chess_pipeline",
@@ -116,7 +116,7 @@ Run the pipeline script again and make sure that the change is visible in the ex
 [launch the Streamlit app](../general-usage/dataset-access/streamlit) to see the changed data.
 
 :::note
-Do not rename the tables or columns in the YAML file. `dlt` infers those from the data, so the schema will be recreated.
+Do not rename the tables or columns in the YAML file. `data_load_tool` infers those from the data, so the schema will be recreated.
 You can [adjust the schema](../general-usage/resource.md#set-table-name-and-adjust-schema) in Python before the resource is loaded.
 :::
 
@@ -164,7 +164,7 @@ white__aid:
 ```
 
 For some reason, you'd rather deal with a single JSON (or struct) column. Just declare the `white`
-column as `json`, which will instruct `dlt` not to flatten it (or not convert into a nested table in
+column as `json`, which will instruct `data_load_tool` not to flatten it (or not convert into a nested table in
 case of a list). Do the same with the `black` column:
 
 ```yaml

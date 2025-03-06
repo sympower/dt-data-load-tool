@@ -1,6 +1,6 @@
 import pytest
 
-from dlt.sources.rest_api.config_setup import (
+from data_load_tool.sources.rest_api.config_setup import (
     expand_placeholders,
     _find_expressions,
     _expressions_to_resolved_params,

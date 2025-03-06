@@ -75,14 +75,14 @@ directory structure:
 
 ```text
 url_parser_enrichment/
-├── .dlt/
+├── .data_load_tool/
 │   └── secrets.toml
 └── url_enrichment_pipeline.py
 ```
 
 ### 1. Creating resource
 
-`dlt` works on the principle of [sources](../../general-usage/source.md) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source.md) and
 [resources.](../../general-usage/resource.md)
 
 This data resource yields data typical of what many web analytics and tracking tools can collect.
@@ -101,15 +101,15 @@ Let's examine a synthetic dataset created for this article. It includes:
 Here's the resource that yields the sample data as discussed above:
 
 ```py
-    import dlt
+    import data_load_tool
 
-    @dlt.resource(write_disposition="append")
+    @data_load_tool.resource(write_disposition="append")
     def tracked_data():
         """
         A generator function that yields a series of dictionaries, each representing
         user tracking data.
 
-        This function is decorated with `dlt.resource` to integrate into the DLT (Data
+        This function is decorated with `data_load_tool.resource` to integrate into the DLT (Data
         Loading Tool) pipeline. The `write_disposition` parameter is set to "append" to
         ensure that data from this generator is appended to the existing data in the
         destination table.
@@ -180,10 +180,10 @@ need to register to use this service nor get an API key.
    - Add map function
    - Transformer function
 
-   The `dlt` library's `transformer` and `add_map` functions serve distinct purposes in data
+   The `data_load_tool` library's `transformer` and `add_map` functions serve distinct purposes in data
    processing.
 
-   `Transformers` are a form of `dlt resource` that takes input from other resources
+   `Transformers` are a form of `data_load_tool resource` that takes input from other resources
    via the `data_from` argument to enrich or transform the data.
    [Click here.](../../general-usage/resource.md#process-resources-with-dlttransformer)
 
@@ -196,7 +196,7 @@ need to register to use this service nor get an API key.
 
    ```py
    # Create the pipeline
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="data_enrichment_three",
        destination="duckdb",
        dataset_name="user_device_enrichment",
@@ -230,7 +230,7 @@ need to register to use this service nor get an API key.
    [destination](../../dlt-ecosystem/destinations/), for example, duckdb:
 
    ```sh
-   pip install "dlt[duckdb]"
+   pip install "data_load_tool[duckdb]"
    ```
 
 1. Run the pipeline with the following command:
@@ -242,7 +242,7 @@ need to register to use this service nor get an API key.
 1. To ensure that everything loads as expected, use the command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the "pipeline_name" for the above pipeline example is `data_enrichment_three`; you

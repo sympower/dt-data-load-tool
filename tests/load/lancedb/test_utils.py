@@ -1,7 +1,7 @@
 import pyarrow as pa
 import pytest
 
-from dlt.destinations.impl.lancedb.utils import (
+from data_load_tool.destinations.impl.lancedb.utils import (
     create_filter_condition,
     fill_empty_source_column_values_with_placeholder,
 )

@@ -16,17 +16,17 @@ from typing import Dict
 import cryptography.hazmat.bindings._rust
 
 
-import dlt
+import data_load_tool
 
-from dlt.common import git
-from dlt.common.configuration.providers import CONFIG_TOML, SECRETS_TOML, SecretsTomlProvider
-from dlt.common.runners import Venv
-from dlt.common.storages.file_storage import FileStorage
-from dlt.common.utils import set_working_dir
+from data_load_tool.common import git
+from data_load_tool.common.configuration.providers import CONFIG_TOML, SECRETS_TOML, SecretsTomlProvider
+from data_load_tool.common.runners import Venv
+from data_load_tool.common.storages.file_storage import FileStorage
+from data_load_tool.common.utils import set_working_dir
 
 
-from dlt.cli import init_command, echo, utils
-from dlt.cli.init_command import (
+from data_load_tool.cli import init_command, echo, utils
+from data_load_tool.cli.init_command import (
     SOURCES_MODULE_NAME,
     DEFAULT_VERIFIED_SOURCES_REPO,
     SourceConfiguration,
@@ -37,10 +37,10 @@ from dlt.cli.init_command import (
     _list_template_sources,
     _list_verified_sources,
 )
-from dlt.cli.exceptions import CliCommandInnerException
-from dlt.cli.requirements import SourceRequirements
-from dlt.reflection.script_visitor import PipelineScriptVisitor
-from dlt.reflection import names as n
+from data_load_tool.cli.exceptions import CliCommandInnerException
+from data_load_tool.cli.requirements import SourceRequirements
+from data_load_tool.reflection.script_visitor import PipelineScriptVisitor
+from data_load_tool.reflection import names as n
 
 from tests.cli.utils import (
     echo_default_choice,
@@ -125,7 +125,7 @@ def test_init_command_chess_verified_source(repo_dir: str, project_files: FileSt
     # delete existing pipeline if exist
     # works only if working dir is not changed by fixture
     try:
-        pipeline = dlt.attach(pipeline_name="chess_players_games")
+        pipeline = data_load_tool.attach(pipeline_name="chess_players_games")
         pipeline.drop()
     except Exception as e:
         print(e)
@@ -204,7 +204,7 @@ def test_init_command_core_source_requirements_without_extras(
 
 
 def test_init_list_sources_update_warning(repo_dir: str, project_files: FileStorage) -> None:
-    """Sources listed include a warning if a different dlt version is required"""
+    """Sources listed include a warning if a different data_load_tool version is required"""
     with mock.patch.object(SourceRequirements, "current_dlt_version", return_value="0.0.1"):
         with io.StringIO() as buf, contextlib.redirect_stdout(buf):
             init_command.list_sources_command(repo_dir)
@@ -213,7 +213,7 @@ def test_init_list_sources_update_warning(repo_dir: str, project_files: FileStor
     # Check one listed source
     fb_line = [line for line in _out.splitlines() if line.startswith("facebook_ads")][0]
 
-    pat = re.compile(r"^facebook_ads:.+\[needs update: (dlt.+)\]$")
+    pat = re.compile(r"^facebook_ads:.+\[needs update: (data_load_tool.+)\]$")
     match = pat.match(fb_line)
 
     assert match
@@ -543,7 +543,7 @@ def test_init_pyproject_toml(repo_dir: str, project_files: FileStorage) -> None:
         _out = buf.getvalue()
     assert "pyproject.toml" in _out
     assert "google-api-python-client" in _out
-    assert "poetry add dlt -E bigquery" in _out
+    assert "poetry add data_load_tool -E bigquery" in _out
 
 
 def test_init_requirements_text(repo_dir: str, project_files: FileStorage) -> None:
@@ -576,7 +576,7 @@ def test_incompatible_dlt_version_warning(repo_dir: str, project_files: FileStor
             _out = buf.getvalue()
 
     assert (
-        "WARNING: This pipeline requires a newer version of dlt than your installed version"
+        "WARNING: This pipeline requires a newer version of data_load_tool than your installed version"
         " (0.1.1)."
         in _out
     )
@@ -597,8 +597,8 @@ def assert_init_files(
 def assert_requirements_txt(project_files: FileStorage, destination_name: str) -> None:
     # check requirements
     assert project_files.has_file(cli_utils.REQUIREMENTS_TXT)
-    assert "dlt" in project_files.load(cli_utils.REQUIREMENTS_TXT)
-    # dlt dependency specifies destination_name as extra
+    assert "data_load_tool" in project_files.load(cli_utils.REQUIREMENTS_TXT)
+    # data_load_tool dependency specifies destination_name as extra
     source_requirements = SourceRequirements.from_string(
         project_files.load(cli_utils.REQUIREMENTS_TXT)
     )
@@ -608,7 +608,7 @@ def assert_requirements_txt(project_files: FileStorage, destination_name: str) -
 
 
 def assert_index_version_constraint(project_files: FileStorage, source_name: str) -> None:
-    # check dlt version constraint in .sources index for given source matches the one in requirements.txt
+    # check data_load_tool version constraint in .sources index for given source matches the one in requirements.txt
     local_index = files_ops.load_verified_sources_local_index(source_name)
     index_constraint = local_index["dlt_version_constraint"]
     assert (
@@ -665,7 +665,7 @@ def assert_common_files(
     for args in visitor.known_calls[n.PIPELINE]:
         assert args.arguments["destination"].value == destination_name
     # load secrets
-    secrets = SecretsTomlProvider(settings_dir=dlt.current.run_context().settings_dir)
+    secrets = SecretsTomlProvider(settings_dir=data_load_tool.current.run_context().settings_dir)
     if destination_name not in ["duckdb", "dummy"]:
         # destination is there
         assert secrets.get_value(destination_name, type, None, "destination") is not None

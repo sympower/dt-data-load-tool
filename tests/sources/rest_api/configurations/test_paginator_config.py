@@ -2,35 +2,35 @@ from typing import get_args
 
 import pytest
 
-import dlt
-import dlt.common
-import dlt.common.exceptions
-import dlt.extract
-from dlt.common.jsonpath import compile_path
-from dlt.sources.helpers.rest_client.paginators import (
+import data_load_tool
+import data_load_tool.common
+import data_load_tool.common.exceptions
+import data_load_tool.extract
+from data_load_tool.common.jsonpath import compile_path
+from data_load_tool.sources.helpers.rest_client.paginators import (
     HeaderLinkPaginator,
     JSONResponseCursorPaginator,
     JSONResponsePaginator,
     OffsetPaginator,
     PageNumberPaginator,
 )
-from dlt.sources.rest_api import (
+from data_load_tool.sources.rest_api import (
     rest_api_source,
 )
-from dlt.sources.rest_api.config_setup import (
+from data_load_tool.sources.rest_api.config_setup import (
     PAGINATOR_MAP,
     create_paginator,
 )
-from dlt.sources.rest_api.typing import (
+from data_load_tool.sources.rest_api.typing import (
     PaginatorConfig,
     PaginatorType,
     RESTAPIConfig,
 )
 
 try:
-    from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+    from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 except ImportError:
-    from dlt.sources.helpers.rest_client.paginators import (
+    from data_load_tool.sources.helpers.rest_client.paginators import (
         JSONResponsePaginator as JSONLinkPaginator,
     )
 
@@ -102,7 +102,7 @@ def test_page_number_paginator_creation() -> None:
     }
     try:
         rest_api_source(config)
-    except dlt.common.exceptions.DictValidationException:
+    except data_load_tool.common.exceptions.DictValidationException:
         pytest.fail("DictValidationException was unexpectedly raised")
 
 

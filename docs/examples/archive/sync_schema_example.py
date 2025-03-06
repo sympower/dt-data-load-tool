@@ -1,4 +1,4 @@
-# from dlt.pipeline import Pipeline,  GCPPipelineCredentials
+# from data_load_tool.pipeline import Pipeline,  GCPPipelineCredentials
 
 # # credentials = PostgresPipelineCredentials("redshift", "chat_analytics_rasa", "mainnet_6", "loader", "3.73.90.3")
 # credentials = GCPPipelineCredentials.from_services_file("_secrets/project1234_service.json", "mainnet_4")

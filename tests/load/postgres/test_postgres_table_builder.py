@@ -4,25 +4,25 @@ from typing import Generator, Any, List
 import pytest
 import sqlfluff
 
-import dlt
-from dlt.common.exceptions import TerminalValueError
-from dlt.common.schema import Schema, utils
-from dlt.common.typing import DictStrStr
-from dlt.common.utils import uniq_id
-from dlt.destinations import postgres
-from dlt.destinations.impl.postgres.configuration import (
+import data_load_tool
+from data_load_tool.common.exceptions import TerminalValueError
+from data_load_tool.common.schema import Schema, utils
+from data_load_tool.common.typing import DictStrStr
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations import postgres
+from data_load_tool.destinations.impl.postgres.configuration import (
     PostgresClientConfiguration,
     PostgresCredentials,
 )
-from dlt.destinations.impl.postgres.postgres import (
+from data_load_tool.destinations.impl.postgres.postgres import (
     PostgresClient,
 )
-from dlt.destinations.impl.postgres.postgres_adapter import (
+from data_load_tool.destinations.impl.postgres.postgres_adapter import (
     postgres_adapter,
     SRID_HINT,
     GEOMETRY_HINT,
 )
-from dlt.extract import DltResource
+from data_load_tool.extract import DltResource
 from tests.cases import (
     TABLE_UPDATE,
     TABLE_UPDATE_ALL_INT_PRECISIONS,
@@ -203,7 +203,7 @@ def test_create_dlt_table(client: PostgresClient) -> None:
 def test_adapter_geometry_hint_config(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(columns=[{"name": "content", "data_type": "text"}])
+    @data_load_tool.resource(columns=[{"name": "content", "data_type": "text"}])
     def some_data() -> Generator[DictStrStr, Any, None]:
         yield from next(sequence_generator())
 
@@ -240,55 +240,55 @@ def test_geometry_types(
 ) -> None:
     from shapely import wkt, wkb, LinearRing, Polygon  # type: ignore
 
-    @dlt.resource
+    @data_load_tool.resource
     def geodata_default_wkt():
         yield from generate_sample_geometry_records("wkt")
 
-    @dlt.resource
+    @data_load_tool.resource
     def geodata_3857_wkt():
         yield from generate_sample_geometry_records("wkt")
 
-    @dlt.resource
+    @data_load_tool.resource
     def geodata_2163_wkt():
         yield from generate_sample_geometry_records("wkt")
 
-    @dlt.resource
+    @data_load_tool.resource
     def geodata_default_wkb_hex():
         yield from generate_sample_geometry_records("wkb_hex")
 
-    @dlt.resource
+    @data_load_tool.resource
     def geodata_3857_wkb_hex():
         yield from generate_sample_geometry_records("wkb_hex")
 
-    @dlt.resource
+    @data_load_tool.resource
     def geodata_2163_wkb_hex():
         yield from generate_sample_geometry_records("wkb_hex")
 
-    @dlt.resource(file_format="csv")
+    @data_load_tool.resource(file_format="csv")
     def geodata_default_csv_wkt():
         yield from generate_sample_geometry_records("wkt")
 
-    @dlt.resource(file_format="csv")
+    @data_load_tool.resource(file_format="csv")
     def geodata_3857_csv_wkt():
         yield from generate_sample_geometry_records("wkt")
 
-    @dlt.resource(file_format="csv")
+    @data_load_tool.resource(file_format="csv")
     def geodata_2163_csv_wkt():
         yield from generate_sample_geometry_records("wkt")
 
-    @dlt.resource(file_format="csv")
+    @data_load_tool.resource(file_format="csv")
     def geodata_default_csv_wkb_hex():
         yield from generate_sample_geometry_records("wkb_hex")
 
-    @dlt.resource(file_format="csv")
+    @data_load_tool.resource(file_format="csv")
     def geodata_3857_csv_wkb_hex():
         yield from generate_sample_geometry_records("wkb_hex")
 
-    @dlt.resource(file_format="csv")
+    @data_load_tool.resource(file_format="csv")
     def geodata_2163_csv_wkb_hex():
         yield from generate_sample_geometry_records("wkb_hex")
 
-    @dlt.resource
+    @data_load_tool.resource
     def no_geodata():
         yield from [{"a": 1}, {"a": 2}]
 
@@ -305,7 +305,7 @@ def test_geometry_types(
     postgres_adapter(geodata_3857_csv_wkb_hex, geometry=["geom"], srid=3857)
     postgres_adapter(geodata_2163_csv_wkb_hex, geometry=["geom"], srid=2163)
 
-    @dlt.source
+    @data_load_tool.source
     def geodata() -> List[DltResource]:
         return [
             geodata_default_wkt,

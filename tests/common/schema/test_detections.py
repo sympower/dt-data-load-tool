@@ -1,8 +1,8 @@
 from hexbytes import HexBytes
 
-from dlt.common import pendulum, Decimal, Wei
-from dlt.common.schema.utils import autodetect_sc_type
-from dlt.common.schema.detections import (
+from data_load_tool.common import pendulum, Decimal, Wei
+from data_load_tool.common.schema.utils import autodetect_sc_type
+from data_load_tool.common.schema.detections import (
     is_hexbytes_to_text,
     is_timestamp,
     is_iso_timestamp,

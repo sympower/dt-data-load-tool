@@ -1,8 +1,8 @@
 import sys
 
-import dlt
+import data_load_tool
 
 if __name__ == "__main__":
-    p = dlt.attach("dlt_github_pipeline")
+    p = data_load_tool.attach("dlt_github_pipeline")
     info = p.load()
     print(info)

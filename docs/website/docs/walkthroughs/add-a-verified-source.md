@@ -7,14 +7,14 @@ keywords: [how to, add a verified source]
 # Add a verified source
 
 Follow the steps below to create a [pipeline](../general-usage/glossary.md#pipeline) from a
-[verified source](../general-usage/glossary.md#verified-source) contributed by `dlt` users.
+[verified source](../general-usage/glossary.md#verified-source) contributed by `data_load_tool` users.
 
-Please make sure you have [installed `dlt`](../reference/installation.md) before following the
+Please make sure you have [installed `data_load_tool`](../reference/installation.md) before following the
 steps below.
 
 ## 1. Initialize project
 
-Create a new empty directory for your `dlt` project by running:
+Create a new empty directory for your `data_load_tool` project by running:
 
 ```sh
 mkdir various_pipelines
@@ -24,20 +24,20 @@ cd various_pipelines
 List available sources to see their names and descriptions:
 
 ```sh
-dlt init --list-sources
+data_load_tool init --list-sources
 ```
 
 Now pick one of the source names, for example, `pipedrive` and a destination, i.e., `bigquery`:
 
 ```sh
-dlt init pipedrive bigquery
+data_load_tool init pipedrive bigquery
 ```
 
 The command will create your pipeline project by copying over the `pipedrive` folder and creating a
-`.dlt` folder:
+`.data_load_tool` folder:
 
 ```text
-├── .dlt
+├── .data_load_tool
 │   ├── config.toml
 │   └── secrets.toml
 ├── pipedrive
@@ -56,12 +56,12 @@ dependencies:
 ```text
 Verified source pipedrive was added to your project!
 * See the usage examples and code snippets to copy from pipedrive_pipeline.py
-* Add credentials for bigquery and other secrets in .dlt/secrets.toml
+* Add credentials for bigquery and other secrets in .data_load_tool/secrets.toml
 * Add the required dependencies to pyproject.toml:
-  dlt[bigquery]>=0.3.1
-  If the dlt dependency is already added, make sure you install the extra for bigquery to it
+  data_load_tool[bigquery]>=0.3.1
+  If the data_load_tool dependency is already added, make sure you install the extra for bigquery to it
   If you are using poetry you may issue the following command:
-  poetry add dlt -E bigquery
+  poetry add data_load_tool -E bigquery
 
 * Read https://dlthub.com/docs/walkthroughs/create-a-pipeline for more information
 ```
@@ -101,10 +101,10 @@ You can modify an existing verified source in place.
 ## 5. Add more sources to your project
 
 ```sh
-dlt init chess duckdb
+data_load_tool init chess duckdb
 ```
 
-To add another verified source, just run the `dlt init` command at the same location as the first
+To add another verified source, just run the `data_load_tool init` command at the same location as the first
 pipeline:
 
 - The shared files will be updated (secrets, config).
@@ -117,26 +117,26 @@ To update the verified source you have to the newest online version just do the 
 the parent folder:
 
 ```sh
-dlt init pipedrive bigquery
+data_load_tool init pipedrive bigquery
 ```
 
-## 7. Advanced: Using dlt init with branches, local folders, or git repos
+## 7. Advanced: Using data_load_tool init with branches, local folders, or git repos
 
 To find out more info about this command, use --help:
 
 ```sh
-dlt init --help
+data_load_tool init --help
 ```
 
 To deploy from a branch of the `verified-sources` repo, you can use the following:
 
 ```sh
-dlt init source destination --branch <branch_name>
+data_load_tool init source destination --branch <branch_name>
 ```
 
 To deploy from another repo, you could fork the verified-sources repo and then provide the new repo URL as below, replacing `dlt-hub` with your fork name:
 
 ```sh
-dlt init pipedrive bigquery --location "https://github.com/dlt-hub/verified-sources"
+data_load_tool init pipedrive bigquery --location "https://github.com/dlt-hub/verified-sources"
 ```
 

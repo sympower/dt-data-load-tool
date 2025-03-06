@@ -1,17 +1,17 @@
 ---
 title: 🧪 Schema and data contracts
 description: Controlling schema evolution and validating data
-keywords: [data contracts, schema, dlt schema, pydantic]
+keywords: [data contracts, schema, data_load_tool schema, pydantic]
 ---
 
-`dlt` will evolve the schema at the destination by following the structure and data types of the extracted data. There are several modes
+`data_load_tool` will evolve the schema at the destination by following the structure and data types of the extracted data. There are several modes
 that you can use to control this automatic schema evolution, from the default modes where all changes to the schema are accepted to
 a frozen schema that does not change at all.
 
 Consider this example:
 
 ```py
-@dlt.resource(schema_contract={"tables": "evolve", "columns": "freeze"})
+@data_load_tool.resource(schema_contract={"tables": "evolve", "columns": "freeze"})
 def items():
     ...
 ```
@@ -24,7 +24,7 @@ You can control the following **schema entities**:
 * `columns` - the contract is applied when a new column is created on an existing table
 * `data_type` - the contract is applied when data cannot be coerced into a data type associated with an existing column.
 
-You can use **contract modes** to tell `dlt` how to apply the contract for a particular entity:
+You can use **contract modes** to tell `data_load_tool` how to apply the contract for a particular entity:
 * `evolve`: No constraints on schema changes.
 * `freeze`: This will raise an exception if data is encountered that does not fit the existing schema, so no data will be loaded to the destination.
 * `discard_row`: This will discard any extracted row if it does not adhere to the existing schema, and this row will not be loaded to the destination.
@@ -38,8 +38,8 @@ The default mode (**evolve**) works as follows:
 :::
 
 #### Passing the schema_contract argument
-The `schema_contract` exists on the [dlt.source](source.md) decorator as a default for all resources in that source and on the
-[dlt.resource](source.md) decorator as a directive for the individual resource - and as a consequence - on all tables created by this resource.
+The `schema_contract` exists on the [data_load_tool.source](source.md) decorator as a default for all resources in that source and on the
+[data_load_tool.resource](source.md) decorator as a directive for the individual resource - and as a consequence - on all tables created by this resource.
 Additionally, it exists on the `pipeline.run()` method, which will override all existing settings.
 
 The `schema_contract` argument accepts two forms:
@@ -61,9 +61,9 @@ You can change the contract on the **source** instance via the `schema_contract`
 
 ### Use Pydantic models for data validation
 
-Pydantic models can be used to [define table schemas and validate incoming data](resource.md#define-a-schema-with-pydantic). You can use any model you already have. `dlt` will internally synthesize (if necessary) new models that conform to the **schema contract** on the resource.
+Pydantic models can be used to [define table schemas and validate incoming data](resource.md#define-a-schema-with-pydantic). You can use any model you already have. `data_load_tool` will internally synthesize (if necessary) new models that conform to the **schema contract** on the resource.
 
-Just passing a model in the `column` argument of the [dlt.resource](resource.md#define-a-schema-with-pydantic) sets a schema contract that conforms to the default Pydantic behavior:
+Just passing a model in the `column` argument of the [data_load_tool.resource](resource.md#define-a-schema-with-pydantic) sets a schema contract that conforms to the default Pydantic behavior:
 ```py
 {
   "tables": "evolve",
@@ -75,14 +75,14 @@ New tables are allowed, extra fields are ignored, and invalid data raises an exc
 
 If you pass a schema contract explicitly, the following happens to schema entities:
 1. **tables** do not impact the Pydantic models.
-2. **columns** modes are mapped into the **extra** modes of Pydantic (see below). `dlt` will apply this setting recursively if models contain other models.
+2. **columns** modes are mapped into the **extra** modes of Pydantic (see below). `data_load_tool` will apply this setting recursively if models contain other models.
 3. **data_type** supports the following modes for Pydantic: **evolve** will synthesize a lenient model that allows for any data type. This may result in variant columns upstream.
 **freeze** will re-raise `ValidationException`. **discard_row** will remove the non-validating data items.
 **discard_value** is not currently supported. We may eventually do that in Pydantic v2.
 
-`dlt` maps column contract modes into the extra fields settings as follows.
+`data_load_tool` maps column contract modes into the extra fields settings as follows.
 
-Note that this works in two directions. If you use a model with such a setting explicitly configured, `dlt` sets the column contract mode accordingly. This also avoids synthesizing modified models.
+Note that this works in two directions. If you use a model with such a setting explicitly configured, `data_load_tool` sets the column contract mode accordingly. This also avoids synthesizing modified models.
 
 | column mode   | pydantic extra |
 | ------------- | -------------- |
@@ -110,14 +110,14 @@ All contract settings apply to [Arrow tables and pandas frames](../dlt-ecosystem
 2. **columns** will allow new columns, raise an exception, or modify tables/frames still in the extract step to avoid rewriting Parquet files.
 3. **data_type** changes to data types in tables/frames are not allowed and will result in a data type schema clash. We could allow for more modes (evolving data types in Arrow tables sounds weird but ping us on Slack if you need it.)
 
-Here's how `dlt` deals with column modes:
+Here's how `data_load_tool` deals with column modes:
 1. **evolve** new columns are allowed (the table may be reordered to put them at the end).
 2. **discard_value** the column will be deleted.
 3. **discard_row** rows with the column present will be deleted and then the column will be deleted.
 4. **freeze** an exception on a new column.
 
 ### Get context from DataValidationError in freeze mode
-When a contract is violated in freeze mode, `dlt` raises a `DataValidationError` exception. This exception provides access to the full context and passes the evidence to the caller.
+When a contract is violated in freeze mode, `data_load_tool` raises a `DataValidationError` exception. This exception provides access to the full context and passes the evidence to the caller.
 As with any other exception coming from a pipeline run, it will be re-raised via a `PipelineStepFailed` exception, which you should catch in an except block:
 
 ```py
@@ -135,12 +135,12 @@ except PipelineStepFailed as pip_ex:
 `DataValidationError` provides the following context:
 1. `schema_name`, `table_name`, and `column_name` provide the logical "location" at which the contract was violated.
 2. `schema_entity` and `contract_mode` indicate which contract was violated.
-3. `table_schema` contains the schema against which the contract was validated. It may be a Pydantic model or a dlt `TTableSchema` instance.
+3. `table_schema` contains the schema against which the contract was validated. It may be a Pydantic model or a data_load_tool `TTableSchema` instance.
 4. `schema_contract` is the full, expanded schema contract.
 5. `data_item` is the causing data item (Python dict, arrow table, Pydantic model, or list thereof).
 
 ### Contracts on new tables
-If a table is a **new table** that has not been created on the destination yet, dlt will allow the creation of new columns. For a single pipeline run, the column mode is changed (internally) to **evolve** and then reverted back to the original mode. This allows for initial schema inference to happen, and then on subsequent runs, the inferred contract will be applied to the new data.
+If a table is a **new table** that has not been created on the destination yet, data_load_tool will allow the creation of new columns. For a single pipeline run, the column mode is changed (internally) to **evolve** and then reverted back to the original mode. This allows for initial schema inference to happen, and then on subsequent runs, the inferred contract will be applied to the new data.
 
 The following tables are considered new:
 1. Child tables inferred from nested data.
@@ -164,16 +164,16 @@ Tables that are not considered new:
 
 ### Working with datasets that have manually added tables and columns on the first load
 
-In some cases, you might be working with datasets that have tables or columns created outside of dlt. If you are loading to a table not created by dlt for the first time, dlt will not know about this table while enforcing schema contracts. This means that if you do a load where the `tables` are set to `evolve`, all will work as planned. If you have `tables` set to `freeze`, dlt will raise an exception because it thinks you are creating a new table (which you are from dlt's perspective). You can allow `evolve` for one load and then switch back to `freeze`.
+In some cases, you might be working with datasets that have tables or columns created outside of data_load_tool. If you are loading to a table not created by data_load_tool for the first time, data_load_tool will not know about this table while enforcing schema contracts. This means that if you do a load where the `tables` are set to `evolve`, all will work as planned. If you have `tables` set to `freeze`, data_load_tool will raise an exception because it thinks you are creating a new table (which you are from data_load_tool's perspective). You can allow `evolve` for one load and then switch back to `freeze`.
 
-The same thing will happen if `dlt` knows your table, but you have manually added a column to your destination and you have `columns` set to `freeze`.
+The same thing will happen if `data_load_tool` knows your table, but you have manually added a column to your destination and you have `columns` set to `freeze`.
 
 ### Code examples
 
 The below code will silently ignore new subtables, allow new columns to be added to existing tables, and raise an error if a variant of a column is discovered.
 
 ```py
-@dlt.resource(schema_contract={"tables": "discard_row", "columns": "evolve", "data_type": "freeze"})
+@data_load_tool.resource(schema_contract={"tables": "discard_row", "columns": "evolve", "data_type": "freeze"})
 def items():
     ...
 ```
@@ -189,15 +189,15 @@ Here, for all resources, variant columns are frozen and raise an error if encoun
 the source, thus new columns are frozen there. New tables are allowed.
 
 ```py
-@dlt.resource(schema_contract={"columns": "evolve"})
+@data_load_tool.resource(schema_contract={"columns": "evolve"})
 def items():
     ...
 
-@dlt.resource()
+@data_load_tool.resource()
 def other_items():
     ...
 
-@dlt.source(schema_contract={"columns": "freeze", "data_type": "freeze"})
+@data_load_tool.source(schema_contract={"columns": "freeze", "data_type": "freeze"})
 def frozen_source():
   return [items(), other_items()]
 

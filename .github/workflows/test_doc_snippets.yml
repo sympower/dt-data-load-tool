@@ -109,10 +109,10 @@ jobs:
         run: poetry install --no-interaction -E duckdb -E weaviate -E parquet -E qdrant -E bigquery -E postgres -E lancedb --with docs,sentry-sdk --without airflow -E s3
 
       - name: create secrets.toml for examples
-        run: pwd && echo "$DLT_SECRETS_TOML" > docs/examples/.dlt/secrets.toml
+        run: pwd && echo "$DLT_SECRETS_TOML" > docs/examples/.data_load_tool/secrets.toml
 
       - name: create secrets.toml for snippets
-        run: pwd && echo "$DLT_SECRETS_TOML" > docs/website/docs/.dlt/secrets.toml
+        run: pwd && echo "$DLT_SECRETS_TOML" > docs/website/docs/.data_load_tool/secrets.toml
 
       - name: Run linter and tests on snippets
         run: make lint-and-test-snippets

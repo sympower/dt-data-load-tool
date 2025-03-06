@@ -5,8 +5,8 @@ import pytest
 from pathlib import Path
 from typing import cast, TextIO
 
-from dlt.common.storages.file_storage import FileStorage
-from dlt.common.utils import encoding_for_mode, set_working_dir, uniq_id
+from data_load_tool.common.storages.file_storage import FileStorage
+from data_load_tool.common.utils import encoding_for_mode, set_working_dir, uniq_id
 
 from tests.utils import TEST_STORAGE_ROOT, autouse_test_storage, test_storage, skipifnotwindows
 
@@ -258,13 +258,13 @@ def test_hard_link() -> None:
 def test_hard_link_fallback() -> None:
     if not os.path.exists("/run/lock"):
         pytest.skip("/run/lock not found - skipping link fallback")
-    with open("/run/lock/dlt.r", "wb") as f:
+    with open("/run/lock/data_load_tool.r", "wb") as f:
         f.write(b"data")
     storage = FileStorage(TEST_STORAGE_ROOT, file_type="b")
     with pytest.raises(OSError):
-        os.link("/run/lock/dlt.r", storage.make_full_path("file.b.2"))
-    FileStorage.link_hard_with_fallback("/run/lock/dlt.r", storage.make_full_path("file.b.2"))
+        os.link("/run/lock/data_load_tool.r", storage.make_full_path("file.b.2"))
+    FileStorage.link_hard_with_fallback("/run/lock/data_load_tool.r", storage.make_full_path("file.b.2"))
     assert storage.load("file.b.2") == b"data"
-    os.unlink("/run/lock/dlt.r")
+    os.unlink("/run/lock/data_load_tool.r")
     assert storage.load("file.b.2") == b"data"
     storage.delete("file.b.2")

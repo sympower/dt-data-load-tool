@@ -1,7 +1,7 @@
 ---
 title: Source
-description: Explanation of what a dlt source is
-keywords: [source, api, dlt.source]
+description: Explanation of what a data_load_tool source is
+keywords: [source, api, data_load_tool.source]
 ---
 
 # Source
@@ -9,7 +9,7 @@ keywords: [source, api, dlt.source]
 A [source](glossary.md#source) is a logical grouping of resources, i.e., endpoints of a
 single API. The most common approach is to define it in a separate Python module.
 
-- A source is a function decorated with `@dlt.source` that returns one or more resources.
+- A source is a function decorated with `@data_load_tool.source` that returns one or more resources.
 - A source can optionally define a [schema](schema.md) with tables, columns, performance hints, and
   more.
 - The source Python module typically contains optional customizations and data transformations.
@@ -18,17 +18,17 @@ single API. The most common approach is to define it in a separate Python module
 
 ## Declare sources
 
-You declare a source by decorating an (optionally async) function that returns or yields one or more resources with `@dlt.source`. Our
+You declare a source by decorating an (optionally async) function that returns or yields one or more resources with `@data_load_tool.source`. Our
 [Create a pipeline](../walkthroughs/create-a-pipeline.md) how-to guide teaches you how to do that.
 
 ### Create resources dynamically
 
-You can create resources by using `dlt.resource` as a function. In the example below, we reuse a
+You can create resources by using `data_load_tool.resource` as a function. In the example below, we reuse a
 single generator function to create a list of resources for several Hubspot endpoints.
 
 ```py
-@dlt.source
-def hubspot(api_key=dlt.secrets.value):
+@data_load_tool.source
+def hubspot(api_key=data_load_tool.secrets.value):
 
     endpoints = ["companies", "deals", "products"]
 
@@ -38,7 +38,7 @@ def hubspot(api_key=dlt.secrets.value):
     for endpoint in endpoints:
         # calling get_resource creates a generator,
         # the actual code of the function will be executed in pipeline.run
-        yield dlt.resource(get_resource(endpoint), name=endpoint)
+        yield data_load_tool.resource(get_resource(endpoint), name=endpoint)
 ```
 
 ### Attach and configure schemas
@@ -102,7 +102,7 @@ You can limit the number of items produced by each resource by calling the `add_
 ```py
 from pipedrive import pipedrive_source
 
-pipeline = dlt.pipeline(pipeline_name='pipedrive', destination='duckdb', dataset_name='pipedrive_data')
+pipeline = data_load_tool.pipeline(pipeline_name='pipedrive', destination='duckdb', dataset_name='pipedrive_data')
 load_info = pipeline.run(pipedrive_source().add_limit(10))
 print(load_info)
 ```
@@ -120,16 +120,16 @@ pipeline.run(pipedrive_source().add_limit(max_items=10, max_time=10))
 ```
 
 :::note
-Note that `add_limit` **does not limit the number of records** but rather the "number of yields". `dlt` will close the iterator/generator that produces data after the limit is reached. Please read in more detail about the `add_limit` on the resource page.
+Note that `add_limit` **does not limit the number of records** but rather the "number of yields". `data_load_tool` will close the iterator/generator that produces data after the limit is reached. Please read in more detail about the `add_limit` on the resource page.
 :::
 
 Find more on sampling data [here](resource.md#sample-from-large-data).
 
 ### Rename the source
-`dlt` allows you to rename the source ie. to place the source configuration into custom section or to have many instances
+`data_load_tool` allows you to rename the source ie. to place the source configuration into custom section or to have many instances
 of the source created side by side. For example:
 ```py
-from dlt.sources.sql_database import sql_database
+from data_load_tool.sources.sql_database import sql_database
 
 my_db = sql_database.clone(name="my_db", section="my_db")(table_names=["table_1"])
 print(my_db.name)
@@ -146,13 +146,13 @@ password="..."
 You can add a custom resource to a source after it was created. Imagine that you want to score all the deals with a keras model that will tell you if the deal is a fraud or not. In order to do that, you declare a new [transformer that takes the data from](resource.md#process-resources-with-dlttransformer) `deals` resource and add it to the source.
 
 ```py
-import dlt
+import data_load_tool
 from hubspot import hubspot
 
 # source contains `deals` resource
 source = hubspot()
 
-@dlt.transformer
+@data_load_tool.transformer
 def deal_scores(deal_item):
     # obtain the score, deal_items contains data yielded by source.deals
     score = model.predict(featurize(deal_item))
@@ -172,15 +172,15 @@ or
 source.resources["deal_scores"] = source.deals | deal_scores
 ```
 :::note
-When adding a resource to the source, `dlt` clones the resource so your existing instance is not affected.
+When adding a resource to the source, `data_load_tool` clones the resource so your existing instance is not affected.
 :::
 
 ### Reduce the nesting level of generated tables
 
-You can limit how deep `dlt` goes when generating nested tables and flattening dicts into columns. By default, the library will descend and generate nested tables for all nested lists and columns from dicts, without limit.
+You can limit how deep `data_load_tool` goes when generating nested tables and flattening dicts into columns. By default, the library will descend and generate nested tables for all nested lists and columns from dicts, without limit.
 
 ```py
-@dlt.source(max_table_nesting=1)
+@data_load_tool.source(max_table_nesting=1)
 def mongo_db():
     ...
 ```
@@ -208,7 +208,7 @@ The `max_table_nesting` parameter at the source level doesn't automatically appl
 You can directly configure the `max_table_nesting` parameter on the resource level as:
 
 ```py
-@dlt.resource(max_table_nesting=0)
+@data_load_tool.resource(max_table_nesting=0)
 def my_resource():
     ...
 ```
@@ -229,7 +229,7 @@ The source provides two other convenience properties:
 
 ## Load sources
 
-You can pass individual sources or a list of sources to the `dlt.pipeline` object. By default, all the
+You can pass individual sources or a list of sources to the `data_load_tool.pipeline` object. By default, all the
 sources will be loaded into a single dataset.
 
 You are also free to decompose a single source into several ones. For example, you may want to break

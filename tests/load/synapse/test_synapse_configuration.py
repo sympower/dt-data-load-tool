@@ -1,12 +1,12 @@
 import os
 import pytest
 
-from dlt.common.configuration import resolve_configuration
-from dlt.common.exceptions import SystemConfigurationException
-from dlt.common.schema import Schema
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.exceptions import SystemConfigurationException
+from data_load_tool.common.schema import Schema
 
-from dlt.destinations import synapse
-from dlt.destinations.impl.synapse.configuration import (
+from data_load_tool.destinations import synapse
+from data_load_tool.destinations.impl.synapse.configuration import (
     SynapseClientConfiguration,
     SynapseCredentials,
 )

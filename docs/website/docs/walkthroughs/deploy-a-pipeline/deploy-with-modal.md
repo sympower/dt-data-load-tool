@@ -24,18 +24,18 @@ With Modal, you can perform tasks like running generative models, large-scale ba
 To learn more, please refer to [Modal's documentation.](https://modal.com/docs)
 
 
-## How to run dlt on Modal
+## How to run data_load_tool on Modal
 
-Here’s a dlt project setup to copy data from public MySQL database into DuckDB as a destination:
+Here’s a data_load_tool project setup to copy data from public MySQL database into DuckDB as a destination:
 
 ### Step 1: Initialize source
-Run the `dlt init` CLI command to initialize the SQL database source and set up the `sql_database_pipeline.py` template.
+Run the `data_load_tool init` CLI command to initialize the SQL database source and set up the `sql_database_pipeline.py` template.
 ```sh
-dlt init sql_database duckdb
+data_load_tool init sql_database duckdb
 ```
 
 ### Step 2: Define Modal Image
-Open the file and define the Modal Image you want to run `dlt` in:
+Open the file and define the Modal Image you want to run `data_load_tool` in:
 <!--@@@DLT_SNIPPET ./deploy_snippets/deploy-with-modal-snippets.py::modal_image-->
 
 ### Step 3: Define Modal Function
@@ -49,12 +49,12 @@ Here’s how to include your SQL pipeline in the Modal Function:
 
 ### Step 4: Set up credentials
 You can securely store your credentials using Modal secrets. When you reference secrets within a Modal script,
-the defined secret is automatically set as an environment variable. dlt natively supports environment variables,
+the defined secret is automatically set as an environment variable. data_load_tool natively supports environment variables,
 enabling seamless integration of your credentials. For example, to declare a connection string, you can define it as follows:
 ```text
 SOURCES__SQL_DATABASE__CREDENTIALS=mysql+pymysql://rfamro@mysql-rfam-public.ebi.ac.uk:4497/Rfam
 ```
-In the script above, the credentials specified are automatically utilized by dlt.
+In the script above, the credentials specified are automatically utilized by data_load_tool.
 For more details, please refer to the [documentation.](../../general-usage/credentials/setup#environment-variables)
 
 ### Step 5: Run pipeline
@@ -77,6 +77,6 @@ modal deploy sql_pipeline.py
 
 ## More examples
 
-For a practical, real-world example, check out the article ["Building a Cost-Effective Analytics Stack with Modal, dlt, and dbt"](https://modal.com/blog/analytics-stack).
+For a practical, real-world example, check out the article ["Building a Cost-Effective Analytics Stack with Modal, data_load_tool, and dbt"](https://modal.com/blog/analytics-stack).
 
-This article illustrates how to automate a workflow for loading data from Postgres into Snowflake using dlt, providing valuable insights into building an efficient analytics pipeline.
+This article illustrates how to automate a workflow for loading data from Postgres into Snowflake using data_load_tool, providing valuable insights into building an efficient analytics pipeline.

@@ -1,8 +1,8 @@
 from typing import Type
 import pytest
 
-from dlt.common.schema.utils import new_column
-from dlt.common.data_writers import DataWriter
+from data_load_tool.common.schema.utils import new_column
+from data_load_tool.common.data_writers import DataWriter
 
 from tests.common.data_writers.utils import get_writer, ALL_OBJECT_WRITERS, ALL_ARROW_WRITERS
 

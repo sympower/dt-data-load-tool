@@ -1,6 +1,6 @@
 ---
 title: Freshdesk
-description: dlt verified source for Freshdesk API
+description: data_load_tool verified source for Freshdesk API
 keywords: [freshdesk api, freshdesk verified source, freshdesk]
 ---
 import Header from './_source-info-header.md';
@@ -15,7 +15,7 @@ import Header from './_source-info-header.md';
 that provides businesses with tools for managing customer support via multiple channels including
 email, phone, websites, and social media.
 
-This Freshdesk `dlt` verified source and
+This Freshdesk `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/freshdesk_pipeline.py)
 loads data using the "Freshdesk API" to the destination of your choice.
 
@@ -50,7 +50,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init freshdesk duckdb
+   data_load_tool init freshdesk duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -68,7 +68,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's what the file
    looks like:
 
@@ -97,7 +97,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 3. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is
    `freshdesk_pipeline`. You may also use any custom name instead.
@@ -106,7 +106,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `freshdesk_source`
@@ -114,12 +114,12 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 This function retrieves the data from specified Freshdesk API endpoints.
 
 ```py
-@dlt.source()
+@data_load_tool.source()
 def freshdesk_source(
     endpoints: Optional[List[str]] = None,
     per_page: int = 100,
-    domain: str = dlt.secrets.value,
-    api_secret_key: str = dlt.secrets.value,
+    domain: str = data_load_tool.secrets.value,
+    api_secret_key: str = data_load_tool.secrets.value,
 ) -> Iterable[DltResource]:
     ...
 ```
@@ -137,16 +137,16 @@ def freshdesk_source(
 
 ### Resource `endpoints`
 
-This function creates and yields a dlt resource for each endpoint in
+This function creates and yields a data_load_tool resource for each endpoint in
 ["settings.py".](https://github.com/dlt-hub/verified-sources/blob/master/sources/freshdesk/settings.py)
 
 ```py
-@dlt.source()
+@data_load_tool.source()
 def freshdesk_source(
     #args as defined above
 ) -> Iterable[DltResource]:
     for endpoint in ENDPOINTS:
-        yield dlt.resource(
+        yield data_load_tool.resource(
             incremental_resource,
             name=endpoint,
             write_disposition="merge",
@@ -170,7 +170,7 @@ verified source.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="freshdesk_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="freshdesk_data"  # Use a custom name if desired

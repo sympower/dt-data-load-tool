@@ -6,12 +6,12 @@ keywords: [destination, load data, configure destination, name destination]
 
 # Destination
 
-[Destination](glossary.md#destination) is a location in which `dlt` creates and maintains the current version of the schema and loads your data. Destinations come in various forms: databases, datalakes, vector stores, or files. `dlt` deals with this variety via modules which you declare when creating a pipeline.
+[Destination](glossary.md#destination) is a location in which `data_load_tool` creates and maintains the current version of the schema and loads your data. Destinations come in various forms: databases, datalakes, vector stores, or files. `data_load_tool` deals with this variety via modules which you declare when creating a pipeline.
 
 We maintain a set of [built-in destinations](../dlt-ecosystem/destinations/) that you can use right away.
 
 ## Declare the destination type
-We recommend that you declare the destination type when creating a pipeline instance with `dlt.pipeline`. This allows the `run` method to synchronize your local pipeline state with the destination and `extract` and `normalize` to create compatible load packages and schemas. You can also pass the destination to the `run` and `load` methods.
+We recommend that you declare the destination type when creating a pipeline instance with `data_load_tool.pipeline`. This allows the `run` method to synchronize your local pipeline state with the destination and `extract` and `normalize` to create compatible load packages and schemas. You can also pass the destination to the `run` and `load` methods.
 
 * Use destination **shorthand type**
 <!--@@@DLT_SNIPPET ./snippets/destination-snippets.py::shorthand-->
@@ -21,7 +21,7 @@ Above, we want to use the **filesystem** built-in destination. You can use short
 * Use full **destination factory type**
 <!--@@@DLT_SNIPPET ./snippets/destination-snippets.py::class_type-->
 
-Above, we use the built-in **filesystem** destination by providing a factory type `filesystem` from the module `dlt.destinations`. You can implement [your own destination](../walkthroughs/create-new-destination.md) and pass this external module as well.
+Above, we use the built-in **filesystem** destination by providing a factory type `filesystem` from the module `data_load_tool.destinations`. You can implement [your own destination](../walkthroughs/create-new-destination.md) and pass this external module as well.
 
 * Import **destination factory**
 <!--@@@DLT_SNIPPET ./snippets/destination-snippets.py::class-->
@@ -57,17 +57,17 @@ For named destinations, you use their names in the config section
 <!--@@@DLT_SNIPPET ./snippets/destination-toml.toml::name_layout-->
 
 
-Note that when you use the [`dlt init` command](../walkthroughs/add-a-verified-source.md) to create or add a data source, `dlt` creates a sample configuration for the selected destination.
+Note that when you use the [`data_load_tool init` command](../walkthroughs/add-a-verified-source.md) to create or add a data source, `data_load_tool` creates a sample configuration for the selected destination.
 
 
 
 ### Pass explicit credentials
-You can pass credentials explicitly when creating a destination factory instance. This replaces the `credentials` argument in `dlt.pipeline` and `pipeline.load` methods, which is now deprecated. You can pass the required credentials object, its dictionary representation, or the supported native form like below:
+You can pass credentials explicitly when creating a destination factory instance. This replaces the `credentials` argument in `data_load_tool.pipeline` and `pipeline.load` methods, which is now deprecated. You can pass the required credentials object, its dictionary representation, or the supported native form like below:
 <!--@@@DLT_SNIPPET ./snippets/destination-snippets.py::config_explicit-->
 
 
 :::tip
-You can create and pass partial credentials, and `dlt` will fill in the missing data. Below, we pass a PostgreSQL connection string but without a password and expect that it will be present in environment variables (or any other [config provider](credentials/setup))
+You can create and pass partial credentials, and `data_load_tool` will fill in the missing data. Below, we pass a PostgreSQL connection string but without a password and expect that it will be present in environment variables (or any other [config provider](credentials/setup))
 <!--@@@DLT_SNIPPET ./snippets/destination-snippets.py::config_partial-->
 
 
@@ -78,18 +78,18 @@ Please read how to use [various built-in credentials types](credentials/complex_
 :::
 
 ### Inspect destination capabilities
-[Destination capabilities](../walkthroughs/create-new-destination.md#3-set-the-destination-capabilities) tell `dlt` what a given destination can and cannot do. For example, it tells which file formats it can load, what the maximum query or identifier length is. Inspect destination capabilities as follows:
+[Destination capabilities](../walkthroughs/create-new-destination.md#3-set-the-destination-capabilities) tell `data_load_tool` what a given destination can and cannot do. For example, it tells which file formats it can load, what the maximum query or identifier length is. Inspect destination capabilities as follows:
 ```py
-import dlt
-pipeline = dlt.pipeline("snowflake_test", destination="snowflake")
+import data_load_tool
+pipeline = data_load_tool.pipeline("snowflake_test", destination="snowflake")
 print(dict(pipeline.destination.capabilities()))
 ```
 
 ### Pass additional parameters and change destination capabilities
 The destination factory accepts additional parameters that will be used to pre-configure it and change destination capabilities.
 ```py
-import dlt
-duck_ = dlt.destinations.duckdb(naming_convention="duck_case", recommended_file_size=120000)
+import data_load_tool
+duck_ = data_load_tool.destinations.duckdb(naming_convention="duck_case", recommended_file_size=120000)
 print(dict(duck_.capabilities()))
 ```
 The example above is overriding the `naming_convention` and `recommended_file_size` in the destination capabilities.
@@ -108,11 +108,11 @@ client_email = "please set me up!"
 
 You can then use this destination in your pipeline as follows:
 ```py
-import dlt
-from dlt.common.destination import Destination
+import data_load_tool
+from data_load_tool.common.destination import Destination
 
 # Configure the pipeline to use the "destination_one" BigQuery destination
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='pipeline',
     destination=Destination.from_reference(
         "bigquery",
@@ -124,21 +124,21 @@ pipeline = dlt.pipeline(
 Similarly, you can assign multiple destinations to the same or different drivers.
 
 ## Access a destination
-When loading data, `dlt` will access the destination in two cases:
+When loading data, `data_load_tool` will access the destination in two cases:
 1. At the beginning of the `run` method to sync the pipeline state with the destination (or if you call `pipeline.sync_destination` explicitly).
 2. In the `pipeline.load` method - to migrate the schema and load the load package.
 
-`dlt` will also access the destination when you instantiate [sql_client](../dlt-ecosystem/transformations/sql.md).
+`data_load_tool` will also access the destination when you instantiate [sql_client](../dlt-ecosystem/transformations/sql.md).
 
 :::note
-`dlt` will not import the destination dependencies or access destination configuration if access is not needed. You can build multi-stage pipelines where steps are executed in separate processes or containers - the `extract` and `normalize` step do not need destination dependencies, configuration, and actual connection.
+`data_load_tool` will not import the destination dependencies or access destination configuration if access is not needed. You can build multi-stage pipelines where steps are executed in separate processes or containers - the `extract` and `normalize` step do not need destination dependencies, configuration, and actual connection.
 
 <!--@@@DLT_SNIPPET ./snippets/destination-snippets.py::late_destination_access-->
 
 :::
 
-## Control how `dlt` creates table, column, and other identifiers
-`dlt` maps identifiers found in the source data into destination identifiers (i.e., table and column names) using [naming conventions](naming-convention.md) which ensure that
+## Control how `data_load_tool` creates table, column, and other identifiers
+`data_load_tool` maps identifiers found in the source data into destination identifiers (i.e., table and column names) using [naming conventions](naming-convention.md) which ensure that
 character set, identifier length, and other properties fit into what the given destination can handle. For example, our [default naming convention (**snake case**)](./naming-convention.md#use-default-naming-convention-snake_case) converts all names in the source (i.e., JSON document fields) into snake case, case-insensitive identifiers.
 
 Each destination declares its preferred naming convention, support for case-sensitive identifiers, and case folding function that case-insensitive identifiers follow. For example:
@@ -150,13 +150,13 @@ Each destination declares its preferred naming convention, support for case-sens
 
 You can change the naming convention used in [many different ways](naming-convention.md#configure-naming-convention). Below, we set the preferred naming convention on the Snowflake destination to `sql_cs` to switch Snowflake to case-sensitive mode:
 ```py
-import dlt
-snow_ = dlt.destinations.snowflake(naming_convention="sql_cs_v1")
+import data_load_tool
+snow_ = data_load_tool.destinations.snowflake(naming_convention="sql_cs_v1")
 ```
 Setting the naming convention will impact all new schemas being created (i.e., on the first pipeline run) and will re-normalize all existing identifiers.
 
 :::caution
-`dlt` prevents re-normalization of identifiers in tables that were already created at the destination. Use [refresh](pipeline.md#refresh-pipeline-data-and-state) mode to drop the data. You can also disable this behavior via [configuration](naming-convention.md#avoid-identifier-collisions).
+`data_load_tool` prevents re-normalization of identifiers in tables that were already created at the destination. Use [refresh](pipeline.md#refresh-pipeline-data-and-state) mode to drop the data. You can also disable this behavior via [configuration](naming-convention.md#avoid-identifier-collisions).
 :::
 
 :::note
@@ -164,15 +164,15 @@ Destinations that support case-sensitive identifiers but use a case folding conv
 :::
 
 :::caution
-If you use a case-sensitive naming convention with a case-insensitive destination, `dlt` will:
+If you use a case-sensitive naming convention with a case-insensitive destination, `data_load_tool` will:
 1. Fail the load if it detects an identifier collision due to case folding.
 2. Warn if any case folding is applied by the destination.
 :::
 
 ### Enable case-sensitive identifiers support
-Selected destinations may be configured so they start accepting case-sensitive identifiers. For example, it is possible to set case-sensitive collation on an **mssql** database and then tell `dlt` about it.
+Selected destinations may be configured so they start accepting case-sensitive identifiers. For example, it is possible to set case-sensitive collation on an **mssql** database and then tell `data_load_tool` about it.
 ```py
-from dlt.destinations import mssql
+from data_load_tool.destinations import mssql
 dest_ = mssql(has_case_sensitive_identifiers=True, naming_convention="sql_cs_v1")
 ```
 Above, we can safely use a case-sensitive naming convention without worrying about name collisions.
@@ -184,11 +184,11 @@ has_case_sensitive_identifiers=true
 ```
 
 :::note
-In most cases, setting the flag above just indicates to `dlt` that you switched the case-sensitive option on a destination. `dlt` will not do that for you. Refer to the destination documentation for details.
+In most cases, setting the flag above just indicates to `data_load_tool` that you switched the case-sensitive option on a destination. `data_load_tool` will not do that for you. Refer to the destination documentation for details.
 :::
 
 ## Create a new destination
 You have two ways to implement a new destination:
-1. You can use the `@dlt.destination` decorator and [implement a sink function](../dlt-ecosystem/destinations/destination.md). This is a perfect way to implement reverse ETL destinations that push data back to REST APIs.
+1. You can use the `@data_load_tool.destination` decorator and [implement a sink function](../dlt-ecosystem/destinations/destination.md). This is a perfect way to implement reverse ETL destinations that push data back to REST APIs.
 2. You can implement [a full destination](../walkthroughs/create-new-destination.md) where you have full control over load jobs and schema migration.
 

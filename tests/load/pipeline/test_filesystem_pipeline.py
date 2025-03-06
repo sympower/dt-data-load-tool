@@ -7,26 +7,26 @@ from importlib.metadata import version as pkg_version
 from packaging.version import Version
 
 from pytest_mock import MockerFixture
-import dlt
+import data_load_tool
 import pytest
 
-from dlt.common import json
-from dlt.common import pendulum
-from dlt.common.storages.configuration import FilesystemConfiguration
-from dlt.common.storages.load_package import ParsedLoadJobFileName
-from dlt.common.utils import uniq_id
-from dlt.common.schema.typing import TWriteDisposition, TTableFormat
-from dlt.common.configuration.exceptions import ConfigurationValueError
-from dlt.destinations import filesystem
-from dlt.destinations.impl.filesystem.filesystem import FilesystemClient
-from dlt.destinations.impl.filesystem.typing import TExtraPlaceholders
-from dlt.pipeline.exceptions import PipelineStepFailed
-from dlt.load.exceptions import LoadClientJobRetry
+from data_load_tool.common import json
+from data_load_tool.common import pendulum
+from data_load_tool.common.storages.configuration import FilesystemConfiguration
+from data_load_tool.common.storages.load_package import ParsedLoadJobFileName
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema.typing import TWriteDisposition, TTableFormat
+from data_load_tool.common.configuration.exceptions import ConfigurationValueError
+from data_load_tool.destinations import filesystem
+from data_load_tool.destinations.impl.filesystem.filesystem import FilesystemClient
+from data_load_tool.destinations.impl.filesystem.typing import TExtraPlaceholders
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.load.exceptions import LoadClientJobRetry
 
 from tests.cases import arrow_table_all_data_types, table_update_and_row, assert_all_data_types_row
 from tests.common.utils import load_json_case
 from tests.utils import ALL_TEST_DATA_ITEM_FORMATS, TestDataItemFormat, skip_if_not_active
-from dlt.destinations.path_utils import create_path
+from data_load_tool.destinations.path_utils import create_path
 from tests.load.utils import (
     destinations_configs,
     DestinationTestConfiguration,
@@ -49,21 +49,21 @@ def test_pipeline_merge_write_disposition(default_buckets_env: str) -> None:
 
     os.environ["DATA_WRITER__DISABLE_COMPRESSION"] = "True"
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_" + uniq_id(),
         destination="filesystem",
         dataset_name="test_" + uniq_id(),
     )
 
-    @dlt.resource(primary_key="id")
+    @data_load_tool.resource(primary_key="id")
     def some_data():
         yield [{"id": 1}, {"id": 2}, {"id": 3}]
 
-    @dlt.resource
+    @data_load_tool.resource
     def other_data():
         yield [1, 2, 3, 4, 5]
 
-    @dlt.source
+    @data_load_tool.source
     def some_source():
         return [some_data(), other_data()]
 
@@ -95,7 +95,7 @@ def test_pipeline_csv_filesystem_destination(item_type: TestDataItemFormat) -> N
     # store locally
     os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = "_storage"
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="parquet_test_" + uniq_id(),
         destination="filesystem",
         dataset_name="parquet_test_" + uniq_id(),
@@ -120,7 +120,7 @@ def test_csv_options(item_type: TestDataItemFormat) -> None:
     os.environ["NORMALIZE__DATA_WRITER__INCLUDE_HEADER"] = "False"
     # store locally
     os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = "_storage"
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="parquet_test_" + uniq_id(),
         destination="filesystem",
         dataset_name="parquet_test_" + uniq_id(),
@@ -134,7 +134,7 @@ def test_csv_options(item_type: TestDataItemFormat) -> None:
         csv_rows = list(csv.reader(f, dialect=csv.unix_dialect, delimiter="|"))
         # no header
         assert len(csv_rows) == 3
-    # object csv adds dlt columns
+    # object csv adds data_load_tool columns
     dlt_columns = 2 if item_type == "object" else 0
     assert len(rows[0]) + dlt_columns == len(csv_rows[0])
 
@@ -148,7 +148,7 @@ def test_csv_quoting_style(item_type: TestDataItemFormat) -> None:
     os.environ["NORMALIZE__DATA_WRITER__INCLUDE_HEADER"] = "False"
     # store locally
     os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = "_storage"
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="parquet_test_" + uniq_id(),
         destination="filesystem",
         dataset_name="parquet_test_" + uniq_id(),
@@ -178,21 +178,21 @@ def test_pipeline_parquet_filesystem_destination() -> None:
 
     # store locally
     os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = "_storage"
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="parquet_test_" + uniq_id(),
         destination="filesystem",
         dataset_name="parquet_test_" + uniq_id(),
     )
 
-    @dlt.resource(primary_key="id")
+    @data_load_tool.resource(primary_key="id")
     def some_data():
         yield [{"id": 1}, {"id": 2}, {"id": 3}]
 
-    @dlt.resource
+    @data_load_tool.resource
     def other_data():
         yield [1, 2, 3, 4, 5]
 
-    @dlt.source
+    @data_load_tool.source
     def some_source():
         return [some_data(), other_data()]
 
@@ -227,15 +227,15 @@ def test_pipeline_parquet_filesystem_destination() -> None:
 
 
 def get_expected_actual(
-    pipeline: dlt.Pipeline,
+    pipeline: data_load_tool.Pipeline,
     table_name: str,
     table_format: TTableFormat,
     arrow_table: "pyarrow.Table",  # type: ignore[name-defined] # noqa: F821
 ) -> Tuple["pyarrow.Table", "pyarrow.Table"]:  # type: ignore[name-defined] # noqa: F821
-    from dlt.common.libs.pyarrow import pyarrow, cast_arrow_schema_types
+    from data_load_tool.common.libs.pyarrow import pyarrow, cast_arrow_schema_types
 
     if table_format == "delta":
-        from dlt.common.libs.deltalake import (
+        from data_load_tool.common.libs.deltalake import (
             get_delta_tables,
             ensure_delta_compatible_arrow_data,
         )
@@ -244,7 +244,7 @@ def get_expected_actual(
         expected = ensure_delta_compatible_arrow_data(arrow_table)
         actual = dt.to_pyarrow_table()
     elif table_format == "iceberg":
-        from dlt.common.libs.pyiceberg import (
+        from data_load_tool.common.libs.pyiceberg import (
             get_iceberg_tables,
             ensure_iceberg_compatible_arrow_data,
         )
@@ -280,11 +280,11 @@ def test_delta_table_pyarrow_version_check() -> None:
 
     assert Version(pkg_version("pyarrow")) < Version("17.0.0"), "test assumes `pyarrow<17.0.0`"
 
-    @dlt.resource(table_format="delta")
+    @data_load_tool.resource(table_format="delta")
     def foo():
         yield {"foo": 1, "bar": 2}
 
-    pipeline = dlt.pipeline(destination=filesystem(FILE_BUCKET))
+    pipeline = data_load_tool.pipeline(destination=filesystem(FILE_BUCKET))
 
     with pytest.raises(PipelineStepFailed) as pip_ex:
         pipeline.run(foo())
@@ -314,12 +314,12 @@ def test_table_format_core(
     Tests `append` and `replace` write dispositions (`merge` is tested elsewhere).
     """
     if destination_config.table_format == "delta":
-        from dlt.common.libs.deltalake import get_delta_tables
+        from data_load_tool.common.libs.deltalake import get_delta_tables
 
     # create resource that yields rows with all data types
     column_schemas, row = table_update_and_row()
 
-    @dlt.resource(columns=column_schemas, table_format=destination_config.table_format)
+    @data_load_tool.resource(columns=column_schemas, table_format=destination_config.table_format)
     def data_types():
         nonlocal row
         yield [row] * 10
@@ -400,13 +400,13 @@ def test_preferred_table_format_caps(
         [1, 2, 3], table_name="table_format", write_disposition="merge", primary_key="value"
     )
     if destination_config.table_format == "delta":
-        from dlt.common.libs.deltalake import get_delta_tables
+        from data_load_tool.common.libs.deltalake import get_delta_tables
 
         delta_tables = get_delta_tables(pipeline, "table_format")
         delta_tables["table_format"].history()
 
     elif destination_config.table_format == "iceberg":
-        from dlt.common.libs.pyiceberg import get_iceberg_tables
+        from data_load_tool.common.libs.pyiceberg import get_iceberg_tables
 
         iceberg_tables = get_iceberg_tables(pipeline, "table_format")
         iceberg_tables["table_format"].history()
@@ -438,7 +438,7 @@ def test_table_format_does_not_contain_job_files(
 
     pipeline = destination_config.setup_pipeline("fs_pipe", dev_mode=True)
 
-    @dlt.resource(table_format="delta")
+    @data_load_tool.resource(table_format="delta")
     def delta_table():
         yield [{"foo": 1}]
 
@@ -485,11 +485,11 @@ def test_table_format_multiple_files(
     Files should be loaded into the table in a single commit.
     """
 
-    from dlt.common.libs.deltalake import get_delta_tables
+    from data_load_tool.common.libs.deltalake import get_delta_tables
 
     os.environ["DATA_WRITER__FILE_MAX_ITEMS"] = "2"  # force multiple files
 
-    @dlt.resource(table_format="delta")
+    @data_load_tool.resource(table_format="delta")
     def delta_table():
         yield [{"foo": True}] * 10
 
@@ -528,7 +528,7 @@ def test_table_format_child_tables(
 ) -> None:
     """Tests child table handling for `delta` and `iceberg` table formats."""
 
-    @dlt.resource(table_format=destination_config.table_format)
+    @data_load_tool.resource(table_format=destination_config.table_format)
     def nested_table():
         yield [
             {
@@ -622,12 +622,12 @@ def test_table_format_partitioning(
         table_name: str, table_format: TTableFormat, expected_partition_columns: List[str]
     ) -> None:
         if table_format == "delta":
-            from dlt.common.libs.deltalake import get_delta_tables
+            from data_load_tool.common.libs.deltalake import get_delta_tables
 
             dt = get_delta_tables(pipeline, table_name)[table_name]
             actual_partition_columns = dt.metadata().partition_columns
         elif table_format == "iceberg":
-            from dlt.common.libs.pyiceberg import get_iceberg_tables
+            from data_load_tool.common.libs.pyiceberg import get_iceberg_tables
 
             it = get_iceberg_tables(pipeline, table_name)[table_name]
             actual_partition_columns = [f.name for f in it.metadata.specs_struct().fields]
@@ -636,7 +636,7 @@ def test_table_format_partitioning(
     pipeline = destination_config.setup_pipeline("fs_pipe", dev_mode=True)
 
     # zero partition columns
-    @dlt.resource(table_format=destination_config.table_format)
+    @data_load_tool.resource(table_format=destination_config.table_format)
     def zero_part():
         yield {"foo": 1, "bar": 1}
 
@@ -646,7 +646,7 @@ def test_table_format_partitioning(
     assert load_table_counts(pipeline, "zero_part")["zero_part"] == 1
 
     # one partition column
-    @dlt.resource(table_format=destination_config.table_format, columns={"c1": {"partition": True}})
+    @data_load_tool.resource(table_format=destination_config.table_format, columns={"c1": {"partition": True}})
     def one_part():
         yield [
             {"c1": "foo", "c2": 1},
@@ -661,7 +661,7 @@ def test_table_format_partitioning(
     assert load_table_counts(pipeline, "one_part")["one_part"] == 4
 
     # two partition columns
-    @dlt.resource(
+    @data_load_tool.resource(
         table_format=destination_config.table_format,
         columns={"c1": {"partition": True}, "c2": {"partition": True}},
     )
@@ -719,8 +719,8 @@ def test_delta_table_partitioning_arrow_load_id(
     Case needs special handling because of bug in delta-rs:
     https://github.com/delta-io/delta-rs/issues/2969
     """
-    from dlt.common.libs.pyarrow import pyarrow
-    from dlt.common.libs.deltalake import get_delta_tables
+    from data_load_tool.common.libs.pyarrow import pyarrow
+    from data_load_tool.common.libs.deltalake import get_delta_tables
 
     os.environ["NORMALIZE__PARQUET_NORMALIZER__ADD_DLT_LOAD_ID"] = "true"
 
@@ -782,9 +782,9 @@ def test_table_format_schema_evolution(
     }:
         pytest.skip("`upsert` currently not implemented for `iceberg`")
 
-    from dlt.common.libs.pyarrow import pyarrow
+    from data_load_tool.common.libs.pyarrow import pyarrow
 
-    @dlt.resource(
+    @data_load_tool.resource(
         write_disposition=write_disposition,
         primary_key="pk",
         table_format=destination_config.table_format,
@@ -852,7 +852,7 @@ def test_table_format_schema_evolution(
     elif write_disposition == "replace":
         expected_num_rows = 0
         if destination_config.table_format == "delta":
-            # TODO: fix https://github.com/dlt-hub/dlt/issues/2092 and remove this if-clause
+            # TODO: fix https://github.com/dlt-hub/data_load_tool/issues/2092 and remove this if-clause
             expected_num_rows = 2
     elif write_disposition == {"disposition": "merge", "strategy": "upsert"}:
         expected_num_rows = 2
@@ -878,27 +878,27 @@ def test_table_format_empty_source(
 ) -> None:
     """Tests empty source handling for `delta` and `iceberg` table formats.
 
-    Tests both empty Arrow table and `dlt.mark.materialize_table_schema()`.
+    Tests both empty Arrow table and `data_load_tool.mark.materialize_table_schema()`.
     """
     from tests.pipeline.utils import users_materialize_table_schema
 
     def get_table_version(  # type: ignore[return]
-        pipeline: dlt.Pipeline,
+        pipeline: data_load_tool.Pipeline,
         table_name: str,
         table_format: TTableFormat,
     ) -> int:
         if table_format == "delta":
-            from dlt.common.libs.deltalake import get_delta_tables
+            from data_load_tool.common.libs.deltalake import get_delta_tables
 
             dt = get_delta_tables(pipeline, table_name)[table_name]
             return dt.version()
         elif table_format == "iceberg":
-            from dlt.common.libs.pyiceberg import get_iceberg_tables
+            from data_load_tool.common.libs.pyiceberg import get_iceberg_tables
 
             it = get_iceberg_tables(pipeline, table_name)[table_name]
             return it.last_sequence_number - 1  # subtract 1 to match `delta`
 
-    @dlt.resource(table_format=destination_config.table_format)
+    @data_load_tool.resource(table_format=destination_config.table_format)
     def a_table(data):
         yield data
 
@@ -945,14 +945,14 @@ def test_table_format_empty_source(
 
     if destination_config.table_format == "delta":
         # use materialized list
-        # NOTE: this will create an empty parquet file with a schema takes from dlt schema.
+        # NOTE: this will create an empty parquet file with a schema takes from data_load_tool schema.
         # the original parquet file had a nested (struct) type in `json` field that is now
         # in the delta table schema. the empty parquet file lost this information and had
-        # string type (converted from dlt `json`)
-        info = pipeline.run([dlt.mark.materialize_table_schema()], table_name="a_table")
+        # string type (converted from data_load_tool `json`)
+        info = pipeline.run([data_load_tool.mark.materialize_table_schema()], table_name="a_table")
         assert_load_info(info)
 
-    # test `dlt.mark.materialize_table_schema()`
+    # test `data_load_tool.mark.materialize_table_schema()`
     users_materialize_table_schema.apply_hints(table_format=destination_config.table_format)
     info = pipeline.run(users_materialize_table_schema(), loader_file_format="parquet")
     assert_load_info(info)
@@ -982,15 +982,15 @@ def test_table_format_mixed_source(
     One resource uses `delta` table format, the other doesn't.
     """
 
-    @dlt.resource(table_format="delta")
+    @data_load_tool.resource(table_format="delta")
     def delta_table():
         yield [{"foo": True}]
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def non_delta_table():
         yield [1, 2, 3]
 
-    @dlt.source
+    @data_load_tool.source
     def s():
         return [delta_table(), non_delta_table()]
 
@@ -1027,7 +1027,7 @@ def test_table_format_mixed_source(
 def test_table_format_dynamic_dispatch(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(primary_key="id", table_name=lambda i: i["type"], table_format="delta")
+    @data_load_tool.resource(primary_key="id", table_name=lambda i: i["type"], table_format="delta")
     def github_events():
         with open(
             "tests/normalize/cases/github.events.load_page_1_duck.json", "r", encoding="utf-8"
@@ -1058,25 +1058,25 @@ def test_table_format_get_tables_helper(
     """Tests `get_delta_tables` / `get_iceberg_tables` helper functions."""
     get_tables: Any
     if destination_config.table_format == "delta":
-        from dlt.common.libs.deltalake import DeltaTable, get_delta_tables
+        from data_load_tool.common.libs.deltalake import DeltaTable, get_delta_tables
 
         get_tables = get_delta_tables
         get_num_rows = lambda table: table.to_pyarrow_table().num_rows
     elif destination_config.table_format == "iceberg":
-        from dlt.common.libs.pyiceberg import IcebergTable, get_iceberg_tables
+        from data_load_tool.common.libs.pyiceberg import IcebergTable, get_iceberg_tables
 
         get_tables = get_iceberg_tables
         get_num_rows = lambda table: table.scan().to_arrow().num_rows
 
-    @dlt.resource(table_format=destination_config.table_format)
+    @data_load_tool.resource(table_format=destination_config.table_format)
     def foo_table_format():
         yield [{"foo": 1}, {"foo": 2}]
 
-    @dlt.resource(table_format=destination_config.table_format)
+    @data_load_tool.resource(table_format=destination_config.table_format)
     def bar_table_format():
         yield [{"bar": 1}]
 
-    @dlt.resource
+    @data_load_tool.resource
     def baz_not_table_format():
         yield [{"baz": 1}]
 
@@ -1105,7 +1105,7 @@ def test_table_format_get_tables_helper(
     }
 
     # test with child table
-    @dlt.resource(table_format=destination_config.table_format)
+    @data_load_tool.resource(table_format=destination_config.table_format)
     def parent_table_format():
         yield [{"foo": 1, "child": [1, 2, 3]}]
 
@@ -1127,7 +1127,7 @@ def test_table_format_get_tables_helper(
         get_tables(pipeline, "non_existing_table", schema_name="aux_2")
 
     # load to a new schema and under new name
-    aux_schema = dlt.Schema("aux_2")
+    aux_schema = data_load_tool.Schema("aux_2")
     # NOTE: you cannot have a file with name
     info = pipeline.run(parent_table_format().with_name("aux_table"), schema=aux_schema)
     # also state in seprate package
@@ -1150,9 +1150,9 @@ def test_table_format_get_tables_helper(
 )
 def test_parquet_to_delta_upgrade(destination_config: DestinationTestConfiguration):
     # change the resource to start creating delta tables
-    from dlt.common.libs.deltalake import get_delta_tables
+    from data_load_tool.common.libs.deltalake import get_delta_tables
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def foo():
         yield [{"foo": 1}, {"foo": 2}]
 
@@ -1168,7 +1168,7 @@ def test_parquet_to_delta_upgrade(destination_config: DestinationTestConfigurati
 
     # redefine the resource
 
-    @dlt.resource(table_format="delta")  # type: ignore
+    @data_load_tool.resource(table_format="delta")  # type: ignore
     def foo():
         yield [{"foo": 1}, {"foo": 2}]
 
@@ -1246,15 +1246,15 @@ def test_filesystem_destination_extended_layout_placeholders(
         extra_placeholders=extra_placeholders,
         current_datetime=counter(now),
     )
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_extended_layouts",
         destination=fs_destination,
     )
     load_info = pipeline.run(
         [
-            dlt.resource(data, name="table_1"),
-            dlt.resource(data * 2, name="table_2"),
-            dlt.resource(data * 3, name="table_3"),
+            data_load_tool.resource(data, name="table_1"),
+            data_load_tool.resource(data * 2, name="table_2"),
+            data_load_tool.resource(data * 3, name="table_3"),
         ],
         write_disposition="append",
     )
@@ -1357,9 +1357,9 @@ def test_state_files(destination_config: DestinationTestConfiguration) -> None:
     assert len(created_files) == 12
 
     # second two loads
-    @dlt.resource(table_name="items2")
+    @data_load_tool.resource(table_name="items2")
     def some_data():
-        dlt.current.resource_state()["state"] = {"some": "state"}
+        data_load_tool.current.resource_state()["state"] = {"some": "state"}
         yield from [1, 2, 3]
 
     load_id_1_2 = p1.run(some_data(), table_name="items2").loads_ids[
@@ -1443,15 +1443,15 @@ def test_state_with_simple_incremental(
 
     p = destination_config.setup_pipeline("p1", dataset_name="incremental_test")
 
-    @dlt.resource(name="items")
-    def my_resource(prim_key=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items")
+    def my_resource(prim_key=data_load_tool.sources.incremental("id")):
         yield from [
             {"id": 1},
             {"id": 2},
         ]
 
-    @dlt.resource(name="items")
-    def my_resource_inc(prim_key=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items")
+    def my_resource_inc(prim_key=data_load_tool.sources.incremental("id")):
         yield from [
             {"id": 1},
             {"id": 2},
@@ -1487,15 +1487,15 @@ def test_client_methods(
     p = destination_config.setup_pipeline("access", dataset_name="incremental_test")
     os.environ["DESTINATION__FILESYSTEM__LAYOUT"] = layout
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def table_1():
         yield [1, 2, 3, 4, 5]
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def table_2():
         yield [1, 2, 3, 4, 5, 6, 7]
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def table_3():
         yield [1, 2, 3, 4, 5, 6, 7, 8]
 
@@ -1572,16 +1572,16 @@ def test_cleanup_states_by_load_id(destination_config: DestinationTestConfigurat
     dataset_name = f"{destination_config.destination_name}{uniq_id()}"
     p = destination_config.setup_pipeline("p1", dataset_name=dataset_name)
 
-    @dlt.resource(name="items", primary_key="id")
-    def r1(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r1(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r2(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r2(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r3(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r3(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}, {"id": 2}]
 
     os.environ["DESTINATION__FILESYSTEM__MAX_STATE_FILES"] = str(2)
@@ -1630,24 +1630,24 @@ def test_cleanup_states(
     dataset_name = f"{destination_config.destination_name}{uniq_id()}"
     p = destination_config.setup_pipeline("p1", dataset_name=dataset_name)
 
-    @dlt.resource(name="items", primary_key="id")
-    def r1(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r1(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r2(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r2(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r3(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r3(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}, {"id": 2}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r4(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r4(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r5(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r5(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}]
 
     # run pipeline
@@ -1688,24 +1688,24 @@ def test_cleanup_states_shared_dataset(destination_config: DestinationTestConfig
     p1 = destination_config.setup_pipeline("p1", dataset_name=dataset_name)
     p2 = destination_config.setup_pipeline("p2", dataset_name=dataset_name)
 
-    @dlt.resource(name="items", primary_key="id")
-    def r1(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r1(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r2(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r2(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r3(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r3(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}, {"id": 2}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r4(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r4(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}]
 
-    @dlt.resource(name="items", primary_key="id")
-    def r5(_=dlt.sources.incremental("id")):
+    @data_load_tool.resource(name="items", primary_key="id")
+    def r5(_=data_load_tool.sources.incremental("id")):
         yield from [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}]
 
     os.environ["DESTINATION__FILESYSTEM__MAX_STATE_FILES"] = str(5)

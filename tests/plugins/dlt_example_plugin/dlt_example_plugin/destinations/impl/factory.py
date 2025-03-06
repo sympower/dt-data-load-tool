@@ -1,5 +1,5 @@
-from dlt.common.destination import DestinationCapabilitiesContext
-from dlt.destinations.impl.filesystem.factory import filesystem as _filesystem
+from data_load_tool.common.destination import DestinationCapabilitiesContext
+from data_load_tool.destinations.impl.filesystem.factory import filesystem as _filesystem
 
 
 class hive(_filesystem):

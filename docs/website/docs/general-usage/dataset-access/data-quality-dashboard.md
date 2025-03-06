@@ -6,7 +6,7 @@ keywords: [destination, schema, data, monitoring, testing, quality]
 
 # Data quality dashboards
 
-After deploying a `dlt` pipeline, you might ask yourself: How can we know if the data is and remains high quality?
+After deploying a `data_load_tool` pipeline, you might ask yourself: How can we know if the data is and remains high quality?
 
 There are two ways to catch errors:
 

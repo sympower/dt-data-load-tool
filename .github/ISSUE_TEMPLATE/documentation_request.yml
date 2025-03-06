@@ -1,15 +1,15 @@
 ---
 name: Documentation Request
-description: Suggest improvements or additions to dlt documentation
+description: Suggest improvements or additions to data_load_tool documentation
 labels: ["kind:documentation"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for contributing to the dlt documentation!
+        Thanks for contributing to the data_load_tool documentation!
         For significant updates or new content, open an issue to discuss your ideas. This helps us 
         coordinate and integrate your suggestions effectively. For simple edits like typos, you can 
-        directly submit a [pull request](https://github.com/dlt-hub/dlt/pulls).
+        directly submit a [pull request](https://github.com/dlt-hub/data_load_tool/pulls).
   - type: textarea
     attributes:
       label: Documentation description
@@ -18,11 +18,11 @@ body:
         What specific documentation changes are you suggesting?
   - type: dropdown
     attributes:
-      label: Are you a dlt user?
-      description: Please tell us how you use dlt and how this impacts your need for documentation.
+      label: Are you a data_load_tool user?
+      description: Please tell us how you use data_load_tool and how this impacts your need for documentation.
       multiple: false
       options:
-        - "Yes, I'm already a dlt user."
-        - "Yes, I run dlt in production."
+        - "Yes, I'm already a data_load_tool user."
+        - "Yes, I run data_load_tool in production."
         - "Yes, I use it for fun."
-        - "I'm considering using dlt, but the documentation is unclear."
+        - "I'm considering using data_load_tool, but the documentation is unclear."

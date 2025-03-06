@@ -2,13 +2,13 @@ from typing import Iterator, List
 import pytest
 from unittest.mock import patch
 
-from dlt.common import pendulum, Decimal
-from dlt.common.arithmetics import numeric_default_context
-from dlt.common.storages import FileStorage
-from dlt.common.utils import uniq_id
+from data_load_tool.common import pendulum, Decimal
+from data_load_tool.common.arithmetics import numeric_default_context
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations.exceptions import DatabaseTerminalException
-from dlt.destinations.insert_job_client import InsertValuesJobClient
+from data_load_tool.destinations.exceptions import DatabaseTerminalException
+from data_load_tool.destinations.insert_job_client import InsertValuesJobClient
 
 from tests.utils import TEST_STORAGE_ROOT, skipifpypy
 from tests.load.utils import (
@@ -97,7 +97,7 @@ def test_loading_errors(client: InsertValuesJobClient, file_storage: FileStorage
     # test expected dbapi exceptions for supported destinations
     dtype = client.config.destination_type
     if dtype in ("postgres", "redshift"):
-        from dlt.destinations.impl.postgres.sql_client import psycopg2
+        from data_load_tool.destinations.impl.postgres.sql_client import psycopg2
 
         TNotNullViolation = psycopg2.errors.NotNullViolation
         TNumericValueOutOfRange = psycopg2.errors.NumericValueOutOfRange

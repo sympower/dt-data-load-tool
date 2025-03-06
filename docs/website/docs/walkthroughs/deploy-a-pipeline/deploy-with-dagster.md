@@ -36,20 +36,20 @@ Dagster offers a 30-day free trial during which you can explore its features, su
 orchestration, data quality checks, and embedded ELTs. You can try Dagster using its open source or
 by signing up for the trial.
 
-## Building data pipelines with `dlt`
+## Building data pipelines with `data_load_tool`
 
-**How does `dlt` integrate with Dagster for pipeline orchestration?**
+**How does `data_load_tool` integrate with Dagster for pipeline orchestration?**
 
-`dlt` integrates with Dagster for pipeline orchestration, providing a streamlined process for
-building, enhancing, and managing data pipelines. This enables developers to leverage `dlt`'s
+`data_load_tool` integrates with Dagster for pipeline orchestration, providing a streamlined process for
+building, enhancing, and managing data pipelines. This enables developers to leverage `data_load_tool`'s
 capabilities for handling data extraction and load, and Dagster's orchestration features to efficiently manage and monitor data pipelines.
 
-Dagster supports [native integration with dlt](https://docs.dagster.io/integrations/embedded-elt/dlt),
+Dagster supports [native integration with data_load_tool](https://docs.dagster.io/integrations/embedded-elt/data_load_tool),
 here is a guide on how this integration works.
 
-### Orchestrating `dlt` pipeline on Dagster
+### Orchestrating `data_load_tool` pipeline on Dagster
 
-Here's a concise guide to orchestrating a `dlt` pipeline with Dagster, creating a pipeline that ingests GitHub issues data from a repository and loads it into DuckDB.
+Here's a concise guide to orchestrating a `data_load_tool` pipeline with Dagster, creating a pipeline that ingests GitHub issues data from a repository and loads it into DuckDB.
 
 You can find the full example code in [this repository](https://github.com/dlt-hub/dlthub-education/blob/main/workshops/workshop_august_2024/part2/deployment/deploy_dagster/README.md).
 
@@ -68,19 +68,19 @@ You can find the full example code in [this repository](https://github.com/dlt-h
       ```
       ![image](https://github.com/user-attachments/assets/f9002de1-bcdf-49f4-941b-abd59ea7968d)
 
-1. In your Dagster project, define the dlt pipeline in the `github_source` folder.
+1. In your Dagster project, define the data_load_tool pipeline in the `github_source` folder.
 
-   **Note**: The dlt Dagster helper works only with dlt sources. Your resources should always be grouped in a source.
+   **Note**: The data_load_tool Dagster helper works only with data_load_tool sources. Your resources should always be grouped in a source.
      ```py
-     import dlt
+     import data_load_tool
      ...
-     @dlt.resource(
+     @data_load_tool.resource(
          table_name="issues",
          write_disposition="merge",
          primary_key="id",
      )
      def get_issues(
-             updated_at=dlt.sources.incremental("updated_at", initial_value="1970-01-01T00:00:00Z")
+             updated_at=data_load_tool.sources.incremental("updated_at", initial_value="1970-01-01T00:00:00Z")
      ):
          url = (
              f"{BASE_URL}?since={updated_at.last_value}&per_page=100&sort=updated"
@@ -88,7 +88,7 @@ You can find the full example code in [this repository](https://github.com/dlt-h
          )
          yield pagination(url)
 
-     @dlt.source
+     @data_load_tool.source
      def github_source():
          return get_issues()
      ```
@@ -100,14 +100,14 @@ You can find the full example code in [this repository](https://github.com/dlt-h
     Here’s an example of how to define assets (`github_source/assets.py`):
 
       ```py
-      import dlt
+      import data_load_tool
       from dagster import AssetExecutionContext
-      from dagster_embedded_elt.dlt import DagsterDltResource, dlt_assets
+      from dagster_embedded_elt.data_load_tool import DagsterDltResource, dlt_assets
       from .github_pipeline import github_source
 
       @dlt_assets(
           dlt_source=github_source(),
-          dlt_pipeline=dlt.pipeline(
+          dlt_pipeline=data_load_tool.pipeline(
               pipeline_name="github_issues",
               dataset_name="github",
               destination="duckdb",
@@ -116,12 +116,12 @@ You can find the full example code in [this repository](https://github.com/dlt-h
           name="github",
           group_name="github",
       )
-      def dagster_github_assets(context: AssetExecutionContext, dlt: DagsterDltResource):
-          yield from dlt.run(context=context)
+      def dagster_github_assets(context: AssetExecutionContext, data_load_tool: DagsterDltResource):
+          yield from data_load_tool.run(context=context)
       ```
 
     For more information, please refer to
-    [Dagster’s documentation.](https://docs.dagster.io/_apidocs/libraries/dagster-embedded-elt#dagster_embedded_elt.dlt.dlt_assets)
+    [Dagster’s documentation.](https://docs.dagster.io/_apidocs/libraries/dagster-embedded-elt#dagster_embedded_elt.data_load_tool.dlt_assets)
 
  1. Create the Definitions object.
 
@@ -130,7 +130,7 @@ You can find the full example code in [this repository](https://github.com/dlt-h
      ```py
      import assets
      from dagster import Definitions, load_assets_from_modules
-     from dagster_embedded_elt.dlt import DagsterDltResource
+     from dagster_embedded_elt.data_load_tool import DagsterDltResource
 
      dlt_resource = DagsterDltResource()
      all_assets = load_assets_from_modules([assets])
@@ -138,7 +138,7 @@ You can find the full example code in [this repository](https://github.com/dlt-h
      defs = Definitions(
          assets=all_assets,
          resources={
-             "dlt": dlt_resource,
+             "data_load_tool": dlt_resource,
          },
      )
      ```
@@ -174,52 +174,52 @@ You can find the full example code in [this repository](https://github.com/dlt-h
 
    ![image](https://github.com/user-attachments/assets/f0e3bec8-f702-46a6-b69f-194a1dacf625)
 
-   Want to see real-world examples of dlt in production? Check out how dlt is used internally at Dagster in the [Dagster Open Platform](https://github.com/dagster-io/dagster-open-platform) project.
+   Want to see real-world examples of data_load_tool in production? Check out how data_load_tool is used internally at Dagster in the [Dagster Open Platform](https://github.com/dagster-io/dagster-open-platform) project.
 
 
 :::info
-For a complete picture of Dagster's integration with dlt, please refer to their [documentation](https://docs.dagster.io/integrations/embedded-elt/dlt). This documentation offers a detailed overview and steps for ingesting GitHub data and storing it in Snowflake. You can use a similar approach to build your pipelines.
+For a complete picture of Dagster's integration with data_load_tool, please refer to their [documentation](https://docs.dagster.io/integrations/embedded-elt/data_load_tool). This documentation offers a detailed overview and steps for ingesting GitHub data and storing it in Snowflake. You can use a similar approach to build your pipelines.
 :::
 
 ### Frequently Asked Questions
-- **Can I remove the generated `.dlt` folder with `secrets.toml` and `config.toml` files?**
+- **Can I remove the generated `.data_load_tool` folder with `secrets.toml` and `config.toml` files?**
 
-  Yes. Since dlt is compatible with environment variables, you can use this for secrets required by both Dagster and dlt.
+  Yes. Since data_load_tool is compatible with environment variables, you can use this for secrets required by both Dagster and data_load_tool.
 
 - **I'm working with several sources – how can I best group these assets?**
 
   To effectively group assets in Dagster when working with multiple sources, use the `group_name` parameter in your `@dlt_assets` decorator. This helps organize and visualize assets related to a particular source or theme in the Dagster UI. Here’s a simplified example:
 
   ```py
-  import dlt
-  from dagster_embedded_elt.dlt import dlt_assets
+  import data_load_tool
+  from dagster_embedded_elt.data_load_tool import dlt_assets
   from dlt_sources.google_analytics import google_analytics
 
   # Define assets for the first Google Analytics source
   @dlt_assets(
       dlt_source=google_analytics(),
-      dlt_pipeline=dlt.pipeline(
+      dlt_pipeline=data_load_tool.pipeline(
         pipeline_name="google_analytics_pipeline_1",
         destination="bigquery",
         dataset_name="google_analytics_data_1"
       ),
       group_name='Google_Analytics'
   )
-  def google_analytics_assets_1(context, dlt):
-      yield from dlt.run(context=context)
+  def google_analytics_assets_1(context, data_load_tool):
+      yield from data_load_tool.run(context=context)
 
   # Define assets for the second Google Analytics source
   @dlt_assets(
       dlt_source=google_analytics(),
-      dlt_pipeline=dlt.pipeline(
+      dlt_pipeline=data_load_tool.pipeline(
         pipeline_name="google_analytics_pipeline_2",
         destination="bigquery",
         dataset_name="google_analytics_data_2"
       ),
       group_name='Google_Analytics'
   )
-  def google_analytics_assets_2(context, dlt):
-      yield from dlt.run(context=context)
+  def google_analytics_assets_2(context, data_load_tool):
+      yield from data_load_tool.run(context=context)
   ```
 
 
@@ -229,9 +229,9 @@ For a complete picture of Dagster's integration with dlt, please refer to their 
   To use `bigquery_adapter` with `@dlt_assets` in Dagster for partitioned tables, modify your resource setup to include `bigquery_adapter` with the partition parameter. Here's a quick example:
 
   ```py
-  import dlt
+  import data_load_tool
   from google.analytics import BetaAnalyticsDataClient
-  from dlt.destinations.adapters import bigquery_adapter
+  from data_load_tool.destinations.adapters import bigquery_adapter
   from dagster import dlt_asset
 
   @dlt_asset
@@ -261,7 +261,7 @@ For a complete picture of Dagster's integration with dlt, please refer to their 
           resource_name: str = query["resource_name"] # type: ignore[assignment]
           resource_list.append(
               bigquery_adapter(
-                  dlt.resource(data, name=resource_name, write_disposition="append")(
+                  data_load_tool.resource(data, name=resource_name, write_disposition="append")(
                       client=client,
                       rows_per_page=rows_per_page,
                       property_id=property_id,
@@ -269,7 +269,7 @@ For a complete picture of Dagster's integration with dlt, please refer to their 
                       metrics=query["metrics"],
                       resource_name=resource_name,
                       start_date=start_date,
-                      last_date=dlt.sources.incremental("date"),
+                      last_date=data_load_tool.sources.incremental("date"),
                   ),
                   partition="date"
               )
@@ -282,15 +282,15 @@ For a complete picture of Dagster's integration with dlt, please refer to their 
 
 - Check out the [Dagster Cloud Documentation](https://docs.dagster.cloud/) to learn more about deploying on Dagster Cloud.
 
-- Learn more about Dagster's integration with dlt:
-  [dlt & Dagster](https://docs.dagster.io/integrations/embedded-elt/dlt)
-  [Embedded ELT Documentation](https://docs.dagster.io/_apidocs/libraries/dagster-embedded-elt#dagster_embedded_elt.dlt.dlt_assets).
+- Learn more about Dagster's integration with data_load_tool:
+  [data_load_tool & Dagster](https://docs.dagster.io/integrations/embedded-elt/data_load_tool)
+  [Embedded ELT Documentation](https://docs.dagster.io/_apidocs/libraries/dagster-embedded-elt#dagster_embedded_elt.data_load_tool.dlt_assets).
 
-- A general configurable `dlt` resource orchestrated on Dagster:
-  [dlt resource](https://github.com/dagster-io/dagster-open-platform/blob/5030ff6828e2b001a557c6864f279c3b476b0ca0/dagster_open_platform/resources/dlt_resource.py#L29).
+- A general configurable `data_load_tool` resource orchestrated on Dagster:
+  [data_load_tool resource](https://github.com/dagster-io/dagster-open-platform/blob/5030ff6828e2b001a557c6864f279c3b476b0ca0/dagster_open_platform/resources/dlt_resource.py#L29).
 
-- Configure `dlt` pipelines for Dagster:
-  [dlt pipelines](https://github.com/dagster-io/dagster-open-platform/tree/5030ff6828e2b001a557c6864f279c3b476b0ca0/dagster_open_platform/assets/dlt_pipelines).
+- Configure `data_load_tool` pipelines for Dagster:
+  [data_load_tool pipelines](https://github.com/dagster-io/dagster-open-platform/tree/5030ff6828e2b001a557c6864f279c3b476b0ca0/dagster_open_platform/assets/dlt_pipelines).
 
 - Configure MongoDB source as an Asset factory:
 

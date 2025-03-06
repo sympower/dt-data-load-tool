@@ -1,10 +1,10 @@
 import pytest
 from qdrant_client import models
 
-import dlt
+import data_load_tool
 from tests.load.utils import destinations_configs, DestinationTestConfiguration
 
-from dlt.destinations.impl.qdrant.qdrant_job_client import QdrantClient
+from data_load_tool.destinations.impl.qdrant.qdrant_job_client import QdrantClient
 
 
 @pytest.mark.parametrize(
@@ -24,9 +24,9 @@ def test_uncommitted_state(destination_config: DestinationTestConfiguration):
 
     state_val = 0
 
-    @dlt.resource
+    @data_load_tool.resource
     def dummy_table():
-        dlt.current.resource_state("dummy_table")["val"] = state_val
+        data_load_tool.current.resource_state("dummy_table")["val"] = state_val
         yield [1, 2, 3]
 
     # Create > 10 load packages to be above pagination size when restoring state

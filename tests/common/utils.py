@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import Mapping, Tuple, cast, Any, Dict
 import datetime  # noqa: 251
 
-from dlt.common import json
-from dlt.common.typing import StrAny, TSecretStrValue
-from dlt.common.schema import utils, Schema
-from dlt.common.schema.typing import TTableSchemaColumns
-from dlt.common.configuration.providers import environ as environ_provider
+from data_load_tool.common import json
+from data_load_tool.common.typing import StrAny, TSecretStrValue
+from data_load_tool.common.schema import utils, Schema
+from data_load_tool.common.schema.typing import TTableSchemaColumns
+from data_load_tool.common.configuration.providers import environ as environ_provider
 
 
 COMMON_TEST_CASES_PATH = "./tests/common/cases/"

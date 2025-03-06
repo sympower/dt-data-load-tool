@@ -4,9 +4,9 @@ PYV=$(shell python3 -c "import sys;t='{v[0]}.{v[1]}'.format(v=list(sys.version_i
 .SILENT:has-poetry
 
 # read version from package
-# AUTV=$(shell cd dlt && python3 -c "from __version__ import __version__;print(__version__)")
+# AUTV=$(shell cd data_load_tool && python3 -c "from __version__ import __version__;print(__version__)")
 
-# NAME   := dlthub/dlt
+# NAME   := dlthub/data_load_tool
 # TAG    := $(shell git log -1 --pretty=%h)
 # IMG    := ${NAME}:${TAG}
 # LATEST := ${NAME}:latest${VERSION_SUFFIX}
@@ -30,7 +30,7 @@ help:
 	@echo "		lint-and-test-snippets"
 	@echo "			tests and lints snippets and examples in docs"
 	@echo "		build-library"
-	@echo "			makes dev and then builds dlt package for distribution"
+	@echo "			makes dev and then builds data_load_tool package for distribution"
 	@echo "		publish-library"
 	@echo "			builds library and then publishes it to pypi"
 
@@ -48,15 +48,15 @@ dev: has-poetry
 
 lint:
 	poetry run python ./tools/check-lockfile.py
-	poetry run mypy --config-file mypy.ini dlt tests
-	poetry run flake8 --max-line-length=200 dlt
+	poetry run mypy --config-file mypy.ini data_load_tool tests
+	poetry run flake8 --max-line-length=200 data_load_tool
 	poetry run flake8 --max-line-length=200 tests --exclude tests/reflection/module_cases,tests/common/reflection/cases/modules/
-	poetry run black dlt docs tests --check --diff --color --extend-exclude=".*syntax_error.py"
+	poetry run black data_load_tool docs tests --check --diff --color --extend-exclude=".*syntax_error.py"
 	# poetry run isort ./ --diff
 	$(MAKE) lint-security
 
 format:
-	poetry run black dlt docs tests --extend-exclude='.*syntax_error.py|_storage/.*'
+	poetry run black data_load_tool docs tests --extend-exclude='.*syntax_error.py|_storage/.*'
 	# poetry run isort ./
 
 lint-snippets:
@@ -78,7 +78,7 @@ test-examples:
 
 lint-security:
 	# go for ll by cleaning up eval and SQL warnings.
-	poetry run bandit -r dlt/ -n 3 -lll
+	poetry run bandit -r data_load_tool/ -n 3 -lll
 
 test:
 	poetry run pytest tests
@@ -108,8 +108,8 @@ test-build-images: build-library
 	poetry run pip freeze > _gen_requirements.txt
 	# filter out libs that need native compilation
 	grep `cat compiled_packages.txt` _gen_requirements.txt > compiled_requirements.txt
-	docker build -f deploy/dlt/Dockerfile.airflow --build-arg=COMMIT_SHA="$(shell git log -1 --pretty=%h)" --build-arg=IMAGE_VERSION="$(shell poetry version -s)" .
-	docker build -f deploy/dlt/Dockerfile --build-arg=COMMIT_SHA="$(shell git log -1 --pretty=%h)" --build-arg=IMAGE_VERSION="$(shell poetry version -s)" .
+	docker build -f deploy/data_load_tool/Dockerfile.airflow --build-arg=COMMIT_SHA="$(shell git log -1 --pretty=%h)" --build-arg=IMAGE_VERSION="$(shell poetry version -s)" .
+	docker build -f deploy/data_load_tool/Dockerfile --build-arg=COMMIT_SHA="$(shell git log -1 --pretty=%h)" --build-arg=IMAGE_VERSION="$(shell poetry version -s)" .
 
 preprocess-docs:
 	# run docs preprocessing to run a few checks and ensure examples can be parsed
@@ -123,7 +123,7 @@ start-test-containers:
 	docker compose -f "tests/load/sqlalchemy/docker-compose.yml" up -d
 
 update-cli-docs:
-	poetry run dlt --debug render-docs docs/website/docs/reference/command-line-interface.md
+	poetry run data_load_tool --debug render-docs docs/website/docs/reference/command-line-interface.md
 
 check-cli-docs:
-	poetry run dlt --debug render-docs docs/website/docs/reference/command-line-interface.md --compare
+	poetry run data_load_tool --debug render-docs docs/website/docs/reference/command-line-interface.md --compare

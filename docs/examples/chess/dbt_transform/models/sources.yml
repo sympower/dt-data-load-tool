@@ -1,7 +1,7 @@
 version: 2
 
 sources:
-  - name: dlt
+  - name: data_load_tool
     schema: "{{ var('source_dataset_name') }}"
     tables:
       - name: _dlt_loads

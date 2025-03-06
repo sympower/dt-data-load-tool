@@ -3,13 +3,13 @@ import pytest
 from copy import deepcopy
 import sqlfluff
 
-from dlt.common.schema.typing import TColumnSchema
-from dlt.common.utils import uniq_id
-from dlt.common.schema import Schema
+from data_load_tool.common.schema.typing import TColumnSchema
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema import Schema
 
-from dlt.destinations import duckdb
-from dlt.destinations.impl.duckdb.duck import DuckDbClient
-from dlt.destinations.impl.duckdb.configuration import DuckDbClientConfiguration
+from data_load_tool.destinations import duckdb
+from data_load_tool.destinations.impl.duckdb.duck import DuckDbClient
+from data_load_tool.destinations.impl.duckdb.configuration import DuckDbClientConfiguration
 
 from tests.cases import (
     TABLE_UPDATE_ALL_INT_PRECISIONS,

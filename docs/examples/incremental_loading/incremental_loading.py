@@ -9,7 +9,7 @@ In this example, you'll find a Python script that interacts with the Zendesk Sup
 
 We'll learn:
 
-- How to pass [credentials](../general-usage/credentials) as dict and how to type the `@dlt.source` function arguments.
+- How to pass [credentials](../general-usage/credentials) as dict and how to type the `@data_load_tool.source` function arguments.
 - How to set [the nesting level](../general-usage/source#reduce-the-nesting-level-of-generated-tables).
 - How to enable [incremental loading](../general-usage/incremental-loading) for efficient data extraction.
 - How to specify [the start and end dates](../general-usage/incremental-loading#using-end_value-for-backfill) for the data loading and how to [opt-in to Airflow scheduler](../general-usage/incremental-loading#using-airflow-schedule-for-backfill-and-incremental-loading) by setting `allow_external_schedulers` to `True`.
@@ -17,21 +17,21 @@ We'll learn:
 - How to use the `start_time` parameter in API requests to retrieve data starting from a specific timestamp.
 """
 
-# NOTE: this line is only for dlt CI purposes, you may delete it if you are using this example
+# NOTE: this line is only for data_load_tool CI purposes, you may delete it if you are using this example
 __source_name__ = "zendesk"
 
 from typing import Optional, Dict, Any, Tuple
 
-import dlt
-from dlt.common import pendulum
-from dlt.common.time import ensure_pendulum_datetime
-from dlt.common.typing import TAnyDateTime
-from dlt.sources.helpers import requests
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.common.time import ensure_pendulum_datetime
+from data_load_tool.common.typing import TAnyDateTime
+from data_load_tool.sources.helpers import requests
 
 
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def zendesk_support(
-    credentials: Dict[str, str] = dlt.secrets.value,
+    credentials: Dict[str, str] = data_load_tool.secrets.value,
     start_date: Optional[TAnyDateTime] = pendulum.datetime(year=2000, month=1, day=1),  # noqa: B008
     end_date: Optional[TAnyDateTime] = None,
 ):
@@ -39,7 +39,7 @@ def zendesk_support(
     Retrieves data from Zendesk Support for tickets events.
 
     Args:
-        credentials: Zendesk credentials (default: dlt.secrets.value)
+        credentials: Zendesk credentials (default: data_load_tool.secrets.value)
         start_date: Start date for data extraction (default: 2000-01-01)
         end_date: End date for data extraction (default: None).
             If end time is not provided, the incremental loading will be
@@ -67,9 +67,9 @@ def zendesk_support(
     #  so we do not need to merge
     # we set primary_key so allow deduplication of events by the `incremental` below in the rare case
     #  when two events have the same timestamp
-    @dlt.resource(primary_key="id", write_disposition="append")
+    @data_load_tool.resource(primary_key="id", write_disposition="append")
     def ticket_events(
-        timestamp: dlt.sources.incremental[int] = dlt.sources.incremental(
+        timestamp: data_load_tool.sources.incremental[int] = data_load_tool.sources.incremental(
             "timestamp",
             initial_value=start_date_ts,
             end_value=end_date_ts,
@@ -136,8 +136,8 @@ def get_pages(
 
 
 if __name__ == "__main__":
-    # create dlt pipeline
-    pipeline = dlt.pipeline(
+    # create data_load_tool pipeline
+    pipeline = data_load_tool.pipeline(
         pipeline_name="zendesk", destination="duckdb", dataset_name="zendesk_data"
     )
 

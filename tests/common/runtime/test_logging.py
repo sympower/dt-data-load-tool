@@ -3,12 +3,12 @@ from importlib.metadata import version as pkg_version
 
 from pytest_mock import MockerFixture
 
-from dlt.common import logger
-from dlt.common.runtime import exec_info
-from dlt.common.logger import is_logging
-from dlt.common.typing import StrStr, DictStrStr
-from dlt.common.configuration import configspec
-from dlt.common.configuration.specs import RuntimeConfiguration
+from data_load_tool.common import logger
+from data_load_tool.common.runtime import exec_info
+from data_load_tool.common.logger import is_logging
+from data_load_tool.common.typing import StrStr, DictStrStr
+from data_load_tool.common.configuration import configspec
+from data_load_tool.common.configuration.specs import RuntimeConfiguration
 
 from tests.common.runtime.utils import mock_image_env, mock_github_env, mock_pod_env
 from tests.common.configuration.utils import environment
@@ -29,7 +29,7 @@ class JsonLoggerConfiguration(PureBasicConfiguration):
 def test_version_extract(environment: DictStrStr) -> None:
     version = exec_info.dlt_version_info("logger")
     # assert version["dlt_version"].startswith(code_version)
-    lib_version = pkg_version("dlt")
+    lib_version = pkg_version("data_load_tool")
     assert version == {"dlt_version": lib_version, "pipeline_name": "logger"}
     # mock image info available in container
     mock_image_env(environment)
@@ -80,7 +80,7 @@ def test_text_logger_init(environment: DictStrStr, mocker: MockerFixture) -> Non
     c.log_level = "INFO"
     init_test_logging(c)
     assert logger.LOGGER is not None
-    assert logger.LOGGER.name == "dlt"
+    assert logger.LOGGER.name == "data_load_tool"
 
     # logs on info level
     logger_spy = mocker.spy(logger.LOGGER, "info")
@@ -100,7 +100,7 @@ def test_text_logger_init(environment: DictStrStr, mocker: MockerFixture) -> Non
 
 @pytest.mark.forked
 def test_json_logger_init(environment: DictStrStr) -> None:
-    from dlt.common.runtime import json_logging
+    from data_load_tool.common.runtime import json_logging
 
     mock_image_env(environment)
     mock_pod_env(environment)
@@ -132,7 +132,7 @@ def test_double_log_init(environment: DictStrStr, mocker: MockerFixture) -> None
     handler_spy = mocker.spy(logger.LOGGER.handlers[0].stream, "write")  # type: ignore[attr-defined]
     logger.error("test warning", extra={"metrics": "props"})
     msg = handler_spy.call_args_list[0][0][0]
-    assert "|dlt|test_logging.py|test_double_log_init:" in msg
+    assert "|data_load_tool|test_logging.py|test_double_log_init:" in msg
     assert 'test warning: "props"' in msg
     assert "ERROR" in msg
 
@@ -140,7 +140,7 @@ def test_double_log_init(environment: DictStrStr, mocker: MockerFixture) -> None
     init_test_logging(JsonLoggerConfiguration())
     logger.error("test json warning", extra={"metrics": "props"})
     assert (
-        '"msg":"test json warning","type":"log","logger":"dlt"'
+        '"msg":"test json warning","type":"log","logger":"data_load_tool"'
         in handler_spy.call_args_list[1][0][0]
     )
 
@@ -152,10 +152,10 @@ def test_double_log_init(environment: DictStrStr, mocker: MockerFixture) -> None
     init_test_logging(JsonLoggerConfiguration())
     logger.error("test json warning", extra={"metrics": "props"})
     assert (
-        '"msg":"test json warning","type":"log","logger":"dlt"'
+        '"msg":"test json warning","type":"log","logger":"data_load_tool"'
         in handler_spy.call_args_list[3][0][0]
     )
-    assert logger.LOGGER.name == "dlt"
+    assert logger.LOGGER.name == "data_load_tool"
 
 
 def test_cleanup(environment: DictStrStr) -> None:

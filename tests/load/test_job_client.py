@@ -7,33 +7,33 @@ import pytest
 import datetime  # noqa: I251
 from typing import Iterator, Tuple, List, Dict, Any
 
-from dlt.common import json, pendulum
-from dlt.common.normalizers.naming import NamingConvention
-from dlt.common.schema import Schema
-from dlt.common.schema.typing import (
+from data_load_tool.common import json, pendulum
+from data_load_tool.common.normalizers.naming import NamingConvention
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.schema.typing import (
     LOADS_TABLE_NAME,
     VERSION_TABLE_NAME,
     TWriteDisposition,
     TTableSchema,
 )
-from dlt.common.schema.utils import new_table, new_column, pipeline_state_table
-from dlt.common.storages import FileStorage
-from dlt.common.schema import TTableSchemaColumns
-from dlt.common.utils import uniq_id
-from dlt.destinations.exceptions import (
+from data_load_tool.common.schema.utils import new_table, new_column, pipeline_state_table
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.schema import TTableSchemaColumns
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations.exceptions import (
     DatabaseException,
     DatabaseTerminalException,
     DatabaseUndefinedRelation,
 )
 
-from dlt.destinations.job_client_impl import SqlJobClientBase
-from dlt.common.destination.client import (
+from data_load_tool.destinations.job_client_impl import SqlJobClientBase
+from data_load_tool.common.destination.client import (
     StateInfo,
     WithStagingDataset,
     DestinationClientConfiguration,
     WithStateSync,
 )
-from dlt.common.time import ensure_pendulum_datetime
+from data_load_tool.common.time import ensure_pendulum_datetime
 
 from tests.cases import table_update_and_row, assert_all_data_types_row
 from tests.utils import TEST_STORAGE_ROOT
@@ -117,12 +117,12 @@ def test_get_schema_on_empty_storage(naming: str, client: SqlJobClientBase) -> N
 def test_get_update_basic_schema(client: SqlJobClientBase) -> None:
     schema = client.schema
     schema_update = client.update_stored_schema()
-    # expect dlt tables in schema update
+    # expect data_load_tool tables in schema update
     assert set(schema_update.keys()) == {VERSION_TABLE_NAME, LOADS_TABLE_NAME, "event_slot"}
     # event_bot and event_user are not present because they have no columns
     # check is event slot has variant
     assert schema_update["event_slot"]["columns"]["value"]["variant"] is True
-    # now we have dlt tables
+    # now we have data_load_tool tables
     storage_tables = list(client.get_storage_tables([VERSION_TABLE_NAME, LOADS_TABLE_NAME]))
     assert set([table[0] for table in storage_tables]) == {VERSION_TABLE_NAME, LOADS_TABLE_NAME}
     assert [len(table[1]) > 0 for table in storage_tables] == [True, True]
@@ -963,7 +963,7 @@ def test_many_schemas_single_dataset(
 )
 def test_schema_retrieval(destination_config: DestinationTestConfiguration) -> None:
     p = destination_config.setup_pipeline("schema_test", dev_mode=True)
-    from dlt.common.schema import utils
+    from data_load_tool.common.schema import utils
 
     # we create 2 versions of 2 schemas
     s1_v1 = Schema("schema_1")

@@ -7,18 +7,18 @@ from subprocess import CalledProcessError
 from git import InvalidGitRepositoryError, NoSuchPathError
 import pytest
 
-import dlt
+import data_load_tool
 
-from dlt.common.runners import Venv
-from dlt.common.storages.file_storage import FileStorage
-from dlt.common.typing import StrAny
-from dlt.common.utils import set_working_dir
+from data_load_tool.common.runners import Venv
+from data_load_tool.common.storages.file_storage import FileStorage
+from data_load_tool.common.typing import StrAny
+from data_load_tool.common.utils import set_working_dir
 
-from dlt.cli import deploy_command, _dlt, echo
-from dlt.cli.exceptions import CliCommandInnerException
-from dlt.pipeline.exceptions import CannotRestorePipelineException
-from dlt.cli.deploy_command_helpers import get_schedule_description
-from dlt.cli.exceptions import CliCommandException
+from data_load_tool.cli import deploy_command, _dlt, echo
+from data_load_tool.cli.exceptions import CliCommandInnerException
+from data_load_tool.pipeline.exceptions import CannotRestorePipelineException
+from data_load_tool.cli.deploy_command_helpers import get_schedule_description
+from data_load_tool.cli.exceptions import CliCommandException
 
 from tests.utils import TEST_STORAGE_ROOT, reset_providers, test_storage
 
@@ -63,7 +63,7 @@ def test_deploy_command(
     test_storage: FileStorage, deployment_method: str, deployment_args: StrAny
 ) -> None:
     # drop pipeline
-    p = dlt.pipeline(pipeline_name="debug_pipeline")
+    p = data_load_tool.pipeline(pipeline_name="debug_pipeline")
     p._wipe_working_folder()
 
     shutil.copytree("tests/cli/cases/deploy_pipeline", TEST_STORAGE_ROOT, dirs_exist_ok=True)
@@ -135,12 +135,12 @@ def test_deploy_command(
 
             os.environ["DESTINATION__POSTGRES__CREDENTIALS"] = pg_credentials
             # also delete secrets so credentials are not mixed up on CI
-            test_storage.delete(".dlt/secrets.toml")
-            test_storage.atomic_rename(".dlt/secrets.toml.ci", ".dlt/secrets.toml")
+            test_storage.delete(".data_load_tool/secrets.toml")
+            test_storage.atomic_rename(".data_load_tool/secrets.toml.ci", ".data_load_tool/secrets.toml")
 
             # reset toml providers to (1) where secrets exist (2) non existing dir so API_KEY is not found
             for settings_dir, api_key in [
-                (os.path.join(test_storage.storage_path, ".dlt"), "api_key_9x3ehash"),
+                (os.path.join(test_storage.storage_path, ".data_load_tool"), "api_key_9x3ehash"),
                 (".", "please set me up!"),
             ]:
                 with reset_providers(settings_dir=settings_dir):

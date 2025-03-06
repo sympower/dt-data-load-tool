@@ -1,8 +1,8 @@
 import pytest
 
-from dlt.common.utils import uniq_id
-from dlt.common.storages import NormalizeStorage, NormalizeStorageConfiguration
-from dlt.common.storages.exceptions import NoMigrationPathException
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.storages import NormalizeStorage, NormalizeStorageConfiguration
+from data_load_tool.common.storages.exceptions import NoMigrationPathException
 
 from tests.utils import write_version, autouse_test_storage
 

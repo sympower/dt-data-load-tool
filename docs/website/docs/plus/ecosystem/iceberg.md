@@ -10,9 +10,9 @@ import Link from '../../_plus_admonition.md';
 
 # Iceberg
 
-The Iceberg destination is based on the [filesystem destination](../../dlt-ecosystem/destinations/filesystem.md) in dlt. All configuration options from the filesystem destination can be configured as well.
+The Iceberg destination is based on the [filesystem destination](../../dlt-ecosystem/destinations/filesystem.md) in data_load_tool. All configuration options from the filesystem destination can be configured as well.
 
-Under the hood, dlt+ uses the [pyiceberg library](https://py.iceberg.apache.org/) to write Iceberg tables. One or multiple Parquet files are prepared during the extract and normalize steps. In the load step, these Parquet files are exposed as an Arrow data structure and fed into pyiceberg.
+Under the hood, data_load_tool+ uses the [pyiceberg library](https://py.iceberg.apache.org/) to write Iceberg tables. One or multiple Parquet files are prepared during the extract and normalize steps. In the load step, these Parquet files are exposed as an Arrow data structure and fed into pyiceberg.
 
 ## Setup
 
@@ -22,14 +22,14 @@ pip install pyiceberg
 pip install sqlalchemy>=2.0.18
 ```
 
-Initialize a dlt+ project in the current working directory with the following command:
+Initialize a data_load_tool+ project in the current working directory with the following command:
 
 ```sh
 # replace sql_database with the source of your choice
-dlt project init sql_database iceberg
+data_load_tool project init sql_database iceberg
 ```
 
-This will create an Iceberg destination in your `dlt.yml`, where you can configure the destination:
+This will create an Iceberg destination in your `data_load_tool.yml`, where you can configure the destination:
 
 ```yaml
 destinations:
@@ -103,7 +103,7 @@ sftp_key_passphrase = "your_passphrase"   # Optional: passphrase for your privat
 The Iceberg destination can also be defined in Python as follows:
 
 ```py
-pipeline = dlt.pipeline("loads_iceberg", destination="iceberg")
+pipeline = data_load_tool.pipeline("loads_iceberg", destination="iceberg")
 ```
 
 ## Write dispositions
@@ -115,7 +115,7 @@ The Iceberg destination handles the write dispositions as follows:
 
 The `merge` write disposition can be configured as follows on the source/resource level:
 
-<Tabs values={[{"label": "dlt.yml", "value": "yaml"}, {"label": "Python", "value": "python"}]}  groupId="language" defaultValue="yaml">
+<Tabs values={[{"label": "data_load_tool.yml", "value": "yaml"}, {"label": "Python", "value": "python"}]}  groupId="language" defaultValue="yaml">
   <TabItem value="yaml">
 
 ```yaml
@@ -131,7 +131,7 @@ sources:
   <TabItem value="python">
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     primary_key="id",  # merge_key also works; primary_key and merge_key may be used together
     write_disposition={"disposition": "merge", "strategy": "delete-insert"},
 )
@@ -142,7 +142,7 @@ def my_resource():
     ]
 ...
 
-pipeline = dlt.pipeline("loads_iceberg", destination="iceberg")
+pipeline = data_load_tool.pipeline("loads_iceberg", destination="iceberg")
 
 ```
 </TabItem>
@@ -158,7 +158,7 @@ pipeline.run(write_disposition={"disposition": "merge", "strategy": "delete-inse
 
 Iceberg tables can be partitioned (using [hidden partitioning](https://iceberg.apache.org/docs/latest/partitioning/)) by specifying one or more partition column hints on the source/resource level:
 
-<Tabs values={[{"label": "dlt.yml", "value": "yaml"}, {"label": "Python", "value": "python"}]}  groupId="language" defaultValue="yaml">
+<Tabs values={[{"label": "data_load_tool.yml", "value": "yaml"}, {"label": "Python", "value": "python"}]}  groupId="language" defaultValue="yaml">
   <TabItem value="yaml">
 
   ```yaml
@@ -175,13 +175,13 @@ Iceberg tables can be partitioned (using [hidden partitioning](https://iceberg.a
   <TabItem value="python">
 
   ```py
-  @dlt.resource(
+  @data_load_tool.resource(
     columns={"foo": {"partition": True}}
   )
   def my_resource():
       ...
 
-  pipeline = dlt.pipeline("loads_iceberg", destination="iceberg")
+  pipeline = data_load_tool.pipeline("loads_iceberg", destination="iceberg")
   ```
 
   </TabItem>
@@ -193,7 +193,7 @@ Partition evolution (changing partition columns after a table has been created) 
 
 ## Catalogs
 
-dlt+ uses single-table, ephemeral, in-memory, sqlite-based Iceberg catalogs. These catalogs are created "on demand" when a pipeline is run, and do not persist afterwards. If a table already exists in the filesystem, it gets registered into the catalog using its latest metadata file. This allows for a serverless setup.
+data_load_tool+ uses single-table, ephemeral, in-memory, sqlite-based Iceberg catalogs. These catalogs are created "on demand" when a pipeline is run, and do not persist afterwards. If a table already exists in the filesystem, it gets registered into the catalog using its latest metadata file. This allows for a serverless setup.
 
 It is currently not possible to connect your own Iceberg catalog, but support for multi-vendor catalogs (such as Polaris & Unity Catalog) is coming soon.
 
@@ -208,7 +208,7 @@ While ephemeral catalogs make it easy to get started with Iceberg, they come wit
 You can use the `get_iceberg_tables` helper function to access native pyiceberg [Table](https://py.iceberg.apache.org/reference/pyiceberg/table/#pyiceberg.table.Table) objects.
 
 ```py
-from dlt.common.libs.pyiceberg import get_iceberg_tables
+from data_load_tool.common.libs.pyiceberg import get_iceberg_tables
 
 ...
 
@@ -225,13 +225,13 @@ iceberg_tables["another_iceberg_table"].optimize.z_order(["col_a", "col_b"])
 The Iceberg destination automatically assigns the `iceberg` table format to all resources that it will load. You can still fall back to storing files by setting `table_format` to native on the resource level:
 
   ```py
-  @dlt.resource(
+  @data_load_tool.resource(
     table_format="native"
   )
   def my_resource():
       ...
 
-  pipeline = dlt.pipeline("loads_iceberg", destination="iceberg")
+  pipeline = data_load_tool.pipeline("loads_iceberg", destination="iceberg")
   ```
 
 ## Known limitations

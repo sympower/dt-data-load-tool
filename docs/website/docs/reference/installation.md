@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: How to install dlt
+description: How to install data_load_tool
 keywords: [installation, environment, pip install]
 ---
 
@@ -104,47 +104,47 @@ C:\> .\env\Scripts\activate
   </TabItem>
 </Tabs>
 
-### 3. Install `dlt` library
+### 3. Install `data_load_tool` library
 
-To install or upgrade to the newest version of `dlt` in your virtual environment, run:
+To install or upgrade to the newest version of `data_load_tool` in your virtual environment, run:
 
 ```sh
-pip install -U dlt
+pip install -U data_load_tool
 ```
 
 Here are some additional installation examples:
 
-To install dlt with DuckDB support:
+To install data_load_tool with DuckDB support:
 ```sh
-pip install "dlt[duckdb]"
+pip install "data_load_tool[duckdb]"
 ```
 
-To install a specific version of dlt (for example, versions before 0.5.0):
+To install a specific version of data_load_tool (for example, versions before 0.5.0):
 ```sh
-pip install "dlt<0.5.0"
+pip install "data_load_tool<0.5.0"
 ```
 
-### 3.1. Install dlt via Pixi or Conda
+### 3.1. Install data_load_tool via Pixi or Conda
 
-To install dlt using `pixi`:
+To install data_load_tool using `pixi`:
 
 ```sh
-pixi add dlt
+pixi add data_load_tool
 ```
 
-To install dlt using `conda`:
+To install data_load_tool using `conda`:
 
 ```sh
-conda install -c conda-forge dlt
+conda install -c conda-forge data_load_tool
 ```
 
 ### 4. Done!
 
-You are now ready to build your first pipeline with `dlt`. Check out these tutorials to get started:
+You are now ready to build your first pipeline with `data_load_tool`. Check out these tutorials to get started:
 
 - [Load data from a REST API](../tutorial/rest-api)
 - [Load data from a SQL database](../tutorial/sql-database)
 - [Load data from a cloud storage or a file system](../tutorial/filesystem)
 
-Or read a more detailed tutorial on how to build a [custom data pipeline with dlt](../tutorial/load-data-from-an-api.md).
+Or read a more detailed tutorial on how to build a [custom data pipeline with data_load_tool](../tutorial/load-data-from-an-api.md).
 

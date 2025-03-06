@@ -10,8 +10,8 @@ from tests.load.utils import (
     DestinationTestConfiguration,
     AWS_BUCKET,
 )
-from dlt.common.utils import uniq_id
-from dlt.common import logger
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common import logger
 
 
 @pytest.mark.essential
@@ -41,7 +41,7 @@ def test_secrets_management(
 
     import duckdb
     from duckdb import HTTPException
-    from dlt.destinations.impl.filesystem.sql_client import (
+    from data_load_tool.destinations.impl.filesystem.sql_client import (
         FilesystemSqlClient,
         DuckDbCredentials,
     )

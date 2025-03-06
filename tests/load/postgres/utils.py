@@ -12,7 +12,7 @@ from shapely import (  # type: ignore
 )
 from shapely.wkb import dumps as wkb_dumps  # type: ignore
 
-from dlt.common.typing import DictStrStr
+from data_load_tool.common.typing import DictStrStr
 
 
 def generate_sample_geometry_records(geometry_type: str) -> List[DictStrStr]:

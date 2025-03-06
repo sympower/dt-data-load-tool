@@ -14,16 +14,16 @@ In this example, we'll explore how to:
 custom logic to every record in the dataset
 
 :::note important
-Please note that dlt metadata, including `_dlt_id` and `_dlt_load_id`, will still be loaded into the tables.
+Please note that data_load_tool metadata, including `_dlt_id` and `_dlt_load_id`, will still be loaded into the tables.
 :::
 """
 
 from typing import List, Dict, Any, Generator
-import dlt
+import data_load_tool
 
 
-# Define a dlt resource with write disposition to 'merge'
-@dlt.resource(name="parent_with_children", write_disposition={"disposition": "merge"})
+# Define a data_load_tool resource with write disposition to 'merge'
+@data_load_tool.resource(name="parent_with_children", write_disposition={"disposition": "merge"})
 def data_source() -> Generator[List[Dict[str, Any]], None, None]:
     # Example data
     data = [
@@ -54,8 +54,8 @@ def add_parent_id(record: Dict[str, Any]) -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
-    # Create and configure the dlt pipeline
-    pipeline = dlt.pipeline(
+    # Create and configure the data_load_tool pipeline
+    pipeline = data_load_tool.pipeline(
         pipeline_name="generic_pipeline",
         destination="duckdb",
         dataset_name="dataset",

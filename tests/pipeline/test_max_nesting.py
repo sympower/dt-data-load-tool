@@ -1,9 +1,9 @@
 from typing import List
 
-import dlt
+import data_load_tool
 import pytest
 
-from dlt.destinations import dummy
+from data_load_tool.destinations import dummy
 
 
 example_data = {"one": [{"two": [{"three": [{"four": [{"five": "value"}]}]}]}]}
@@ -41,8 +41,8 @@ def _table_names_for_base_table(
     return tables
 
 
-def _get_pipeline() -> dlt.Pipeline:
-    return dlt.pipeline(
+def _get_pipeline() -> data_load_tool.Pipeline:
+    return data_load_tool.pipeline(
         pipeline_name="test_max_table_nesting",
         destination=dummy(timeout=0.1, completed_prob=1),
         dev_mode=True,
@@ -68,11 +68,11 @@ def test_basic_resource_max_nesting(
     nesting_level_source: int,
     expected_table_names: List[str],
 ):
-    @dlt.resource(max_table_nesting=nesting_level_resource)
+    @data_load_tool.resource(max_table_nesting=nesting_level_resource)
     def base_table():
         yield example_data
 
-    @dlt.source(max_table_nesting=nesting_level_source)
+    @data_load_tool.source(max_table_nesting=nesting_level_source)
     def source():
         return base_table()
 
@@ -93,20 +93,20 @@ def test_basic_resource_max_nesting(
 def test_multiple_configurations():
     """test different settings on resources and source at the same time"""
 
-    @dlt.resource(max_table_nesting=2)
+    @data_load_tool.resource(max_table_nesting=2)
     def base_table_1():
         yield example_data
 
-    @dlt.resource(max_table_nesting=4)
+    @data_load_tool.resource(max_table_nesting=4)
     def base_table_2():
         yield example_data
 
     # resource below will inherit from source
-    @dlt.resource()
+    @data_load_tool.resource()
     def base_table_3():
         yield example_data
 
-    @dlt.source(max_table_nesting=3)
+    @data_load_tool.source(max_table_nesting=3)
     def source():
         return [base_table_1(), base_table_2(), base_table_3()]
 
@@ -124,7 +124,7 @@ def test_multiple_configurations():
 def test_update_table_nesting_level_resource():
     """test if we can update the max_table_nesting level of a resource"""
 
-    @dlt.resource(max_table_nesting=2)
+    @data_load_tool.resource(max_table_nesting=2)
     def base_table_1():
         yield example_data
 
@@ -143,7 +143,7 @@ def test_update_table_nesting_level_resource():
     assert set(all_table_names) == set(_table_names_for_base_table("base_table_1", NESTING_LEVEL_2))
 
     # loading with alternative data works
-    @dlt.resource(max_table_nesting=3)  # type: ignore[no-redef]
+    @data_load_tool.resource(max_table_nesting=3)  # type: ignore[no-redef]
     def base_table_1():
         yield example_data_with_alternative_tree
 
@@ -157,19 +157,19 @@ def test_update_table_nesting_level_resource():
 def test_update_table_nesting_level_source():
     """test if we can update the max_table_nesting level of a source"""
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def base_table_1():
         yield example_data
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def base_table_2():
         yield example_data
 
-    @dlt.resource(max_table_nesting=1)
+    @data_load_tool.resource(max_table_nesting=1)
     def base_table_3():
         yield example_data
 
-    @dlt.source(max_table_nesting=3)
+    @data_load_tool.source(max_table_nesting=3)
     def source():
         return [base_table_1(), base_table_2(), base_table_3()]
 
@@ -204,11 +204,11 @@ def test_update_table_nesting_level_source():
 def test_nesting_levels_reset_after_drop(nesting_defininition_location: str):
     """test if the nesting levels are reset after a drop"""
 
-    @dlt.resource(max_table_nesting=2 if nesting_defininition_location == "resource" else None)
+    @data_load_tool.resource(max_table_nesting=2 if nesting_defininition_location == "resource" else None)
     def base_table_1():
         yield example_data
 
-    @dlt.source(max_table_nesting=2 if nesting_defininition_location == "source" else None)
+    @data_load_tool.source(max_table_nesting=2 if nesting_defininition_location == "source" else None)
     def source():
         return base_table_1()
 

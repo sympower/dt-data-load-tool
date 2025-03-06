@@ -1,4 +1,4 @@
-from dlt.common.destination.reference import DestinationReference
+from data_load_tool.common.destination.reference import DestinationReference
 
 
 def test_iceberg_destination() -> None:

@@ -66,7 +66,7 @@ It will place the build in `build/docs` folder. The `netlify.toml` redirects fro
 
 ## Docs versions
 
-We keep a few additional versions of our docs for the users to be able read about how former and future versions of dlt work. We use docusaurus versions for this but we do not check the historical versions into the repo but rather use a script to build the former versions on deployment. To locally build the versions run:
+We keep a few additional versions of our docs for the users to be able read about how former and future versions of data_load_tool work. We use docusaurus versions for this but we do not check the historical versions into the repo but rather use a script to build the former versions on deployment. To locally build the versions run:
 
 ```
 npm run update-versions

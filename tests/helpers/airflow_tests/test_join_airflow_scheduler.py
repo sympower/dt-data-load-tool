@@ -11,10 +11,10 @@ from airflow.operators.python import get_current_context  # noqa
 from airflow.utils.state import State, DagRunState
 from airflow.utils.types import DagRunType
 
-import dlt
-from dlt.common import pendulum
-from dlt.common.utils import uniq_id
-from dlt.common.time import ensure_pendulum_date
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.time import ensure_pendulum_date
 
 # flake8: noqa: B008
 
@@ -29,9 +29,9 @@ default_args = {
 }
 
 
-@dlt.resource()
+@data_load_tool.resource()
 def existing_incremental(
-    updated_at: dlt.sources.incremental[pendulum.DateTime] = dlt.sources.incremental(
+    updated_at: data_load_tool.sources.incremental[pendulum.DateTime] = data_load_tool.sources.incremental(
         "updated_at", allow_external_schedulers=True
     )
 ):
@@ -72,9 +72,9 @@ def test_date_coercion() -> None:
             ) == datetime.timedelta(hours=24)
 
             # datetime.datetime coercion must be pendulum anyway
-            @dlt.resource()
+            @data_load_tool.resource()
             def incremental_datetime(
-                updated_at=dlt.sources.incremental[datetime.datetime](
+                updated_at=data_load_tool.sources.incremental[datetime.datetime](
                     "updated_at", allow_external_schedulers=True
                 )
             ):
@@ -89,9 +89,9 @@ def test_date_coercion() -> None:
             assert state["state"]["initial_value"].tz == UTC
 
             # datetime.date coercion also works
-            @dlt.resource()  # type: ignore[no-redef]
+            @data_load_tool.resource()  # type: ignore[no-redef]
             def incremental_datetime(
-                updated_at=dlt.sources.incremental[datetime.date](
+                updated_at=data_load_tool.sources.incremental[datetime.date](
                     "updated_at", allow_external_schedulers=True
                 )
             ):
@@ -108,9 +108,9 @@ def test_date_coercion() -> None:
             assert isinstance(state["state"]["initial_value"], datetime.date)
 
             # coerce to int
-            @dlt.resource()  # type: ignore[no-redef]
+            @data_load_tool.resource()  # type: ignore[no-redef]
             def incremental_datetime(
-                updated_at=dlt.sources.incremental[int](
+                updated_at=data_load_tool.sources.incremental[int](
                     "updated_at", allow_external_schedulers=True
                 )
             ):
@@ -124,9 +124,9 @@ def test_date_coercion() -> None:
             )
 
             # coerce to float
-            @dlt.resource()  # type: ignore[no-redef]
+            @data_load_tool.resource()  # type: ignore[no-redef]
             def incremental_datetime(
-                updated_at=dlt.sources.incremental[float](
+                updated_at=data_load_tool.sources.incremental[float](
                     "updated_at", allow_external_schedulers=True
                 )
             ):
@@ -138,9 +138,9 @@ def test_date_coercion() -> None:
             assert r.incremental._incremental.end_value == context["data_interval_end"].timestamp()
 
             # coerce to str
-            @dlt.resource()  # type: ignore[no-redef]
+            @data_load_tool.resource()  # type: ignore[no-redef]
             def incremental_datetime(
-                updated_at=dlt.sources.incremental[str](
+                updated_at=data_load_tool.sources.incremental[str](
                     "updated_at", allow_external_schedulers=True
                 )
             ):
@@ -184,9 +184,9 @@ def test_no_next_execution_date() -> None:
         def unscheduled():
             context = get_current_context()
 
-            @dlt.resource()
+            @data_load_tool.resource()
             def incremental_datetime(
-                updated_at=dlt.sources.incremental[datetime.datetime](
+                updated_at=data_load_tool.sources.incremental[datetime.datetime](
                     "updated_at", allow_external_schedulers=True
                 )
             ):
@@ -208,9 +208,9 @@ def test_no_next_execution_date() -> None:
             assert context["data_interval_start"] == context["data_interval_end"]
 
             # will be filtered out (now earlier than data_interval_start)
-            @dlt.resource()  # type: ignore[no-redef]
+            @data_load_tool.resource()  # type: ignore[no-redef]
             def incremental_datetime(
-                updated_at=dlt.sources.incremental[datetime.datetime](
+                updated_at=data_load_tool.sources.incremental[datetime.datetime](
                     "updated_at", allow_external_schedulers=True
                 )
             ):
@@ -248,9 +248,9 @@ def test_no_next_execution_date() -> None:
         def scheduled():
             context = get_current_context()
 
-            @dlt.resource()
+            @data_load_tool.resource()
             def incremental_datetime(
-                updated_at=dlt.sources.incremental[datetime.datetime](
+                updated_at=data_load_tool.sources.incremental[datetime.datetime](
                     "updated_at", allow_external_schedulers=True
                 )
             ):
@@ -292,10 +292,10 @@ def test_no_next_execution_date() -> None:
 
 
 def test_scheduler_pipeline_state() -> None:
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="pipeline_dag_regular",
         dataset_name="mock_data_" + uniq_id(),
-        destination=dlt.destinations.duckdb(credentials=":pipeline:"),
+        destination=data_load_tool.destinations.duckdb(credentials=":pipeline:"),
     )
     now = pendulum.now()
 

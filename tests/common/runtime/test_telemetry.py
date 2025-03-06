@@ -8,13 +8,13 @@ from unittest.mock import patch
 
 from pytest_mock import MockerFixture
 
-from dlt.common import logger
-from dlt.common.runtime.anon_tracker import get_anonymous_id, track, disable_anon_tracker
-from dlt.common.runtime.exec_info import get_execution_context
-from dlt.common.typing import DictStrAny, DictStrStr
-from dlt.common.configuration import configspec
-from dlt.common.configuration.specs import RuntimeConfiguration
-from dlt.version import DLT_PKG_NAME, __version__
+from data_load_tool.common import logger
+from data_load_tool.common.runtime.anon_tracker import get_anonymous_id, track, disable_anon_tracker
+from data_load_tool.common.runtime.exec_info import get_execution_context
+from data_load_tool.common.typing import DictStrAny, DictStrStr
+from data_load_tool.common.configuration import configspec
+from data_load_tool.common.configuration.specs import RuntimeConfiguration
+from data_load_tool.version import DLT_PKG_NAME, __version__
 
 from tests.common.runtime.utils import mock_image_env, mock_github_env, mock_pod_env
 from tests.common.configuration.utils import environment
@@ -36,7 +36,7 @@ class SentryLoggerCriticalConfiguration(SentryLoggerConfiguration):
 def test_sentry_init(
     environment: DictStrStr, disable_temporary_telemetry: RuntimeConfiguration
 ) -> None:
-    with patch("dlt.common.runtime.sentry.before_send", _mock_before_send):
+    with patch("data_load_tool.common.runtime.sentry.before_send", _mock_before_send):
         mock_image_env(environment)
         mock_pod_env(environment)
         init_test_logging(SentryLoggerConfiguration())
@@ -51,7 +51,7 @@ def test_sentry_init(
 
 
 def test_sentry_log_level() -> None:
-    from dlt.common.runtime.sentry import _get_sentry_log_level
+    from data_load_tool.common.runtime.sentry import _get_sentry_log_level
 
     sll = _get_sentry_log_level(SentryLoggerCriticalConfiguration(log_level="CRITICAL"))
     assert sll._handler.level == logging._nameToLevel["CRITICAL"]
@@ -86,7 +86,7 @@ def test_sentry_log_level() -> None:
 def test_telemetry_endpoint(
     endpoint, write_key, expectation, disable_temporary_telemetry: RuntimeConfiguration
 ) -> None:
-    from dlt.common.runtime import anon_tracker
+    from data_load_tool.common.runtime import anon_tracker
 
     with expectation:
         anon_tracker.init_anon_tracker(
@@ -120,7 +120,7 @@ def test_telemetry_endpoint(
 def test_telemetry_endpoint_exceptions(
     endpoint, write_key, expectation, disable_temporary_telemetry: RuntimeConfiguration
 ) -> None:
-    from dlt.common.runtime import anon_tracker
+    from data_load_tool.common.runtime import anon_tracker
 
     with expectation:
         anon_tracker.init_anon_tracker(
@@ -133,8 +133,8 @@ def test_telemetry_endpoint_exceptions(
 def test_track_anon_event(
     mocker: MockerFixture, disable_temporary_telemetry: RuntimeConfiguration
 ) -> None:
-    from dlt.sources.helpers import requests
-    from dlt.common.runtime import anon_tracker
+    from data_load_tool.sources.helpers import requests
+    from data_load_tool.common.runtime import anon_tracker
 
     mock_github_env(os.environ)
     mock_pod_env(os.environ)
@@ -144,7 +144,7 @@ def test_track_anon_event(
     requests_post = mocker.spy(requests, "post")
 
     props = {"destination_name": "duckdb", "elapsed_time": 712.23123, "success": True}
-    with patch("dlt.common.runtime.anon_tracker.before_send", _mock_before_send):
+    with patch("data_load_tool.common.runtime.anon_tracker.before_send", _mock_before_send):
         start_test_telemetry(config)
         track("pipeline", "run", props)
         # this will send stuff
@@ -177,7 +177,7 @@ def test_track_anon_event(
     assert isinstance(context["ci_run"], bool)
     assert isinstance(context["exec_info"], list)
     assert ["kubernetes", "codespaces"] <= context["exec_info"]
-    assert context["run_context"] == "dlt"
+    assert context["run_context"] == "data_load_tool"
 
 
 def test_execution_context_with_plugin() -> None:

@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 import pytest
 import requests_mock
 
-from dlt.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client import RESTClient
 
 from tests.sources.helpers.rest_client.api_router import APIRouter
 from tests.sources.helpers.rest_client.paginators import (

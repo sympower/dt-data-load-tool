@@ -4,9 +4,9 @@ import os
 import json  # noqa: I251
 import pytest
 
-import dlt
-from dlt.common.configuration import resolve_configuration
-from dlt.common.configuration.specs import (
+import data_load_tool
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.configuration.specs import (
     AnyAzureCredentials,
     AzureServicePrincipalCredentialsWithoutDefaults,
     AzureCredentialsWithoutDefaults,
@@ -16,14 +16,14 @@ from dlt.common.configuration.specs import (
     GcpServiceAccountCredentialsWithoutDefaults,
     GcpOAuthCredentialsWithoutDefaults,
 )
-from dlt.common.utils import custom_environ
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.configuration.specs.gcp_credentials import GcpDefaultCredentials
-from dlt.common.configuration.specs.exceptions import (
+from data_load_tool.common.utils import custom_environ
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.specs.gcp_credentials import GcpDefaultCredentials
+from data_load_tool.common.configuration.specs.exceptions import (
     ObjectStoreRsCredentialsException,
     UnsupportedAuthenticationMethodException,
 )
-from dlt.common.configuration.specs.mixins import WithObjectStoreRsCredentials, WithPyicebergConfig
+from data_load_tool.common.configuration.specs.mixins import WithObjectStoreRsCredentials, WithPyicebergConfig
 
 from tests.load.utils import (
     AZ_BUCKET,
@@ -49,7 +49,7 @@ if all(driver not in ALL_FILESYSTEM_DRIVERS for driver in ("az", "s3", "gs", "r2
 
 @pytest.fixture
 def fs_creds() -> Dict[str, Any]:
-    creds: Dict[str, Any] = dlt.secrets.get("destination.filesystem.credentials")
+    creds: Dict[str, Any] = data_load_tool.secrets.get("destination.filesystem.credentials")
     if creds is None:
         pytest.skip(
             msg="`destination.filesystem.credentials` must be configured for these tests.",
@@ -121,7 +121,7 @@ def test_azure_credentials_mixins(
     creds: AnyAzureCredentials
 
     creds = AzureServicePrincipalCredentialsWithoutDefaults(
-        **dlt.secrets.get("destination.fsazureprincipal.credentials")
+        **data_load_tool.secrets.get("destination.fsazureprincipal.credentials")
     )
     assert can_connect(buckets[driver], creds, mixin)
 

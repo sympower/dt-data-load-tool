@@ -5,10 +5,10 @@ import duckdb
 import pytest
 
 from pytest_mock import MockerFixture
-from dlt.common.configuration.exceptions import ConfigFieldMissingException
-from dlt.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException
+from data_load_tool.common.configuration.resolve import resolve_configuration
 
-from dlt.destinations.impl.motherduck.configuration import (
+from data_load_tool.destinations.impl.motherduck.configuration import (
     MOTHERDUCK_USER_AGENT,
     MotherDuckCredentials,
     MotherDuckClientConfiguration,
@@ -60,9 +60,9 @@ def test_motherduck_configuration() -> None:
 
 
 def test_motherduck_connect_default_token() -> None:
-    import dlt
+    import data_load_tool
 
-    credentials = dlt.secrets.get(
+    credentials = data_load_tool.secrets.get(
         "destination.motherduck.credentials", expected_type=MotherDuckCredentials
     )
     assert credentials.password

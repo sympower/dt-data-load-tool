@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Installation information for dlt+
+description: Installation information for data_load_tool+
 ---
 
 import Link from '../../_plus_admonition.md';
@@ -9,7 +9,7 @@ import Link from '../../_plus_admonition.md';
 
 :::info Supported Python versions
 
-dlt+ currently supports Python versions 3.9-3.12.
+data_load_tool+ currently supports Python versions 3.9-3.12.
 
 :::
 
@@ -123,12 +123,12 @@ C:\> .\env\Scripts\activate
   </TabItem>
 </Tabs>
 
-### Install dlt+
+### Install data_load_tool+
 
-You can now install dlt+ in your virtual environment by running:
+You can now install data_load_tool+ in your virtual environment by running:
 
 ```sh
-# install the newest dlt version or upgrade the existing version to the newest one
+# install the newest data_load_tool version or upgrade the existing version to the newest one
 pip install -U dlt-plus
 ```
 
@@ -136,20 +136,20 @@ Please install a valid license before proceeding, as described under [licensing]
 
 ## Licensing
 
-Once you have a valid license, you can make it available to `dlt+` using one of the following methods:
+Once you have a valid license, you can make it available to `data_load_tool+` using one of the following methods:
 
 1. **Environment variable**: set the license key as an environment variable:
   ```sh
   export RUNTIME__LICENSE="eyJhbGciOiJSUz...vKSjbEc==="
   ```
 
-2. **Secrets file**: add the license key to a `secrets.toml` file. You can use either the project-level `secrets.toml` (located in `./.dlt/secrets.toml`) or the global one (located in `~/.dlt/secrets.toml`):
+2. **Secrets file**: add the license key to a `secrets.toml` file. You can use either the project-level `secrets.toml` (located in `./.data_load_tool/secrets.toml`) or the global one (located in `~/.data_load_tool/secrets.toml`):
   ```toml
   [runtime]
   license="eyJhbGciOiJSUz...vKSjbEc==="
   ```
 
-3. **`dlt.yml`**: add the license key directly in the [project manifest file](../features/projects.md) referencing a user-defined environment variable:
+3. **`data_load_tool.yml`**: add the license key directly in the [project manifest file](../features/projects.md) referencing a user-defined environment variable:
 
   ```yaml
   runtime:
@@ -159,7 +159,7 @@ Once you have a valid license, you can make it available to `dlt+` using one of 
 You can verify that the license was installed correctly and is valid by running:
 
 ```sh
-$ dlt license show
+$ data_load_tool license show
 ```
 
 Our license terms can be found [here](https://dlthub.com/legal/dlt-plus-eula).

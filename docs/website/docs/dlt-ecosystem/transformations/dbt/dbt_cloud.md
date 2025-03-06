@@ -1,13 +1,13 @@
 ---
 title: Transforming the Data with dbt Cloud
-description: Transforming the data loaded by a dlt pipeline with dbt Cloud
+description: Transforming the data loaded by a data_load_tool pipeline with dbt Cloud
 keywords: [transform, sql]
 ---
 
 # dbt Cloud client and helper functions
 
-:::tip dlt+
-If you want to generate your dbt models automatically, check out [dlt+](../../../plus/features/transformations/dbt-transformations.md).
+:::tip data_load_tool+
+If you want to generate your dbt models automatically, check out [data_load_tool+](../../../plus/features/transformations/dbt-transformations.md).
 :::
 
 ## API client
@@ -16,7 +16,7 @@ The dbt Cloud Client is a Python class designed to interact with the dbt Cloud A
 It provides methods to perform various operations on dbt Cloud, such as triggering job runs and retrieving job run statuses.
 
 ```py
-from dlt.helpers.dbt_cloud import DBTCloudClientV2
+from data_load_tool.helpers.dbt_cloud import DBTCloudClientV2
 
 # Initialize the client
 client = DBTCloudClientV2(api_token="YOUR_API_TOKEN", account_id="YOUR_ACCOUNT_ID")
@@ -41,7 +41,7 @@ This function triggers a job run in dbt Cloud using the specified configuration.
 It supports various customization options and allows for monitoring the job's status.
 
 ```py
-from dlt.helpers.dbt_cloud import run_dbt_cloud_job
+from data_load_tool.helpers.dbt_cloud import run_dbt_cloud_job
 
 # Trigger a job run with default configuration
 status = run_dbt_cloud_job()
@@ -63,7 +63,7 @@ This function retrieves the full information about a specific dbt Cloud job run.
 It also supports options for waiting until the run is complete.
 
 ```py
-from dlt.helpers.dbt_cloud import get_dbt_cloud_run_status
+from data_load_tool.helpers.dbt_cloud import get_dbt_cloud_run_status
 
 # Retrieve status for a specific run
 status = get_dbt_cloud_run_status(run_id=1234, wait_for_outcome=True)
@@ -73,10 +73,10 @@ status = get_dbt_cloud_run_status(run_id=1234, wait_for_outcome=True)
 
 ### secrets.toml
 
-When using dlt locally, we recommend using the `.dlt/secrets.toml` method to set credentials.
+When using data_load_tool locally, we recommend using the `.data_load_tool/secrets.toml` method to set credentials.
 
-If you used the `dlt init` command, then the `.dlt` folder has already been created.
-Otherwise, create a `.dlt` folder in your working directory and a `secrets.toml` file inside it.
+If you used the `data_load_tool init` command, then the `.data_load_tool` folder has already been created.
+Otherwise, create a `.data_load_tool` folder in your working directory and a `secrets.toml` file inside it.
 
 This is where you store sensitive information securely, like access tokens. Keep this file safe.
 
@@ -92,9 +92,9 @@ run_id = "set me up!" # optional for the get_dbt_cloud_run_status function (you 
 
 ### Environment variables
 
-dlt supports reading credentials from the environment.
+data_load_tool supports reading credentials from the environment.
 
-If dlt tries to read this from environment variables, it will use a different naming convention.
+If data_load_tool tries to read this from environment variables, it will use a different naming convention.
 
 For environment variables, all names are capitalized and sections are separated with a double underscore "__".
 

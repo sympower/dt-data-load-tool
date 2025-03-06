@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 import pytest
-from dlt.common.runtime.collector import NullCollector, DictCollector, Collector
+from data_load_tool.common.runtime.collector import NullCollector, DictCollector, Collector
 
 
 def test_null_collector() -> None:

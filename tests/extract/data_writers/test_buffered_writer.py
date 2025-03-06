@@ -4,19 +4,19 @@ import time
 from typing import Iterator, Type
 from uuid import uuid4
 
-from dlt.common.data_writers.exceptions import BufferedDataWriterClosed
-from dlt.common.data_writers.writers import (
+from data_load_tool.common.data_writers.exceptions import BufferedDataWriterClosed
+from data_load_tool.common.data_writers.writers import (
     DataWriter,
     InsertValuesWriter,
     JsonlWriter,
     ALL_WRITERS,
 )
-from dlt.common.destination.capabilities import TLoaderFileFormat, DestinationCapabilitiesContext
-from dlt.common.metrics import DataWriterMetrics
-from dlt.common.schema.utils import new_column
-from dlt.common.storages.file_storage import FileStorage
+from data_load_tool.common.destination.capabilities import TLoaderFileFormat, DestinationCapabilitiesContext
+from data_load_tool.common.metrics import DataWriterMetrics
+from data_load_tool.common.schema.utils import new_column
+from data_load_tool.common.storages.file_storage import FileStorage
 
-from dlt.common.typing import DictStrAny
+from data_load_tool.common.typing import DictStrAny
 
 from tests.common.data_writers.utils import get_writer, ALL_OBJECT_WRITERS
 

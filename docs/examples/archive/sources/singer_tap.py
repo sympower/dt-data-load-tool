@@ -2,12 +2,12 @@ import os
 import tempfile
 from typing import Any, Iterator, cast, Union
 
-import dlt
-from dlt.common.typing import TypedDict
-from dlt.common import json
-from dlt.common.configuration.specs import BaseConfiguration
-from dlt.common.runners.venv import Venv
-from dlt.common.typing import DictStrAny, StrAny, StrOrBytesPath, TDataItem, TDataItems
+import data_load_tool
+from data_load_tool.common.typing import TypedDict
+from data_load_tool.common import json
+from data_load_tool.common.configuration.specs import BaseConfiguration
+from data_load_tool.common.runners.venv import Venv
+from data_load_tool.common.typing import DictStrAny, StrAny, StrOrBytesPath, TDataItem, TDataItems
 
 from docs.examples.sources.stdout import json_stdout as singer_process_pipe
 
@@ -44,7 +44,7 @@ def get_source_from_stream(
         if msg["type"] == "RECORD":
             # yield record
             msg = cast(SingerRecord, msg)
-            yield dlt.mark.with_table_name(msg["record"], msg["stream"])
+            yield data_load_tool.mark.with_table_name(msg["record"], msg["stream"])
         if msg["type"] == "STATE":
             msg = cast(SingerState, msg)
             last_state = msg["value"]
@@ -52,16 +52,16 @@ def get_source_from_stream(
         state["singer"] = last_state
 
 
-@dlt.transformer()
+@data_load_tool.transformer()
 def singer_raw_stream(singer_messages: TDataItems, use_state: bool = True) -> Iterator[TDataItem]:
     if use_state:
-        state = dlt.current.source_state()
+        state = data_load_tool.current.source_state()
     else:
         state = None
     yield from get_source_from_stream(cast(Iterator[SingerMessage], singer_messages), state)
 
 
-@dlt.source(spec=BaseConfiguration)  # use BaseConfiguration spec to prevent injections
+@data_load_tool.source(spec=BaseConfiguration)  # use BaseConfiguration spec to prevent injections
 def tap(
     venv: Venv,
     tap_name: str,
@@ -86,15 +86,15 @@ def tap(
     # process catalog like config
     catalog_file_path = as_config_file(catalog_file)
 
-    @dlt.resource(name=tap_name)
+    @data_load_tool.resource(name=tap_name)
     def singer_messages() -> Iterator[TDataItem]:
         # possibly pass state
         if use_state:
-            state = dlt.current.source_state()
+            state = data_load_tool.current.source_state()
         else:
             state = None
         if state is not None and state.get("singer"):
-            state_params = ("--state", as_config_file(dlt.current.source_state()["singer"]))
+            state_params = ("--state", as_config_file(data_load_tool.current.source_state()["singer"]))
         else:
             state_params = ()  # type: ignore
 

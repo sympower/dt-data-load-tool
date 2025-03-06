@@ -1,6 +1,6 @@
 ---
 title: Running
-description: Running a dlt pipeline in production
+description: Running a data_load_tool pipeline in production
 keywords: [running, production, tips]
 ---
 
@@ -9,10 +9,10 @@ keywords: [running, production, tips]
 When running the pipeline in production, you may consider a few additions to your script. We'll use the script below as a starting point.
 
 ```py
-import dlt
+import data_load_tool
 
 if __name__ == "__main__":
-    pipeline = dlt.pipeline(pipeline_name="chess_pipeline", destination='duckdb', dataset_name="games_data")
+    pipeline = data_load_tool.pipeline(pipeline_name="chess_pipeline", destination='duckdb', dataset_name="games_data")
     # get data for a few famous players
     data = chess_source(['magnuscarlsen', 'vincentkeymer', 'dommarajugukesh', 'rpragchess'], start_month="2022/11", end_month="2022/12")
     load_info = pipeline.run(data)
@@ -85,14 +85,14 @@ You can save only the new tables and column schemas to the destination. Note tha
 
 ## Data left behind
 
-By default, `dlt` leaves the loaded packages intact so they may be fully queried and inspected after loading. This behavior may be changed so that the successfully completed jobs are deleted from the loaded package. In that case, for a correctly behaving pipeline, only a minimum amount of data will be left behind. In `config.toml`:
+By default, `data_load_tool` leaves the loaded packages intact so they may be fully queried and inspected after loading. This behavior may be changed so that the successfully completed jobs are deleted from the loaded package. In that case, for a correctly behaving pipeline, only a minimum amount of data will be left behind. In `config.toml`:
 
 ```toml
 [load]
 delete_completed_jobs=true
 ```
 
-Also, by default, `dlt` leaves data in the [staging dataset](../dlt-ecosystem/staging.md#staging-dataset), used during merge and replace load for deduplication. In order to clear it, put the following line in `config.toml`:
+Also, by default, `data_load_tool` leaves data in the [staging dataset](../dlt-ecosystem/staging.md#staging-dataset), used during merge and replace load for deduplication. In order to clear it, put the following line in `config.toml`:
 
 ```toml
 [load]
@@ -101,7 +101,7 @@ truncate_staging_dataset=true
 
 ## Using Slack to send messages
 
-`dlt` provides basic support for sending Slack messages. You can configure the Slack incoming hook via [secrets.toml or environment variables](../general-usage/credentials/setup). Please note that **the Slack incoming hook is considered a secret and will be immediately blocked when pushed to a GitHub repository**. In `secrets.toml`:
+`data_load_tool` provides basic support for sending Slack messages. You can configure the Slack incoming hook via [secrets.toml or environment variables](../general-usage/credentials/setup). Please note that **the Slack incoming hook is considered a secret and will be immediately blocked when pushed to a GitHub repository**. In `secrets.toml`:
 
 ```toml
 [runtime]
@@ -117,7 +117,7 @@ RUNTIME__SLACK_INCOMING_HOOK="https://hooks.slack.com/services/T04DHMAF13Q/B04E7
 Then, the configured hook is available via the pipeline object. We also provide a convenience method to send Slack messages:
 
 ```py
-from dlt.common.runtime.slack import send_slack_message
+from data_load_tool.common.runtime.slack import send_slack_message
 
 send_slack_message(pipeline.runtime_config.slack_incoming_hook, message)
 
@@ -154,20 +154,20 @@ As with any other configuration, you can use environment variables instead of th
 - `RUNTIME__LOG_LEVEL` to set the log level.
 - `LOG_FORMAT` to set the log format.
 
-`dlt` logs to a logger named **dlt**. `dlt` logger uses a regular Python logger, so you can configure the handlers as per your requirement.
+`data_load_tool` logs to a logger named **data_load_tool**. `data_load_tool` logger uses a regular Python logger, so you can configure the handlers as per your requirement.
 
 For example, to put logs to the file:
 ```py
 import logging
 
 # Create a logger
-logger = logging.getLogger('dlt')
+logger = logging.getLogger('data_load_tool')
 
 # Set the log level
 logger.setLevel(logging.INFO)
 
 # Create a file handler
-handler = logging.FileHandler('dlt.log')
+handler = logging.FileHandler('data_load_tool.log')
 
 # Add the handler to the logger
 logger.addHandler(handler)
@@ -178,7 +178,7 @@ You can intercept logs by using [loguru](https://loguru.readthedocs.io/en/stable
 import logging
 import sys
 
-import dlt
+import data_load_tool
 from loguru import logger as loguru_logger
 
 
@@ -200,7 +200,7 @@ class InterceptHandler(logging.Handler):
 
         loguru_logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
-logger_dlt = logging.getLogger("dlt")
+logger_dlt = logging.getLogger("data_load_tool")
 logger_dlt.addHandler(InterceptHandler())
 
 loguru_logger.add("dlt_loguru.log")
@@ -219,7 +219,7 @@ There are two different types of exceptions in `__context__`:
 1. **Terminal exceptions** are exceptions that **should not be retried** because the error
    situation will never recover without intervention. Examples include missing config and secret
    values, most of the `40x` HTTP errors, and several database errors (i.e., missing relations like
-   tables). Each destination has its own set of terminal exceptions that `dlt` tries to
+   tables). Each destination has its own set of terminal exceptions that `data_load_tool` tries to
    preserve.
 2. **Transient exceptions** are exceptions that may be retried.
 
@@ -227,7 +227,7 @@ The code below tells one exception type from another. Note that we provide retry
 do that for you.
 
 ```py
-from dlt.common.exceptions import TerminalException
+from data_load_tool.common.exceptions import TerminalException
 
 def check(ex: Exception):
     if isinstance(ex, TerminalException) or (ex.__context__ is not None and isinstance(ex.__context__, TerminalException)):
@@ -241,7 +241,7 @@ If any job in the package **fails terminally**, it will be moved to the `failed_
 such status.
 By default, **an exception is raised** and on the first failed job, the load package will be aborted with `LoadClientJobFailed` (terminal exception).
 Such a package will be completed but its load id is not added to the `_dlt_loads` table.
-All the jobs that were running in parallel are completed before raising. The dlt state, if present, will not be visible to `dlt`.
+All the jobs that were running in parallel are completed before raising. The data_load_tool state, if present, will not be visible to `data_load_tool`.
 Here is an example `config.toml` to disable this behavior:
 
 ```toml
@@ -249,7 +249,7 @@ Here is an example `config.toml` to disable this behavior:
 load.raise_on_failed_jobs=false
 ```
 
-If you prefer dlt not to raise a terminal exception on failed jobs, then you can manually check for failed jobs and raise an exception by checking the load info as follows:
+If you prefer data_load_tool not to raise a terminal exception on failed jobs, then you can manually check for failed jobs and raise an exception by checking the load info as follows:
 
 ```py
 # returns True if there are failed jobs in any of the load packages
@@ -285,18 +285,18 @@ Before adding retry to pipeline steps, note how the `run` method actually works:
 
 ### Retry helpers and `tenacity`
 
-By default, `dlt` does not retry any of the pipeline steps. This is left to the included helpers and
+By default, `data_load_tool` does not retry any of the pipeline steps. This is left to the included helpers and
 the [tenacity](https://tenacity.readthedocs.io/en/latest/) library. The snippet below will retry the
 `load` stage with the `retry_load` strategy and define back-off or re-raise exceptions for any other
 steps (`extract`, `normalize`) and for terminal exceptions.
 
 ```py
 from tenacity import stop_after_attempt, retry_if_exception, Retrying, retry, wait_exponential
-from dlt.common.runtime.slack import send_slack_message
-from dlt.pipeline.helpers import retry_load
+from data_load_tool.common.runtime.slack import send_slack_message
+from data_load_tool.pipeline.helpers import retry_load
 
 if __name__ == "__main__":
-    pipeline = dlt.pipeline(pipeline_name="chess_pipeline", destination='duckdb', dataset_name="games_data")
+    pipeline = data_load_tool.pipeline(pipeline_name="chess_pipeline", destination='duckdb', dataset_name="games_data")
     # get data for a few famous players
     data = chess_source(['magnuscarlsen', 'rpragchess'], start_month="2022/11", end_month="2022/12")
     try:
@@ -315,7 +315,7 @@ You can also use `tenacity` to decorate functions. This example additionally ret
 
 ```py
 if __name__ == "__main__":
-    pipeline = dlt.pipeline(pipeline_name="chess_pipeline", destination='duckdb', dataset_name="games_data")
+    pipeline = data_load_tool.pipeline(pipeline_name="chess_pipeline", destination='duckdb', dataset_name="games_data")
 
     @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1.5, min=4, max=10), retry=retry_if_exception(retry_load(("extract", "load"))), reraise=True)
     def load():

@@ -1,7 +1,7 @@
-import dlt, pytest
+import data_load_tool, pytest
 
-from dlt.destinations.impl.weaviate.naming import NamingConvention
-from dlt.destinations.impl.weaviate.ci_naming import NamingConvention as CINamingConvention
+from data_load_tool.destinations.impl.weaviate.naming import NamingConvention
+from data_load_tool.destinations.impl.weaviate.ci_naming import NamingConvention as CINamingConvention
 
 from tests.common.utils import load_yml_case
 
@@ -9,9 +9,9 @@ from tests.common.utils import load_yml_case
 pytestmark = pytest.mark.essential
 
 
-@dlt.source
+@data_load_tool.source
 def small():
-    return dlt.resource([1, 2, 3], name="table")
+    return data_load_tool.resource([1, 2, 3], name="table")
 
 
 @pytest.mark.parametrize(
@@ -77,10 +77,10 @@ def test_reserved_property_names() -> None:
 
 
 # def test_schema_naming() -> None:
-#     pipeline = dlt.pipeline(destination="weaviate", dataset_name="FlatSpace")
+#     pipeline = data_load_tool.pipeline(destination="weaviate", dataset_name="FlatSpace")
 #     print(pipeline.dataset_name)
 
-#     schema = dlt.Schema("schema")
+#     schema = data_load_tool.Schema("schema")
 #     print(schema.name)
 #     print(schema.naming)
 
@@ -89,12 +89,12 @@ def test_reserved_property_names() -> None:
 #     print(s._schema.name)
 #     print(s._schema.naming)
 
-#     schema_2 = dlt.Schema("Bubababa")
+#     schema_2 = data_load_tool.Schema("Bubababa")
 #     print(schema_2.name)
 #     print(schema_2.naming)
 
 #     eth_V8 = load_yml_case("schemas/eth/ethereum_schema_v8")
-#     eth_V8_schema = dlt.Schema.from_dict(eth_V8)
+#     eth_V8_schema = data_load_tool.Schema.from_dict(eth_V8)
 
 #     pipeline.extract(s, schema=eth_V8_schema)
 
@@ -103,12 +103,12 @@ def test_reserved_property_names() -> None:
 
 
 # def test_x_schema_naming_normalize() -> None:
-#     pipeline = dlt.pipeline(dataset_name="flat_space")
+#     pipeline = data_load_tool.pipeline(dataset_name="flat_space")
 #     print(pipeline.dataset_name)
 
 #     s = small()
 #     eth_V8 = load_yml_case("schemas/eth/ethereum_schema_v8")
-#     eth_V8_schema = dlt.Schema.from_dict(eth_V8)
+#     eth_V8_schema = data_load_tool.Schema.from_dict(eth_V8)
 
 #     pipeline.extract(s, schema=eth_V8_schema)
 #     print(eth_V8_schema.tables.keys())

@@ -1,15 +1,15 @@
 ---
 title: Microsoft SQL Server
-description: Microsoft SQL Server `dlt` destination
+description: Microsoft SQL Server `data_load_tool` destination
 keywords: [mssql, sqlserver, destination, data warehouse]
 ---
 
 # Microsoft SQL Server
 
-## Install dlt with MS SQL
-**To install the dlt library with MS SQL dependencies, use:**
+## Install data_load_tool with MS SQL
+**To install the data_load_tool library with MS SQL dependencies, use:**
 ```sh
-pip install "dlt[mssql]"
+pip install "data_load_tool[mssql]"
 ```
 
 ## Setup guide
@@ -17,7 +17,7 @@ pip install "dlt[mssql]"
 ### Prerequisites
 
 The _Microsoft ODBC Driver for SQL Server_ must be installed to use this destination.
-This cannot be included with `dlt`'s Python dependencies, so you must install it separately on your system. You can find the official installation instructions [here](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16).
+This cannot be included with `data_load_tool`'s Python dependencies, so you must install it separately on your system. You can find the official installation instructions [here](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16).
 
 Supported driver versions:
 * `ODBC Driver 18 for SQL Server`
@@ -29,7 +29,7 @@ You can also [configure the driver name](#additional-destination-options) explic
 
 **1. Initialize a project with a pipeline that loads to MS SQL by running:**
 ```sh
-dlt init chess mssql
+data_load_tool init chess mssql
 ```
 
 **2. Install the necessary dependencies for MS SQL by running:**
@@ -38,11 +38,11 @@ pip install -r requirements.txt
 ```
 or run:
 ```sh
-pip install "dlt[mssql]"
+pip install "data_load_tool[mssql]"
 ```
-This will install `dlt` with the `mssql` extra, which contains all the dependencies required by the SQL server client.
+This will install `data_load_tool` with the `mssql` extra, which contains all the dependencies required by the SQL server client.
 
-**3. Enter your credentials into `.dlt/secrets.toml`.**
+**3. Enter your credentials into `.data_load_tool/secrets.toml`.**
 
 For example, replace with your database connection info:
 ```toml
@@ -97,9 +97,9 @@ destination.mssql.credentials="mssql://loader:loader@localhost/dlt_data?LongAsMa
 
 **To pass credentials directly**, use the [explicit instance of the destination](../../general-usage/destination.md#pass-explicit-credentials)
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
   pipeline_name='chess',
-  destination=dlt.destinations.mssql("mssql://loader:<password>@loader.database.windows.net/dlt_data?connect_timeout=15"),
+  destination=data_load_tool.destinations.mssql("mssql://loader:<password>@loader.database.windows.net/dlt_data?connect_timeout=15"),
   dataset_name='chess_data')
 ```
 
@@ -119,7 +119,7 @@ Data is loaded via INSERT statements by default. MSSQL has a limit of 1000 rows 
 **mssql** will create unique indexes for all columns with `unique` hints. This behavior **may be disabled**.
 
 ### Table and column identifiers
-SQL Server **with the default collation** uses case-insensitive identifiers but will preserve the casing of identifiers that are stored in the INFORMATION SCHEMA. You can use [case-sensitive naming conventions](../../general-usage/naming-convention.md#case-sensitive-and-insensitive-destinations) to keep the identifier casing. Note that you risk generating identifier collisions, which are detected by `dlt` and will fail the load process.
+SQL Server **with the default collation** uses case-insensitive identifiers but will preserve the casing of identifiers that are stored in the INFORMATION SCHEMA. You can use [case-sensitive naming conventions](../../general-usage/naming-convention.md#case-sensitive-and-insensitive-destinations) to keep the identifier casing. Note that you risk generating identifier collisions, which are detected by `data_load_tool` and will fail the load process.
 
 If you change the SQL Server server/database collation to case-sensitive, this will also affect the identifiers. Configure your destination as below in order to use case-sensitive naming conventions without collisions:
 ```toml
@@ -127,8 +127,8 @@ If you change the SQL Server server/database collation to case-sensitive, this w
 has_case_sensitive_identifiers=true
 ```
 
-## Syncing of `dlt` state
-This destination fully supports [dlt state sync](../../general-usage/state#syncing-state-with-destination).
+## Syncing of `data_load_tool` state
+This destination fully supports [data_load_tool state sync](../../general-usage/state#syncing-state-with-destination).
 
 ## Data types
 MS SQL does not support JSON columns, so JSON objects are stored as strings in `nvarchar` columns.

@@ -1,6 +1,6 @@
 ---
 title: Workable
-description: dlt pipeline for Workable API
+description: data_load_tool pipeline for Workable API
 keywords: [workable api, workable pipeline, workable]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 [Workable](https://www.workable.com/) is an online platform for posting jobs and managing the hiring process. With Workable,
 employers can create job listings, receive applications, track candidates, collaborate with team members, schedule interviews, and manage the overall hiring workflow.
 
-This Workable `dlt` verified source and
+This Workable `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/workable_pipeline.py)
 loads data using the “Workable API” to the destination of your choice.
 
@@ -70,7 +70,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init workable duckdb
+   data_load_tool init workable duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -88,7 +88,7 @@ For more information, read the guide on [how to add a verified source.](../../wa
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -102,7 +102,7 @@ For more information, read the guide on [how to add a verified source.](../../wa
    [you copied above](workable.md#grab-api-credentials). This will ensure that your data pipeline
    example can access your Workable resources securely.
 
-1. Next, you need to configure ".dlt/config.toml", which looks like:
+1. Next, you need to configure ".data_load_tool/config.toml", which looks like:
 
    ```toml
    [sources.workable]
@@ -135,7 +135,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the `pipeline_name` for the above pipeline example is `workable`, you may also use
@@ -145,7 +145,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 Note the default definitions of DEFAULT_ENDPOINTS and DEFAULT_DETAILS in "workable/settings.py".
@@ -169,19 +169,19 @@ endpoints allow incremental 'merge' mode loading.
 This source returns a sequence of dltResources that correspond to the endpoints.
 
 ```py
-@dlt.source(name="workable")
+@data_load_tool.source(name="workable")
 def workable_source(
-    access_token: str = dlt.secrets.value,
-    subdomain: str = dlt.config.value,
+    access_token: str = data_load_tool.secrets.value,
+    subdomain: str = data_load_tool.config.value,
     start_date: Optional[DateTime] = None,
     load_details: bool = False,
 ) -> Iterable[DltResource]:
    ...
 ```
 
-`access_token`: Authenticate the Workable API using the token specified in ".dlt/secrets.toml".
+`access_token`: Authenticate the Workable API using the token specified in ".data_load_tool/secrets.toml".
 
-`subdomain`: Your Workable account name, specified in ".dlt/config.toml".
+`subdomain`: Your Workable account name, specified in ".data_load_tool/config.toml".
 
 `start_date`: Optional. Sets a data retrieval start date; defaults to January 1, 2000.
 
@@ -193,16 +193,16 @@ def workable_source(
 This function is used to retrieve "candidates" endpoints.
 
 ```py
-@dlt.resource(name="candidates", write_disposition="merge", primary_key="id")
+@data_load_tool.resource(name="candidates", write_disposition="merge", primary_key="id")
 def candidates_resource(
-    updated_at: Optional[Any] = dlt.sources.incremental(
+    updated_at: Optional[Any] = data_load_tool.sources.incremental(
         "updated_at", initial_value=workable.start_date_iso
     )
 ) -> Iterable[TDataItem]:
    ...
 ```
 
-`updated_at`: Uses the dlt.sources.incremental method. Defaults to the function's start_date or Jan
+`updated_at`: Uses the data_load_tool.sources.incremental method. Defaults to the function's start_date or Jan
 1, 2000 if undefined.
 
 ## Customization
@@ -216,7 +216,7 @@ To create your data pipeline using single loading and [incremental data loading]
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
         pipeline_name="workable",  # Use a custom name if desired
         destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dataset_name="workable_data"  # Use a custom name if desired

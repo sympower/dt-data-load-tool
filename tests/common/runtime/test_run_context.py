@@ -3,12 +3,12 @@ from typing import Iterator
 import pytest
 import pickle
 
-from dlt.common import logger
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.specs import RuntimeConfiguration, PluggableRunContext
-from dlt.common.runtime.init import _INITIALIZED, apply_runtime_config, restore_run_context
-from dlt.common.runtime.run_context import RunContext, get_plugin_modules, is_folder_writable
-from dlt.common.utils import set_working_dir
+from data_load_tool.common import logger
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.specs import RuntimeConfiguration, PluggableRunContext
+from data_load_tool.common.runtime.init import _INITIALIZED, apply_runtime_config, restore_run_context
+from data_load_tool.common.runtime.run_context import RunContext, get_plugin_modules, is_folder_writable
+from data_load_tool.common.utils import set_working_dir
 
 import tests
 from tests.utils import MockableRunContext, TEST_STORAGE_ROOT
@@ -39,7 +39,7 @@ def test_run_context() -> None:
     run_context = ctx.context
     assert isinstance(run_context, RunContext)
     # regular settings before runtime_config applies
-    assert run_context.name == "dlt"
+    assert run_context.name == "data_load_tool"
     assert run_context.global_dir == run_context.data_dir
     assert run_context.run_dir == run_context.local_dir
 
@@ -65,8 +65,8 @@ def test_run_context() -> None:
     pickle.dumps(run_context)
 
     # check plugin modules
-    # NOTE: first `dlt` - is the root module of current context, second is always present
-    assert get_plugin_modules() == ["dlt", "dlt"]
+    # NOTE: first `data_load_tool` - is the root module of current context, second is always present
+    assert get_plugin_modules() == ["data_load_tool", "data_load_tool"]
 
 
 def test_context_without_module() -> None:
@@ -74,7 +74,7 @@ def test_context_without_module() -> None:
         ctx = PluggableRunContext()
         with Container().injectable_context(ctx):
             assert ctx.context.module is None
-            assert get_plugin_modules() == ["", "dlt"]
+            assert get_plugin_modules() == ["", "data_load_tool"]
 
 
 def test_context_init_without_runtime() -> None:
@@ -121,9 +121,9 @@ def test_run_context_handover() -> None:
     assert logger.LOGGER.name == "handover-dlt"
 
     # get regular context
-    import dlt
+    import data_load_tool
 
-    run_ctx = dlt.current.run_context()
+    run_ctx = data_load_tool.current.run_context()
     assert run_ctx is mock
     ctx = Container()[PluggableRunContext]
     assert ctx.runtime_config is runtime_config

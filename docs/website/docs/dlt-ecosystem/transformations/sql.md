@@ -1,19 +1,19 @@
 ---
 title: Transforming data with SQL
-description: Transforming the data loaded by a dlt pipeline with the dlt SQL client
+description: Transforming the data loaded by a data_load_tool pipeline with the data_load_tool SQL client
 keywords: [transform, sql]
 ---
 
-# Transforming data using the `dlt` SQL client
+# Transforming data using the `data_load_tool` SQL client
 
-A simple alternative to dbt is to query the data using the `dlt` SQL client and then perform the
+A simple alternative to dbt is to query the data using the `data_load_tool` SQL client and then perform the
 transformations using SQL statements in Python. The `execute_sql` method allows you to execute any SQL statement,
 including statements that change the database schema or data in the tables. In the example below, we
 insert a row into the `customers` table. Note that the syntax is the same as for any standard `dbapi`
 connection.
 
 :::info
-* This method will work for all SQL destinations supported by `dlt`, but not for the filesystem destination.
+* This method will work for all SQL destinations supported by `data_load_tool`, but not for the filesystem destination.
 * Read the [SQL client docs](../../ general-usage/dataset-access/dataset) for more information on how to access data with the SQL client.
 * If you are simply trying to read data, you should use the powerful [dataset interface](../../general-usage/dataset-access/dataset) instead.
 :::
@@ -26,7 +26,7 @@ The example below creates a new table `aggregated_sales` that contains the total
 
 
 ```py
-pipeline = dlt.pipeline(destination="duckdb", dataset_name="crm")
+pipeline = data_load_tool.pipeline(destination="duckdb", dataset_name="crm")
 
 # NOTE: this is the duckdb sql dialect, other destinations may use different expressions
 with pipeline.sql_client() as client:
@@ -46,7 +46,7 @@ with pipeline.sql_client() as client:
 ```
 
 You can also use the `execute_sql` method to run select queries. The data is returned as a list of rows, with the elements of a row
-corresponding to selected columns. A more convenient way to extract data is to use dlt datasets. 
+corresponding to selected columns. A more convenient way to extract data is to use data_load_tool datasets. 
 
 ```py
 try:

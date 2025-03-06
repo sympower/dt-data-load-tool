@@ -1,6 +1,6 @@
 ---
 title: Matomo
-description: dlt verified source for Matomo
+description: data_load_tool verified source for Matomo
 keywords: [matomo api, matomo verified source, matomo]
 ---
 import Header from './_source-info-header.md';
@@ -11,7 +11,7 @@ import Header from './_source-info-header.md';
 
 Matomo is a free and open-source web analytics platform that provides detailed insights into website and application performance with features like visitor maps, site search analytics, real-time visitor tracking, and custom reports.
 
-This Matomo `dlt` verified source and
+This Matomo `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/matomo_pipeline.py)
 loads data using the “Matomo API” to the destination of your choice.
 
@@ -34,8 +34,8 @@ The endpoints that this verified source supports are:
 1. Add a descriptive label for your new token.
 1. Click "Create New Token."
 1. Your token is displayed.
-1. Copy the access token and update it in the `.dlt/secrets.toml` file.
-1. Your Matomo URL is the web address in your browser when logged into Matomo, typically "https://mycompany.matomo.cloud/". Update it in the `.dlt/config.toml`.
+1. Copy the access token and update it in the `.data_load_tool/secrets.toml` file.
+1. Your Matomo URL is the web address in your browser when logged into Matomo, typically "https://mycompany.matomo.cloud/". Update it in the `.data_load_tool/config.toml`.
 1. The site_id is a unique ID for each monitored site in Matomo, found in the URL or via Administration > Measurables > Manage under ID.
 
 > Note: The Matomo UI, which is described here, might change.
@@ -48,7 +48,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init matomo duckdb
+   data_load_tool init matomo duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -66,7 +66,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credential
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
 
    ```toml
    # put your secret values and credentials here
@@ -79,7 +79,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 1. Next, follow the [destination documentation](../../dlt-ecosystem/destinations) instructions to add credentials for your chosen destination, ensuring proper routing of your data to the final destination.
 
-1. Next, store your pipeline configuration details in the `.dlt/config.toml`.
+1. Next, store your pipeline configuration details in the `.data_load_tool/config.toml`.
 
    Here's what the `config.toml` looks like:
 
@@ -108,7 +108,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    ```
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `matomo`, you may also use any custom name instead.
 
@@ -116,26 +116,26 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
 
 ### Source `matomo_reports`
 
 This function executes and loads a set of reports defined in "queries" for a specific Matomo site identified by "site_id".
 
 ```py
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def matomo_reports(
-    api_token: str = dlt.secrets.value,
-    url: str = dlt.config.value,
-    queries: List[DictStrAny] = dlt.config.value,
-    site_id: int = dlt.config.value,
+    api_token: str = data_load_tool.secrets.value,
+    url: str = data_load_tool.config.value,
+    queries: List[DictStrAny] = data_load_tool.config.value,
+    site_id: int = data_load_tool.config.value,
 ) -> Iterable[DltResource]:
    ...
 ```
 
-`api_token`: API access token for Matomo server authentication, defaults to "./dlt/secrets.toml"
+`api_token`: API access token for Matomo server authentication, defaults to "./data_load_tool/secrets.toml"
 
-`url`: Matomo server URL, defaults to "./dlt/config.toml"
+`url`: Matomo server URL, defaults to "./data_load_tool/config.toml"
 
 `queries`: List of dictionaries containing info on what data to retrieve from Matomo API.
 
@@ -148,11 +148,11 @@ def matomo_reports(
 The function loads visits from the current day and the past `initial_load_past_days` on the first run. In subsequent runs, it continues from the last load and skips active visits until they are closed.
 
 ```py
-@dlt.source()
+@data_load_tool.source()
 def matomo_visits(
-    api_token: str = dlt.secrets.value,
-    url: str = dlt.config.value,
-    live_events_site_id: int = dlt.config.value,
+    api_token: str = data_load_tool.secrets.value,
+    url: str = data_load_tool.config.value,
+    live_events_site_id: int = data_load_tool.config.value,
     initial_load_past_days: int = 10,
     visit_timeout_seconds: int = 1800,
     visit_max_duration_seconds: int = 3600,
@@ -161,9 +161,9 @@ def matomo_visits(
    ...
 ```
 
-`api_token`: API token for authentication, defaulting to "./dlt/secrets.toml".
+`api_token`: API token for authentication, defaulting to "./data_load_tool/secrets.toml".
 
-`url`: Matomo server URL, defaulting to ".dlt/config.toml"
+`url`: Matomo server URL, defaulting to ".data_load_tool/config.toml"
 
 `live_events_site_id`: Website ID for live events.
 
@@ -182,13 +182,13 @@ def matomo_visits(
 This function retrieves site visits within a specified timeframe. If a start date is given, it begins from that date. If not, it retrieves all visits up until now.
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     name="visits", write_disposition="append", primary_key="idVisit", selected=True
 )
 def get_last_visits(
     client: MatomoAPIClient,
     site_id: int,
-    last_date: dlt.sources.incremental[float],
+    last_date: data_load_tool.sources.incremental[float],
     visit_timeout_seconds: int = 1800,
     visit_max_duration_seconds: int = 3600,
     rows_per_page: int = 2000,
@@ -215,7 +215,7 @@ This is an [incremental](../../general-usage/incremental-loading) resource metho
 This function retrieves unique visit information from get_last_visits.
 
 ```py
-@dlt.transformer(
+@data_load_tool.transformer(
     data_from=get_last_visits,
     write_disposition="merge",
     name="visitors",
@@ -242,7 +242,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="matomo",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="matomo_data"  # Use a custom name if desired
@@ -258,7 +258,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    load_info = pipeline.run(data_reports)
    print(load_info)
    ```
-   > "site_id" defined in ".dlt/config.toml"
+   > "site_id" defined in ".data_load_tool/config.toml"
 
 1. To load custom data from reports using queries.
 
@@ -279,7 +279,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    load_info = pipeline.run(load_data)
    print(load_info)
    ```
-   > You can pass queries and site_id in the ".dlt/config.toml" as well.
+   > You can pass queries and site_id in the ".data_load_tool/config.toml" as well.
 
 1. To load data from reports and visits.
 

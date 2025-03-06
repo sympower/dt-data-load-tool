@@ -1,13 +1,13 @@
 import os
 from typing import Any, Dict, List
 
-import dlt
+import data_load_tool
 import pytest
-from dlt.common import pendulum
+from data_load_tool.common import pendulum
 
-from dlt.common.storages import fsspec_filesystem
-from dlt.sources.filesystem import filesystem, readers, FileItem, FileItemDict, read_csv
-from dlt.sources.filesystem.helpers import fsspec_from_resource
+from data_load_tool.common.storages import fsspec_filesystem
+from data_load_tool.sources.filesystem import filesystem, readers, FileItem, FileItemDict, read_csv
+from data_load_tool.sources.filesystem.helpers import fsspec_from_resource
 
 from tests.common.storages.utils import TEST_SAMPLE_FILES
 from tests.load.utils import DestinationTestConfiguration, destinations_configs
@@ -33,7 +33,7 @@ def glob_test_setup() -> None:
 @pytest.mark.parametrize("bucket_url", TESTS_BUCKET_URLS)
 @pytest.mark.parametrize("glob_params", GLOB_RESULTS)
 def test_file_list(bucket_url: str, glob_params: Dict[str, Any]) -> None:
-    @dlt.transformer
+    @data_load_tool.transformer
     def bypass(items) -> str:
         return items
 
@@ -53,7 +53,7 @@ def test_file_list(bucket_url: str, glob_params: Dict[str, Any]) -> None:
 @pytest.mark.parametrize("extract_content", [True, False])
 @pytest.mark.parametrize("bucket_url", TESTS_BUCKET_URLS)
 def test_load_content_resources(bucket_url: str, extract_content: bool) -> None:
-    @dlt.transformer
+    @data_load_tool.transformer
     def assert_sample_content(items: List[FileItemDict]):
         # expect just one file
         for item in items:
@@ -222,7 +222,7 @@ def test_standard_readers(
 def test_incremental_load(
     bucket_url: str, destination_config: DestinationTestConfiguration
 ) -> None:
-    @dlt.transformer
+    @data_load_tool.transformer
     def bypass(items) -> str:
         return items
 
@@ -231,7 +231,7 @@ def test_incremental_load(
     # Load all files
     all_files = filesystem(bucket_url=bucket_url, file_glob="csv/*")
     # add incremental on modification time
-    all_files.apply_hints(incremental=dlt.sources.incremental("modification_date"))
+    all_files.apply_hints(incremental=data_load_tool.sources.incremental("modification_date"))
     load_info = pipeline.run((all_files | bypass).with_name("csv_files"))
     assert_load_info(load_info)
     assert pipeline.last_trace.last_normalize_info.row_counts["csv_files"] == 4
@@ -241,7 +241,7 @@ def test_incremental_load(
 
     # load again
     all_files = filesystem(bucket_url=bucket_url, file_glob="csv/*")
-    all_files.apply_hints(incremental=dlt.sources.incremental("modification_date"))
+    all_files.apply_hints(incremental=data_load_tool.sources.incremental("modification_date"))
     load_info = pipeline.run((all_files | bypass).with_name("csv_files"))
     # nothing into csv_files
     assert "csv_files" not in pipeline.last_trace.last_normalize_info.row_counts
@@ -250,7 +250,7 @@ def test_incremental_load(
 
     # load again into different table
     all_files = filesystem(bucket_url=bucket_url, file_glob="csv/*")
-    all_files.apply_hints(incremental=dlt.sources.incremental("modification_date"))
+    all_files.apply_hints(incremental=data_load_tool.sources.incremental("modification_date"))
     load_info = pipeline.run((all_files | bypass).with_name("csv_files_2"))
     assert_load_info(load_info)
     assert pipeline.last_trace.last_normalize_info.row_counts["csv_files_2"] == 4
@@ -263,7 +263,7 @@ def test_file_chunking() -> None:
         files_per_page=2,
     )
 
-    from dlt.extract.pipe_iterator import PipeIterator
+    from data_load_tool.extract.pipe_iterator import PipeIterator
 
     # use pipe iterator to get items as they go through pipe
     for pipe_item in PipeIterator.from_pipe(resource._pipe):

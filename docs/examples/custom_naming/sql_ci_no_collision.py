@@ -1,7 +1,7 @@
 from typing import ClassVar
 
-from dlt.common.normalizers.naming.sql_cs_v1 import NamingConvention as SqlNamingConvention
-from dlt.common.schema.typing import DLT_NAME_PREFIX
+from data_load_tool.common.normalizers.naming.sql_cs_v1 import NamingConvention as SqlNamingConvention
+from data_load_tool.common.schema.typing import DLT_NAME_PREFIX
 
 
 class NamingConvention(SqlNamingConvention):
@@ -17,7 +17,7 @@ class NamingConvention(SqlNamingConvention):
         tag = self._compute_tag(identifier, self._DEFAULT_COLLISION_PROB)
         # lower case
         norm_identifier = identifier.lower()
-        # add tag if (not a dlt identifier) and tag was not added before (simple heuristics)
+        # add tag if (not a data_load_tool identifier) and tag was not added before (simple heuristics)
         if "_4" in norm_identifier:
             _, existing_tag = norm_identifier.rsplit("_4", 1)
             has_tag = len(existing_tag) == len(tag)

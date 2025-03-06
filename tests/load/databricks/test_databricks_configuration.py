@@ -1,19 +1,19 @@
 import pytest
 import os
 
-from dlt.common.schema.schema import Schema
-from dlt.common.utils import digest128
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.utils import digest128
 
 pytest.importorskip("databricks")
 
-import dlt
-from dlt.common.exceptions import TerminalValueError
-from dlt.common.configuration.exceptions import ConfigurationValueError
-from dlt.destinations.impl.databricks.databricks import DatabricksLoadJob
-from dlt.common.configuration import resolve_configuration
+import data_load_tool
+from data_load_tool.common.exceptions import TerminalValueError
+from data_load_tool.common.configuration.exceptions import ConfigurationValueError
+from data_load_tool.destinations.impl.databricks.databricks import DatabricksLoadJob
+from data_load_tool.common.configuration import resolve_configuration
 
-from dlt.destinations import databricks
-from dlt.destinations.impl.databricks.configuration import (
+from data_load_tool.destinations import databricks
+from data_load_tool.destinations.impl.databricks.configuration import (
     DatabricksClientConfiguration,
     DATABRICKS_APPLICATION_ID,
     DatabricksCredentials,
@@ -140,18 +140,18 @@ def test_databricks_missing_config_server_hostname() -> None:
 @pytest.mark.parametrize("auth_type", ("pat", "oauth2"))
 def test_default_credentials(auth_type: str) -> None:
     # create minimal default env
-    os.environ["DATABRICKS_HOST"] = dlt.secrets[
+    os.environ["DATABRICKS_HOST"] = data_load_tool.secrets[
         "destination.databricks.credentials.server_hostname"
     ]
     if auth_type == "pat":
-        os.environ["DATABRICKS_TOKEN"] = dlt.secrets[
+        os.environ["DATABRICKS_TOKEN"] = data_load_tool.secrets[
             "destination.databricks.credentials.access_token"
         ]
     else:
-        os.environ["DATABRICKS_CLIENT_ID"] = dlt.secrets[
+        os.environ["DATABRICKS_CLIENT_ID"] = data_load_tool.secrets[
             "destination.databricks.credentials.client_id"
         ]
-        os.environ["DATABRICKS_CLIENT_SECRET"] = dlt.secrets[
+        os.environ["DATABRICKS_CLIENT_SECRET"] = data_load_tool.secrets[
             "destination.databricks.credentials.client_secret"
         ]
 
@@ -176,11 +176,11 @@ def test_default_credentials(auth_type: str) -> None:
 
 
 def test_oauth2_credentials() -> None:
-    dlt.secrets["destination.databricks.credentials.access_token"] = ""
+    data_load_tool.secrets["destination.databricks.credentials.access_token"] = ""
     # we must prime the "destinations" for google secret manager config provider
     # because it retrieves catalog as first element and it is not secret. and vault providers
     # are secret only
-    dlt.secrets.get("destination.credentials")
+    data_load_tool.secrets.get("destination.credentials")
     config = resolve_configuration(
         DatabricksClientConfiguration()._bind_dataset_name(dataset_name="my-dataset-1234-oauth"),
         sections=("destination", "databricks"),
@@ -194,8 +194,8 @@ def test_oauth2_credentials() -> None:
 
 
 def test_default_warehouse() -> None:
-    os.environ["DATABRICKS_TOKEN"] = dlt.secrets["destination.databricks.credentials.access_token"]
-    os.environ["DATABRICKS_HOST"] = dlt.secrets[
+    os.environ["DATABRICKS_TOKEN"] = data_load_tool.secrets["destination.databricks.credentials.access_token"]
+    os.environ["DATABRICKS_HOST"] = data_load_tool.secrets[
         "destination.databricks.credentials.server_hostname"
     ]
     # will force this warehouse

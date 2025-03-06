@@ -1,17 +1,17 @@
 import pytest
 
-from dlt.common.destination.exceptions import DestinationCapabilitiesException, UnsupportedDataType
-from dlt.common.destination.utils import (
+from data_load_tool.common.destination.exceptions import DestinationCapabilitiesException, UnsupportedDataType
+from data_load_tool.common.destination.utils import (
     resolve_merge_strategy,
     verify_schema_capabilities,
     verify_supported_data_types,
 )
-from dlt.common.exceptions import TerminalValueError
-from dlt.common.schema.exceptions import SchemaIdentifierNormalizationCollision
-from dlt.common.schema.schema import Schema
-from dlt.common.schema.utils import new_table
-from dlt.common.storages.load_package import ParsedLoadJobFileName
-from dlt.destinations.impl.bigquery.bigquery_adapter import AUTODETECT_SCHEMA_HINT
+from data_load_tool.common.exceptions import TerminalValueError
+from data_load_tool.common.schema.exceptions import SchemaIdentifierNormalizationCollision
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.schema.utils import new_table
+from data_load_tool.common.storages.load_package import ParsedLoadJobFileName
+from data_load_tool.destinations.impl.bigquery.bigquery_adapter import AUTODETECT_SCHEMA_HINT
 
 
 def test_resolve_merge_strategy() -> None:
@@ -30,7 +30,7 @@ def test_resolve_merge_strategy() -> None:
     assert resolve_merge_strategy(schema.tables, iceberg_table) is None
 
     # try default merge dispositions
-    from dlt.destinations import athena, filesystem, duckdb
+    from data_load_tool.destinations import athena, filesystem, duckdb
 
     assert resolve_merge_strategy(schema.tables, table, filesystem().capabilities()) is None
     assert (
@@ -64,7 +64,7 @@ def test_verify_capabilities_ident_collisions() -> None:
         columns=[{"name": "col1", "data_type": "bigint"}, {"name": "COL1", "data_type": "bigint"}],
     )
     schema.update_table(table, normalize_identifiers=False)
-    from dlt.destinations import athena, filesystem
+    from data_load_tool.destinations import athena, filesystem
 
     # case sensitive - no name collision
     exceptions = verify_schema_capabilities(schema, filesystem().capabilities(), "filesystem")
@@ -98,7 +98,7 @@ def test_verify_capabilities_data_types() -> None:
     schema.update_table(table, normalize_identifiers=False)
 
     schema.update_table(table, normalize_identifiers=False)
-    from dlt.destinations import athena, filesystem, databricks, redshift
+    from data_load_tool.destinations import athena, filesystem, databricks, redshift
 
     new_jobs_parquet = [ParsedLoadJobFileName.parse("table.12345.1.parquet")]
     new_jobs_jsonl = [ParsedLoadJobFileName.parse("table.12345.1.jsonl")]
@@ -164,7 +164,7 @@ def test_verify_capabilities_data_types() -> None:
     assert exceptions[0].available_in_formats == ["insert_values"]
 
     # check nested type on bigquery
-    from dlt.destinations import bigquery
+    from data_load_tool.destinations import bigquery
 
     schema_nested = Schema("nested")
     table = new_table(
@@ -190,7 +190,7 @@ def test_verify_capabilities_data_types() -> None:
     assert len(exceptions) == 0
 
     # lancedb uses arrow types in type mapper
-    from dlt.destinations import lancedb
+    from data_load_tool.destinations import lancedb
 
     exceptions = verify_supported_data_types(
         schema_bin.tables.values(),  # type: ignore[arg-type]
@@ -215,7 +215,7 @@ def test_verify_capabilities_data_types() -> None:
         ],
     )
     schema_timezone.update_table(table, normalize_identifiers=False)
-    from dlt.destinations import motherduck
+    from data_load_tool.destinations import motherduck
 
     exceptions = verify_supported_data_types(
         schema_timezone.tables.values(), new_jobs_parquet, motherduck().capabilities(), "motherduck"  # type: ignore[arg-type]

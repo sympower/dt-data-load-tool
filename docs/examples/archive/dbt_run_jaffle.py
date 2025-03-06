@@ -1,14 +1,14 @@
-import dlt
+import data_load_tool
 
-pipeline = dlt.pipeline(destination="duckdb", dataset_name="jaffle_jaffle")
+pipeline = data_load_tool.pipeline(destination="duckdb", dataset_name="jaffle_jaffle")
 
 print(
     "create or restore virtual environment in which dbt is installed, use the newest version of dbt"
 )
-venv = dlt.dbt.get_venv(pipeline)
+venv = data_load_tool.dbt.get_venv(pipeline)
 
 print("get runner, optionally pass the venv")
-dbt = dlt.dbt.package(pipeline, "https://github.com/dbt-labs/jaffle_shop.git", venv=venv)
+dbt = data_load_tool.dbt.package(pipeline, "https://github.com/dbt-labs/jaffle_shop.git", venv=venv)
 
 print("run the package (clone/pull repo, deps, seed, source tests, run)")
 models = dbt.run_all()

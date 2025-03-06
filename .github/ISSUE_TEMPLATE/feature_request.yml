@@ -1,15 +1,15 @@
 ---
 name: Feature Request
-description: Suggest a feature for dlt
+description: Suggest a feature for data_load_tool
 labels: ["kind:enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for suggesting a feature for dlt!
+        Thanks for suggesting a feature for data_load_tool!
         If you like to discuss your idea first, please join our [Slack](https://dlthub.com/community)
         and pose your questions in the #3-technical-help channel.
-        For minor features and improvements, feel free to open a [pull request](https://github.com/dlt-hub/dlt/pulls) directly.
+        For minor features and improvements, feel free to open a [pull request](https://github.com/dlt-hub/data_load_tool/pulls) directly.
   - type: textarea
     attributes:
       label: Feature description
@@ -18,14 +18,14 @@ body:
         What would you like to happen?
   - type: dropdown
     attributes:
-      label: Are you a dlt user?
-      description: Please tell us how you are using dlt.
+      label: Are you a data_load_tool user?
+      description: Please tell us how you are using data_load_tool.
       multiple: false
       options:
-        - "Yes, I'm already a dlt user."
-        - "Yes, I run dlt in production."
+        - "Yes, I'm already a data_load_tool user."
+        - "Yes, I run data_load_tool in production."
         - "Yes, I use it for fun."
-        - "I'd consider using dlt, but it's lacking a feature I need."
+        - "I'd consider using data_load_tool, but it's lacking a feature I need."
   - type: textarea
     attributes:
       label: Use case

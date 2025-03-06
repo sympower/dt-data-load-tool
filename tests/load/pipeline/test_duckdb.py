@@ -3,14 +3,14 @@ import pytest
 import os
 from datetime import datetime  # noqa: I251
 
-import dlt
-from dlt.common import json
-from dlt.common.libs.pydantic import DltConfig
-from dlt.common.schema.exceptions import SchemaIdentifierNormalizationCollision
-from dlt.common.time import ensure_pendulum_datetime, pendulum
+import data_load_tool
+from data_load_tool.common import json
+from data_load_tool.common.libs.pydantic import DltConfig
+from data_load_tool.common.schema.exceptions import SchemaIdentifierNormalizationCollision
+from data_load_tool.common.time import ensure_pendulum_datetime, pendulum
 
-from dlt.destinations import duckdb
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.destinations import duckdb
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 from tests.cases import TABLE_UPDATE_ALL_INT_PRECISIONS, TABLE_UPDATE_ALL_TIMESTAMP_PRECISIONS
 from tests.load.duckdb.test_duckdb_table_builder import add_timezone_false_on_precision
@@ -226,7 +226,7 @@ def test_jsonl_reader(destination_config: DestinationTestConfiguration) -> None:
 def test_provoke_parallel_parquet_same_table(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    @dlt.resource(name="events", file_format="parquet")
+    @data_load_tool.resource(name="events", file_format="parquet")
     def _get_shuffled_events(repeat: int = 1):
         for _ in range(repeat):
             with open(
@@ -269,8 +269,8 @@ def test_provoke_parallel_parquet_same_table(
 def test_duckdb_credentials_separation(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    p1 = dlt.pipeline("p1", destination=duckdb(credentials=":pipeline:"))
-    p2 = dlt.pipeline("p2", destination=duckdb(credentials=":pipeline:"))
+    p1 = data_load_tool.pipeline("p1", destination=duckdb(credentials=":pipeline:"))
+    p2 = data_load_tool.pipeline("p2", destination=duckdb(credentials=":pipeline:"))
 
     p1.run([1, 2, 3], table_name="p1_data")
     p1_dataset = p1.dataset()

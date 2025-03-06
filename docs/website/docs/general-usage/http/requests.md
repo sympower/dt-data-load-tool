@@ -1,14 +1,14 @@
 ---
 title: Requests wrapper
-description: Use the dlt requests wrapper to make HTTP requests with automatic retries and timeouts
+description: Use the data_load_tool requests wrapper to make HTTP requests with automatic retries and timeouts
 keywords: [http, requests, retry, timeout]
 ---
 
-`dlt` provides a customized [Python Requests](https://requests.readthedocs.io/en/latest/) client with automatic retries and configurable timeouts.
+`data_load_tool` provides a customized [Python Requests](https://requests.readthedocs.io/en/latest/) client with automatic retries and configurable timeouts.
 
 We recommend using this to make API calls in your sources as it makes your pipeline more resilient to intermittent network errors and other random glitches which otherwise can cause the whole pipeline to fail.
 
-The dlt requests client will additionally set the default user-agent header to `dlt/{DLT_VERSION_NAME}`.
+The data_load_tool requests client will additionally set the default user-agent header to `data_load_tool/{DLT_VERSION_NAME}`.
 
 For most use cases, this is a drop-in replacement for `requests`, so in places where you would normally do:
 
@@ -19,7 +19,7 @@ import requests
 You can instead do:
 
 ```py
-from dlt.sources.helpers import requests
+from data_load_tool.sources.helpers import requests
 ```
 
 And use it just like you would use `requests`:
@@ -63,12 +63,12 @@ request_timeout = 120  # Timeout in seconds
 request_max_retry_delay = 30  # Cap exponential delay to 30 seconds
 ```
 
-For more control, you can create your own instance of `dlt.sources.requests.Client` and use that instead of the global client.
+For more control, you can create your own instance of `data_load_tool.sources.requests.Client` and use that instead of the global client.
 
 This lets you customize which status codes and exceptions to retry on:
 
 ```py
-from dlt.sources.helpers import requests
+from data_load_tool.sources.helpers import requests
 
 http_client = requests.Client(
     status_codes=(403, 500, 502, 503),
@@ -82,7 +82,7 @@ This is sometimes needed when loading from non-standard APIs which don't use HTT
 For example:
 
 ```py
-from dlt.sources.helpers import requests
+from data_load_tool.sources.helpers import requests
 
 def retry_if_error_key(response: Optional[requests.Response], exception: Optional[BaseException]) -> bool:
     """Decide whether to retry the request based on whether

@@ -1,6 +1,6 @@
 ---
 title: Hubspot
-description: dlt verified source for Hubspot API
+description: data_load_tool verified source for Hubspot API
 keywords: [hubspot api, hubspot verified source, hubspot]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 HubSpot is a customer relationship management (CRM) software and inbound marketing platform that
 helps businesses attract visitors, engage customers, and close leads.
 
-This HubSpot `dlt` verified source and
+This HubSpot `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/hubspot_pipeline.py)
 loads data using the “HubSpot API” to the destination of your choice.
 
@@ -58,7 +58,7 @@ Follow these steps:
 
 1. Click "Create app" > "Continue Creating".
 
-1. Click "Show token" and store it for ".dlt/secrets.toml".
+1. Click "Show token" and store it for ".data_load_tool/secrets.toml".
 
 
 > Note: The HubSpot UI, which is described here, might change.
@@ -72,7 +72,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init hubspot duckdb
+   data_load_tool init hubspot duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -90,7 +90,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe. Here's what the file looks like:
 
    ```toml
    # put your secret values and credentials here
@@ -117,7 +117,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    ```
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `hubspot_pipeline`, you may also use any custom name instead.
 
@@ -125,7 +125,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
 
 ### Default endpoints
 
@@ -136,9 +136,9 @@ You can write your own pipelines to load data to a destination using this verifi
 This function returns a list of resources to load companies, contacts, deals, tickets, products, and web analytics events data into the destination.
 
 ```py
-@dlt.source(name="hubspot")
+@data_load_tool.source(name="hubspot")
 def hubspot(
-    api_key: str = dlt.secrets.value,
+    api_key: str = data_load_tool.secrets.value,
     include_history: bool = False,
     include_custom_props: bool = False,
 ) -> Sequence[DltResource]:
@@ -154,7 +154,7 @@ def hubspot(
 This resource function fetches data from the "companies" endpoint and loads it to the destination, replacing any existing data.
 
 ```py
-@dlt.resource(name="companies", write_disposition="replace")
+@data_load_tool.resource(name="companies", write_disposition="replace")
 def companies(
    api_key: str = API_KEY,
    include_history: bool = False,
@@ -178,11 +178,11 @@ This resource function takes the same arguments, `api_key` and `include_history`
 This function loads web analytics events for specific objects from the Hubspot API into the destination.
 
 ```py
-@dlt.resource
+@data_load_tool.resource
 def hubspot_events_for_objects(
      object_type: THubspotObjectType,
      object_ids: List[str],
-     api_key: str = dlt.secrets.value,
+     api_key: str = data_load_tool.secrets.value,
      start_date: DateTime = START_DATE,
 ) -> DltResource:
    ...
@@ -209,7 +209,7 @@ verified source.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="hubspot",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="hubspot_data"  # Use a custom name if desired

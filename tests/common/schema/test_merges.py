@@ -2,12 +2,12 @@ from typing import Any
 import pytest
 from copy import copy, deepcopy
 
-from dlt.common.schema import utils
-from dlt.common.schema.exceptions import (
+from data_load_tool.common.schema import utils
+from data_load_tool.common.schema.exceptions import (
     CannotCoerceColumnException,
     TablePropertiesConflictException,
 )
-from dlt.common.schema.typing import TColumnSchemaBase, TStoredSchema, TTableSchema, TColumnSchema
+from data_load_tool.common.schema.typing import TColumnSchemaBase, TStoredSchema, TTableSchema, TColumnSchema
 
 
 COL_1_HINTS: TColumnSchema = {  # type: ignore[typeddict-unknown-key]

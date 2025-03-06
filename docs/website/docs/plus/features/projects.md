@@ -8,22 +8,22 @@ import Link from '../../_plus_admonition.md';
 <img src="https://storage.googleapis.com/dlt-blog-images/plus/dlt_plus_projects.png" width="500"/>
 
 
-[dlt+ Project](../core-concepts/project.md) provides a structured and opinionated approach to organizing data workflows while implementing best practices for data engineering teams. dlt+ Project automates key processes such as data loading, data transformations, data catalogs, and data governance, and enables different members of the data teams to work more easily with each other.
+[data_load_tool+ Project](../core-concepts/project.md) provides a structured and opinionated approach to organizing data workflows while implementing best practices for data engineering teams. data_load_tool+ Project automates key processes such as data loading, data transformations, data catalogs, and data governance, and enables different members of the data teams to work more easily with each other.
 
-With dlt+ Project, you can efficiently manage your data workflows by:
+With data_load_tool+ Project, you can efficiently manage your data workflows by:
 
-1. [Using a declarative `dlt.yml` file](#the-dlt-manifest-file-dltyml) to define sources, destinations, pipelines, and transformations.
+1. [Using a declarative `data_load_tool.yml` file](#the-dlt-manifest-file-dltyml) to define sources, destinations, pipelines, and transformations.
 2. Configuring [different profiles](../core-concepts/profiles.md) for various use cases and environments.
-3. Ensuring data quality by defining tests with [dlt+ tests utils](./quality/tests.md).
+3. Ensuring data quality by defining tests with [data_load_tool+ tests utils](./quality/tests.md).
 4. Packaging your project as a Python package and distributing it via PyPI or a git repository [Coming Soon!]
 
 This structured approach allows teams to work efficiently while maintaining flexibility and control over their data workflows.
 
 ## Project structure
 
-A dlt+ Project has the following general structure:
+A data_load_tool+ Project has the following general structure:
 ```text
-├── .dlt/                 # folder containing dlt configurations and profile settings
+├── .data_load_tool/                 # folder containing data_load_tool configurations and profile settings
 │   ├── config.toml
 │   ├── dev.secrets.toml  # credentials for access profile 'dev'
 │   └── secrets.toml
@@ -32,17 +32,17 @@ A dlt+ Project has the following general structure:
 │   └── github.py         # source code for a github source
 ├── transformations/      # modules containing the source code for transformations
 ├── .gitignore
-└── dlt.yml               # the main project manifest
+└── data_load_tool.yml               # the main project manifest
 ```
 
-## The dlt manifest file (dlt.yml)
+## The data_load_tool manifest file (data_load_tool.yml)
 
-The main component of a dlt+ Project is the dlt manifest file (`dlt.yml`). It marks the root of your project and contains the main configurations. Here you can declare all of your data platform entities in a YAML format. It contains the following sections:
+The main component of a data_load_tool+ Project is the data_load_tool manifest file (`data_load_tool.yml`). It marks the root of your project and contains the main configurations. Here you can declare all of your data platform entities in a YAML format. It contains the following sections:
 
 ### Sources
 
 This section lets you define sources either declaratively or by referencing an implementation from a Python module inside `sources/`. In the example below, two sources are declared:
-1. a dlt REST API source whose parameters are passed within the manifest
+1. a data_load_tool REST API source whose parameters are passed within the manifest
 2. a GitHub source defined in a function `source` whose source code inside `sources/github.py` is referenced
 
 ```yaml
@@ -63,20 +63,20 @@ sources:
     type: github.source
 ```
 :::tip
-Source **type** is used to refer to the location in Python code where the `@dlt.source` decorated function is present. You can
+Source **type** is used to refer to the location in Python code where the `@data_load_tool.source` decorated function is present. You can
 always use a full path to a function name in a Python module, but we also support shorthand and relative notations. For example:
-* `rest_api` will be expanded to `dlt.sources.rest_api.rest_api` where `dlt.sources.rest_api` is a Python module in OSS dlt and
+* `rest_api` will be expanded to `data_load_tool.sources.rest_api.rest_api` where `data_load_tool.sources.rest_api` is a Python module in OSS data_load_tool and
 `rest_api` is a name of a function in that module.
 * `github.source` will be expanded to `sources.github.sources` in the current project.
 
-If the **type** cannot be resolved, dlt+ will provide you with a detailed list of all candidate types that were looked up
+If the **type** cannot be resolved, data_load_tool+ will provide you with a detailed list of all candidate types that were looked up
 so you can make required corrections.
 :::
 
 
 ### Destinations
 
-The destinations section defines dlt destinations in a similar way to how you would define them in a pure Python dlt project. As with sources, you can also create a `destinations/` folder and reference custom implementations of destinations inside it.
+The destinations section defines data_load_tool destinations in a similar way to how you would define them in a pure Python data_load_tool project. As with sources, you can also create a `destinations/` folder and reference custom implementations of destinations inside it.
 
 ```yaml
 destinations:
@@ -94,11 +94,11 @@ github_pipeline:
   destination: duckdb
   dataset_name: github_events_dataset
 ```
-You can declare all arguments of `dlt.pipeline` in this section. For a full list of arguments, refer to the [docstrings](https://github.com/dlt-hub/dlt/blob/71b4975c70d1931750b3245e919a520a2400e870/dlt/pipeline/__init__.py#L30).
+You can declare all arguments of `data_load_tool.pipeline` in this section. For a full list of arguments, refer to the [docstrings](https://github.com/dlt-hub/data_load_tool/blob/71b4975c70d1931750b3245e919a520a2400e870/data_load_tool/pipeline/__init__.py#L30).
 
 ### Datasets
 
-The datasets section defines datasets that live on a destination (defined in the destinations section). Any datasets declared in the [pipeline section](#pipelines) are automatically created if not declared here. Read more about datasets in dlt+ [here](../core-concepts/datasets.md).
+The datasets section defines datasets that live on a destination (defined in the destinations section). Any datasets declared in the [pipeline section](#pipelines) are automatically created if not declared here. Read more about datasets in data_load_tool+ [here](../core-concepts/datasets.md).
 
 ```yaml
 datasets:
@@ -127,7 +127,7 @@ caches:
           events_aggregated: events_aggregated
 ```
 :::note
-🚧 This feature is under development. Interested in becoming an early tester? [Join dlt+ early access](https://info.dlthub.com/waiting-list)
+🚧 This feature is under development. Interested in becoming an early tester? [Join data_load_tool+ early access](https://info.dlthub.com/waiting-list)
 :::
 
 ### Transformations 🧪
@@ -141,12 +141,12 @@ transformations:
     cache: github_events_cache
 ```
 :::note
-🚧 This feature is under development. Interested in becoming an early tester? [Join dlt+ early access](https://info.dlthub.com/waiting-list)
+🚧 This feature is under development. Interested in becoming an early tester? [Join data_load_tool+ early access](https://info.dlthub.com/waiting-list)
 :::
 
 ### Profiles
 
-You can use the profiles section to define different environments (example: dev, staging, prod, tests). One package may have multiple profiles which can be specified using dlt+ cli commands. The default profile name is `dev`. It's created automatically alongside the `tests` profile.
+You can use the profiles section to define different environments (example: dev, staging, prod, tests). One package may have multiple profiles which can be specified using data_load_tool+ cli commands. The default profile name is `dev`. It's created automatically alongside the `tests` profile.
 
 ```yaml
 profiles:
@@ -169,7 +169,7 @@ You can override default project settings using the `project` section:
 * `data_dir` and `local_dir` - [files created by pipelines and destinations](#local-and-temporary-files-data_dir), separated by the current profile name.
 * `name` - the name of the project.
 * `default_profile` - the name of the default profile, which can be configured in the project section as seen above.
-* `allow_undefined_entities` - by default, dlt+ will create entities like destinations, sources, and datasets ad hoc. This flag disables such behavior.
+* `allow_undefined_entities` - by default, data_load_tool+ will create entities like destinations, sources, and datasets ad hoc. This flag disables such behavior.
 
 In the example below:
 ```yaml
@@ -192,7 +192,7 @@ As you may guess from the example above, you can use Python-style formatters to 
 
 ### Other settings
 
-`dlt.yml` is a [dlt config provider](../../general-usage/credentials/setup.md), and you can use it in the same way you use `config.toml`.
+`data_load_tool.yml` is a [data_load_tool config provider](../../general-usage/credentials/setup.md), and you can use it in the same way you use `config.toml`.
 For example, you can configure the log level:
 
 ```yaml
@@ -204,7 +204,7 @@ or any of the settings we mention in the [performance](../../reference/performan
 
 ## Local and temporary files (`data_dir`)
 
-The dlt+ project has a dedicated location (`data_dir`), where all working files are stored. By default, it is the `_data` folder in the root of the project.
+The data_load_tool+ project has a dedicated location (`data_dir`), where all working files are stored. By default, it is the `_data` folder in the root of the project.
 Working files for each profile are stored separately. For example, files for the `dev` profile are stored in `_data/dev`.
 
 Working files include:
@@ -226,11 +226,11 @@ destinations:
 The `iceberg` destination will create an iceberg lake in the `_data/dev/local/lake` folder, and `duckdb` will create a database in
 `_data/dev/local/my_duckdb.duckdb`.
 
-You can clean up your working files with the `dlt project --profile name clean` command.
+You can clean up your working files with the `data_load_tool project --profile name clean` command.
 :::
 
-## 🧪 Python API to interact with dlt+ project
-You can access any dlt+ project entity or function via the Python interface. In the example below:
+## 🧪 Python API to interact with data_load_tool+ project
+You can access any data_load_tool+ project entity or function via the Python interface. In the example below:
 ```yaml
 transformations:
   stressed_transformation:
@@ -255,11 +255,11 @@ You can also obtain the **catalog** with all created datasets via `dlt_plus.curr
 
 ## Config and secrets
 
-As shown above, it is possible to pass additional dlt settings and configurations in the manifest file itself. However, existing dlt config providers are also supported as usual, like:
+As shown above, it is possible to pass additional data_load_tool settings and configurations in the manifest file itself. However, existing data_load_tool config providers are also supported as usual, like:
 
 1. environ provider
-2. `.dlt/config.toml` provider, including the global config
-3. `.dlt/<profile_name>.secrets.toml`, which is the secrets toml provider but scoped to a particular profile. A per-profile version (`dev.secrets.toml`) is sought instead of the `secrets.toml` file.
+2. `.data_load_tool/config.toml` provider, including the global config
+3. `.data_load_tool/<profile_name>.secrets.toml`, which is the secrets toml provider but scoped to a particular profile. A per-profile version (`dev.secrets.toml`) is sought instead of the `secrets.toml` file.
 
 :::note
 Based on the information about precedence in the [configuration docs](../../general-usage/credentials/setup#available-config-providers), the yaml files provide the lowest precedence of all providers just above the default values for a config value. Settings in the yaml file will therefore be overridden by `toml` and `env` variables if present.
@@ -267,7 +267,7 @@ Based on the information about precedence in the [configuration docs](../../gene
 
 ## Project context
 
-The `dlt.yml` marks the root of a project. Projects can also be nested. If you run any dlt project CLI command, dlt will search for the project root in the filesystem tree starting from the current working directory and run all operations on the found project. So if your `dlt.yml` is in the `tutorial` folder, you can run `dlt pipeline my_pipeline run` from this folder or any subfolder, and it will run the pipeline on the `tutorial` project.
+The `data_load_tool.yml` marks the root of a project. Projects can also be nested. If you run any data_load_tool project CLI command, data_load_tool will search for the project root in the filesystem tree starting from the current working directory and run all operations on the found project. So if your `data_load_tool.yml` is in the `tutorial` folder, you can run `data_load_tool pipeline my_pipeline run` from this folder or any subfolder, and it will run the pipeline on the `tutorial` project.
 
 ## Packaging and distributing the projects
 

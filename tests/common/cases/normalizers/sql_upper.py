@@ -1,4 +1,4 @@
-from dlt.common.normalizers.naming.naming import NamingConvention as BaseNamingConvention
+from data_load_tool.common.normalizers.naming.naming import NamingConvention as BaseNamingConvention
 
 
 class NamingConvention(BaseNamingConvention):

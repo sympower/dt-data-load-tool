@@ -2,9 +2,9 @@ from typing import cast
 
 import pytest
 
-from dlt.sources import rest_api
-from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
-from dlt.sources.rest_api.typing import PaginatorConfig, RESTAPIConfig
+from data_load_tool.sources import rest_api
+from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
+from data_load_tool.sources.rest_api.typing import PaginatorConfig, RESTAPIConfig
 
 
 class CustomPaginator(JSONLinkPaginator):

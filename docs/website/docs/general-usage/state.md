@@ -1,7 +1,7 @@
 ---
 title: State
-description: Explanation of what a dlt state is
-keywords: [state, metadata, dlt.current.resource_state, dlt.current.source_state]
+description: Explanation of what a data_load_tool state is
+keywords: [state, metadata, data_load_tool.current.resource_state, data_load_tool.current.source_state]
 ---
 
 # State
@@ -16,10 +16,10 @@ game archives, which we then use to
 [prevent requesting duplicates](incremental-loading.md#advanced-state-usage-storing-a-list-of-processed-entities).
 
 ```py
-@dlt.resource(write_disposition="append")
+@data_load_tool.resource(write_disposition="append")
 def players_games(chess_url, player, start_month=None, end_month=None):
     # create or request a list of archives from resource-scoped state
-    checked_archives = dlt.current.resource_state().setdefault("archives", [])
+    checked_archives = data_load_tool.current.resource_state().setdefault("archives", [])
     # get a list of archives for a particular player
     archives = _get_players_archives(chess_url, player)
     for url in archives:
@@ -41,12 +41,12 @@ dictionary key is private and visible only to the `players_games` resource.
 The pipeline state is stored locally in the
 [pipeline working directory](pipeline.md#pipeline-working-directory) and, as a consequence, it
 cannot be shared with pipelines with different names. You must also make sure that data written into
-the state is JSON serializable. Except for standard Python types, `dlt` handles `DateTime`, `Decimal`,
+the state is JSON serializable. Except for standard Python types, `data_load_tool` handles `DateTime`, `Decimal`,
 `bytes`, and `UUID`.
 
 ## Share state across resources and read state in a source
 
-You can also access the source-scoped state with `dlt.current.source_state()`, which can be shared
+You can also access the source-scoped state with `data_load_tool.current.source_state()`, which can be shared
 across resources of a particular source and is also available read-only in the source-decorated
 functions. The most common use case for the source-scoped state is to store a mapping of custom fields
 to their displayable names. You can take a look at our
@@ -61,14 +61,14 @@ pipeline does. With such a structure, you will still be able to run some of your
 parallel.
 :::
 :::caution
-The `dlt.state()` is a deprecated alias to `dlt.current.source_state()` and will soon be
+The `data_load_tool.state()` is a deprecated alias to `data_load_tool.current.source_state()` and will soon be
 removed.
 :::
 
 ## Syncing state with destination
 
 What if you run your pipeline on, for example, Airflow, where every task gets a clean filesystem and
-the [pipeline working directory](pipeline.md#pipeline-working-directory) is always deleted? `dlt` loads
+the [pipeline working directory](pipeline.md#pipeline-working-directory) is always deleted? `data_load_tool` loads
 your state into the destination along with all other data, and when faced with a clean start, it
 will try to restore the state from the destination.
 
@@ -79,7 +79,7 @@ destination.
 The state is stored in the `_dlt_pipeline_state` table at the destination and contains information
 about the pipeline, the pipeline run (to which the state belongs), and the state blob.
 
-`dlt` has a `dlt pipeline sync` command where you can
+`data_load_tool` has a `data_load_tool pipeline sync` command where you can
 [request the state back from that table](../reference/command-line-interface.md#dlt-pipeline-sync).
 
 > 💡 If you can keep the pipeline working directory across the runs, you can disable the state sync
@@ -87,7 +87,7 @@ about the pipeline, the pipeline run (to which the state belongs), and the state
 
 ## When to use pipeline state
 
-- `dlt` uses the state internally to implement
+- `data_load_tool` uses the state internally to implement
   [last value incremental loading](incremental-loading.md#incremental-loading-with-a-cursor-field). This
   use case should cover around 90% of your needs to use the pipeline state.
 - [Store a list of already requested entities](incremental-loading.md#advanced-state-usage-storing-a-list-of-processed-entities)
@@ -98,13 +98,13 @@ about the pipeline, the pipeline run (to which the state belongs), and the state
 
 ## Do not use pipeline state if it can grow to millions of records
 
-Do not use `dlt` state when it may grow to millions of elements. Do you plan to store modification
+Do not use `data_load_tool` state when it may grow to millions of elements. Do you plan to store modification
 timestamps of all your millions of user records? This is probably a bad idea! In that case, you
 could:
 
 - Store the state in DynamoDB, Redis, etc., taking into account that if the extract stage fails,
   you'll end up with an invalid state.
-- Use your loaded data as the state. `dlt` exposes the current pipeline via `dlt.current.pipeline()`
+- Use your loaded data as the state. `data_load_tool` exposes the current pipeline via `data_load_tool.current.pipeline()`
   from which you can obtain
   [sqlclient](../dlt-ecosystem/transformations/sql.md)
   and load the data of interest. In that case, try at least to process your user records in batches.
@@ -113,11 +113,11 @@ could:
 
 In the example below, we load recent comments made by a given `user_id`. We access the `user_comments` table to select the maximum comment id for a given user.
 ```py
-import dlt
+import data_load_tool
 
-@dlt.resource(name="user_comments")
+@data_load_tool.resource(name="user_comments")
 def comments(user_id: str):
-    current_pipeline = dlt.current.pipeline()
+    current_pipeline = data_load_tool.current.pipeline()
     # find the last comment id for the given user_id by looking in the destination
     max_id: int = 0
     # on the first pipeline run, the user_comments table does not yet exist so do not check at all
@@ -141,10 +141,10 @@ When the pipeline is first run, the destination dataset and `user_comments` tabl
 
 ## Inspect the pipeline state
 
-You can inspect the pipeline state with the [`dlt pipeline` command](../reference/command-line-interface.md#dlt-pipeline):
+You can inspect the pipeline state with the [`data_load_tool pipeline` command](../reference/command-line-interface.md#dlt-pipeline):
 
 ```sh
-dlt pipeline -v chess_pipeline info
+data_load_tool pipeline -v chess_pipeline info
 ```
 
 This will display the source and resource state slots for all known sources.
@@ -155,10 +155,10 @@ This will display the source and resource state slots for all known sources.
 
 - Drop the destination dataset to fully reset the pipeline.
 - [Set the `dev_mode` flag wh^en creating the pipeline](pipeline.md#do-experiments-with-dev-mode).
-- Use the `dlt pipeline drop --drop-all` command to [drop the state and tables for a given schema name](../reference/command-line-interface.md#dlt-pipeline-drop).
+- Use the `data_load_tool pipeline drop --drop-all` command to [drop the state and tables for a given schema name](../reference/command-line-interface.md#dlt-pipeline-drop).
 
 **To partially reset the state:**
 
-- Use the `dlt pipeline drop <resource_name>` command to [drop the state and tables for a given resource](../reference/command-line-interface.md#dlt-pipeline-drop).
-- Use the `dlt pipeline drop --state-paths` command to [reset the state at a given path without touching the tables and data](../reference/command-line-interface.md#dlt-pipeline-drop).
+- Use the `data_load_tool pipeline drop <resource_name>` command to [drop the state and tables for a given resource](../reference/command-line-interface.md#dlt-pipeline-drop).
+- Use the `data_load_tool pipeline drop --state-paths` command to [reset the state at a given path without touching the tables and data](../reference/command-line-interface.md#dlt-pipeline-drop).
 

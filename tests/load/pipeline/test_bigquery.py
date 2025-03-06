@@ -3,13 +3,13 @@ from git import List
 import pytest
 import io
 
-import dlt
-from dlt.common import Decimal, json, pendulum
-from dlt.common.typing import TLoaderFileFormat
+import data_load_tool
+from data_load_tool.common import Decimal, json, pendulum
+from data_load_tool.common.typing import TLoaderFileFormat
 
-from dlt.common.utils import uniq_id
-from dlt.destinations.adapters import bigquery_adapter
-from dlt.extract.resource import DltResource
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations.adapters import bigquery_adapter
+from data_load_tool.extract.resource import DltResource
 from tests.pipeline.utils import assert_load_info
 from tests.load.utils import destinations_configs, DestinationTestConfiguration
 
@@ -57,10 +57,10 @@ def test_bigquery_numeric_types(destination_config: DestinationTestConfiguration
 def test_bigquery_autodetect_schema(
     destination_config: DestinationTestConfiguration, file_format: TLoaderFileFormat
 ) -> None:
-    from dlt.destinations.adapters import bigquery_adapter
-    from dlt.destinations.impl.bigquery.sql_client import BigQuerySqlClient
+    from data_load_tool.destinations.adapters import bigquery_adapter
+    from data_load_tool.destinations.impl.bigquery.sql_client import BigQuerySqlClient
 
-    @dlt.resource(name="cve", max_table_nesting=0, file_format=file_format)
+    @data_load_tool.resource(name="cve", max_table_nesting=0, file_format=file_format)
     def load_cve(stage: int):
         with open("tests/load/cases/loading/cve.json", "rb") as f:
             cve = json.load(f)
@@ -162,7 +162,7 @@ def test_adapter_additional_table_hints_table_expiration(
 ) -> None:
     import google
 
-    @dlt.resource(columns=[{"name": "col1", "data_type": "text"}])
+    @data_load_tool.resource(columns=[{"name": "col1", "data_type": "text"}])
     def no_hints() -> Iterator[Dict[str, str]]:
         yield from [{"col1": str(i)} for i in range(10)]
 
@@ -170,7 +170,7 @@ def test_adapter_additional_table_hints_table_expiration(
         no_hints.with_name(new_name="hints"), table_expiration_datetime="2030-01-01"
     )
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def sources() -> List[DltResource]:
         return [no_hints, hints]
 
@@ -205,7 +205,7 @@ def test_adapter_merge_behaviour(
     import google
     from google.cloud.bigquery import Table
 
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "col1", "data_type": "text"},
             {"name": "col2", "data_type": "bigint"},
@@ -262,7 +262,7 @@ def test_adapter_autodetect_schema_with_hints(
     import google
     from google.cloud.bigquery import Table
 
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "col1", "data_type": "text"},
             {"name": "col2", "data_type": "bigint"},
@@ -272,7 +272,7 @@ def test_adapter_autodetect_schema_with_hints(
     def general_types() -> Iterator[Dict[str, Any]]:
         yield from [{"col1": str(i), "col2": i, "col3": float(i)} for i in range(10)]
 
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "my_time_column", "data_type": "timestamp"},
         ]
@@ -283,7 +283,7 @@ def test_adapter_autodetect_schema_with_hints(
                 "my_time_column": pendulum.from_timestamp(1700784000 + i * 50_000),
             }
 
-    @dlt.resource(
+    @data_load_tool.resource(
         columns=[
             {"name": "my_date_column", "data_type": "date"},
         ]
@@ -376,7 +376,7 @@ def test_adapter_autodetect_schema_with_merge(
         dev_mode=True,
     )
 
-    @dlt.resource(primary_key="id", table_name="items", write_disposition="merge")
+    @data_load_tool.resource(primary_key="id", table_name="items", write_disposition="merge")
     def resource():
         for _id in range(0, 5):
             yield {"id": _id, "value": _id, "nested": [{"id": _id, "value": _id}]}
@@ -387,7 +387,7 @@ def test_adapter_autodetect_schema_with_merge(
     assert len(pipeline.dataset().items.df()) == 5
     assert len(pipeline.dataset().items__nested.df()) == 5
 
-    @dlt.resource(primary_key="id", table_name="items", write_disposition="merge")
+    @data_load_tool.resource(primary_key="id", table_name="items", write_disposition="merge")
     def resource2():
         for _id in range(2, 7):
             yield {"id": _id, "value": _id, "nested": [{"id": _id, "value": _id}]}

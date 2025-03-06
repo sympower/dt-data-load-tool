@@ -1,11 +1,11 @@
 import pytest
 from typing import Iterator, Any
 
-import dlt
+import data_load_tool
 from tests.load.utils import DestinationTestConfiguration, destinations_configs
 from tests.pipeline.utils import load_table_counts
 
-from dlt.destinations.exceptions import DatabaseTerminalException
+from data_load_tool.destinations.exceptions import DatabaseTerminalException
 
 # mark all tests as essential, do not remove
 pytestmark = pytest.mark.essential
@@ -35,11 +35,11 @@ def test_iceberg(destination_config: DestinationTestConfiguration) -> None:
             "sub_items": [{"id": 101, "name": "sub item 101"}, {"id": 101, "name": "sub item 102"}],
         }
 
-    @dlt.resource(name="items_normal", write_disposition="append")
+    @data_load_tool.resource(name="items_normal", write_disposition="append")
     def items_normal():
         yield from items()
 
-    @dlt.resource(name="items_iceberg", write_disposition="append", table_format="iceberg")
+    @data_load_tool.resource(name="items_iceberg", write_disposition="append", table_format="iceberg")
     def items_iceberg():
         yield from items()
 
@@ -93,11 +93,11 @@ def test_force_iceberg_deprecation(destination_config: DestinationTestConfigurat
             "sub_items": [{"id": 101, "name": "sub item 101"}, {"id": 101, "name": "sub item 102"}],
         }
 
-    @dlt.resource(name="items_normal", write_disposition="append")
+    @data_load_tool.resource(name="items_normal", write_disposition="append")
     def items_normal():
         yield from items()
 
-    @dlt.resource(name="items_hive", write_disposition="append", table_format="hive")
+    @data_load_tool.resource(name="items_hive", write_disposition="append", table_format="hive")
     def items_hive():
         yield from items()
 
@@ -120,7 +120,7 @@ def test_force_iceberg_deprecation(destination_config: DestinationTestConfigurat
         client.execute_sql("UPDATE _dlt_pipeline_state SET pipeline_name='new name'")
 
     # trigger deprecation warning
-    from dlt.destinations import athena
+    from data_load_tool.destinations import athena
 
     athena_c = athena(force_iceberg=True).configuration(athena().spec()._bind_dataset_name("ds"))
     assert athena_c.force_iceberg is True

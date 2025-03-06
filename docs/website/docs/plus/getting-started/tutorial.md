@@ -1,34 +1,34 @@
 ---
 title: Project tutorial
-description: Using the dlt+ cli commands to create and manage dlt+ Project
-keywords: [command line interface, cli, dlt init, dlt+, project]
+description: Using the data_load_tool+ cli commands to create and manage data_load_tool+ Project
+keywords: [command line interface, cli, data_load_tool init, data_load_tool+, project]
 ---
 
 import Link from '../../_plus_admonition.md';
 
 <Link/>
 
-This tutorial introduces you to dlt+ Project and the essential cli commands needed to create and manage it. You will learn how to:
+This tutorial introduces you to data_load_tool+ Project and the essential cli commands needed to create and manage it. You will learn how to:
 
-* initialize a new dlt+ Project
-* navigate the `dlt.yml` file
+* initialize a new data_load_tool+ Project
+* navigate the `data_load_tool.yml` file
 * add sources, destinations, and pipelines
 * run pipelines using cli commands
 * inspect datasets
-* work with dlt+ Profiles for enabling different configurations
+* work with data_load_tool+ Profiles for enabling different configurations
 
 ## Prerequisites
 
 To follow this tutorial, make sure:
 
-- dlt+ is set up according to the [installation guide](./installation.md)
-- you're familiar with the [core concepts of dlt](../../reference/explainers/how-dlt-works.md)
+- data_load_tool+ is set up according to the [installation guide](./installation.md)
+- you're familiar with the [core concepts of data_load_tool](../../reference/explainers/how-dlt-works.md)
 
 :::tip
 You can find the full list of available cli commands under [cli reference](../reference.md)
 :::
 
-## Creating a new dlt+ Project
+## Creating a new data_load_tool+ Project
 
 Start by creating a new folder for your project. Then, navigate to the folder in your terminal.
 
@@ -36,11 +36,11 @@ Start by creating a new folder for your project. Then, navigate to the folder in
 mkdir tutorial && cd tutorial
 ```
 
-Run the following command to initialize a new dlt+ Project:
+Run the following command to initialize a new data_load_tool+ Project:
 
 ```sh
-# Initialize a dlt+ Project named "tutorial", the name is derived from the folder name
-dlt project init arrow duckdb
+# Initialize a data_load_tool+ Project named "tutorial", the name is derived from the folder name
+data_load_tool project init arrow duckdb
 ```
 
 This command generates a project named `tutorial` with:
@@ -50,10 +50,10 @@ This command generates a project named `tutorial` with:
 - one dataset on the DuckDB destination
 
 :::caution
-Currently, `dlt project init` only supports a limited number of sources (for example, [REST API](../../dlt-ecosystem/verified-sources/rest_api/index.md), [SQL database](../../dlt-ecosystem/verified-sources/sql_database/index.md), [filesystem](../../dlt-ecosystem/verified-sources/filesystem/index.md), etc.). To list all available sources, please use the [cli command](../reference.md#dlt-source-list):
+Currently, `data_load_tool project init` only supports a limited number of sources (for example, [REST API](../../dlt-ecosystem/verified-sources/rest_api/index.md), [SQL database](../../dlt-ecosystem/verified-sources/sql_database/index.md), [filesystem](../../dlt-ecosystem/verified-sources/filesystem/index.md), etc.). To list all available sources, please use the [cli command](../reference.md#dlt-source-list):
 
 ```sh
-dlt source list-available
+data_load_tool source list-available
 ```
 The support for other verified sources is coming soon!
 :::
@@ -63,7 +63,7 @@ After running the command, the following folder structure is created:
 
 ```sh
 .
-├── .dlt/                 # your dlt settings including profile settings
+├── .data_load_tool/                 # your data_load_tool settings including profile settings
 │   ├── config.toml
 │   ├── dev.secrets.toml
 │   └── secrets.toml
@@ -72,12 +72,12 @@ After running the command, the following folder structure is created:
 │   └── arrow.py
 ├── .gitignore
 ├── requirements.txt
-└── dlt.yml               # the main project manifest
+└── data_load_tool.yml               # the main project manifest
 ```
 
-### Understanding `dlt.yml`
+### Understanding `data_load_tool.yml`
 
-The `dlt.yml` file is the central configuration for your dlt+ Project. It defines the pipelines, sources, and destinations. In the generated project, the file looks like this:
+The `data_load_tool.yml` file is the central configuration for your data_load_tool+ Project. It defines the pipelines, sources, and destinations. In the generated project, the file looks like this:
 
 ```yaml
 profiles:
@@ -106,7 +106,7 @@ pipelines:
 ```
 
 :::tip
-If you do not want to start with a source, destination, and pipeline, you can simply run `dlt project init --project-name tutorial`. This will generate a project with empty sources, destinations, and pipelines.
+If you do not want to start with a source, destination, and pipeline, you can simply run `data_load_tool project init --project-name tutorial`. This will generate a project with empty sources, destinations, and pipelines.
 :::
 
 Some details about the project structure above:
@@ -114,10 +114,10 @@ Some details about the project structure above:
 * The `runtime` section is analogous to the config.toml [runtime] section and could also be omitted in this case.
 * The `profiles` section is not doing much in this case. There are two implicit profiles: `dev` and `tests` that are present in any project; we will learn about profiles in more detail later.
 
-You can reference environment variables in the `dlt.yml` file using the `{env.ENV_VARIABLE_NAME}` syntax. Additionally, dlt+ provides several [predefined project variables](../features/projects.md#project-settings-and-variable-substitution) that are automatically substituted during loading.
+You can reference environment variables in the `data_load_tool.yml` file using the `{env.ENV_VARIABLE_NAME}` syntax. Additionally, data_load_tool+ provides several [predefined project variables](../features/projects.md#project-settings-and-variable-substitution) that are automatically substituted during loading.
 
 :::tip
-You can find more information about the `dlt.yml` structure in the [dlt+ Project section](../core-concepts/project.md).
+You can find more information about the `data_load_tool.yml` structure in the [data_load_tool+ Project section](../core-concepts/project.md).
 :::
 
 ## Running the pipeline
@@ -125,29 +125,29 @@ You can find more information about the `dlt.yml` structure in the [dlt+ Project
 Once the project is initialized, you can run the pipeline using:
 
 ```sh
-dlt pipeline my_pipeline run
+data_load_tool pipeline my_pipeline run
 ```
 
 This command:
-- Locates the pipeline named `my_pipeline` in `dlt.yml`.
+- Locates the pipeline named `my_pipeline` in `data_load_tool.yml`.
 - Executes it, populating the duckdb destination that [is defined to be stored](../features/projects.md#local-and-temporary-files-data_dir) in `_data/dev/local/duckdb.duckdb`.
 
 :::tip
-Take a look at the [Projects context](../features/projects.md#project-context) to learn more about how to work with nested projects and how dlt searches for the pipelines based on its name.
+Take a look at the [Projects context](../features/projects.md#project-context) to learn more about how to work with nested projects and how data_load_tool searches for the pipelines based on its name.
 :::
 
 ### Inspecting the results
 
-Use the [`dlt dataset` command](../reference.md#dlt-dataset) to interact with the dataset stored in the DuckDB destination. For example:
+Use the [`data_load_tool dataset` command](../reference.md#dlt-dataset) to interact with the dataset stored in the DuckDB destination. For example:
 
 ### Counting the loaded rows
 To count rows in the dataset, run:
 
 ```sh
-dlt dataset my_pipeline_dataset row-counts
+data_load_tool dataset my_pipeline_dataset row-counts
 ```
 
-This will show the number of rows in the items table as specified by the arrow source. Additionally, the internal dlt tables are shown.
+This will show the number of rows in the items table as specified by the arrow source. Additionally, the internal data_load_tool tables are shown.
 
 ```sh
             table_name  row_count
@@ -161,7 +161,7 @@ This will show the number of rows in the items table as specified by the arrow s
 To view the first five rows of the `items` table:
 
 ```sh
-dlt dataset my_pipeline_dataset head items
+data_load_tool dataset my_pipeline_dataset head items
 ```
 
 This displays the top entries in the `items` table, enabling quick validation of the pipeline's output. The output will be something like this:
@@ -180,26 +180,26 @@ Loading first 5 rows of table items.
 To show more rows, use the `--limit` flag.
 
 ```sh
-dlt dataset duckdb_dataset head items --limit 50
+data_load_tool dataset duckdb_dataset head items --limit 50
 ```
 
 ## Adding sources, destinations, and pipelines to your project
 
-Adding a new entity to an existing dlt+ Project is easy. You can add a new entity to your project by running the command:
+Adding a new entity to an existing data_load_tool+ Project is easy. You can add a new entity to your project by running the command:
 
 ```sh
-dlt <entity_type> <entity_name> add
+data_load_tool <entity_type> <entity_name> add
 ```
 
 Depending on the entity you are adding, different options are available.
-To explore all commands, refer to the [cli command reference](../reference.md). You can also use the `--help` option to see available settings for a specific entity. For example: `dlt destination add --help`. Let's individually add a source, destination, and pipeline to a new project, replicating the default project we created in the previous chapter.
+To explore all commands, refer to the [cli command reference](../reference.md). You can also use the `--help` option to see available settings for a specific entity. For example: `data_load_tool destination add --help`. Let's individually add a source, destination, and pipeline to a new project, replicating the default project we created in the previous chapter.
 
 ### Create an empty project
 
 Delete all the files in the `tutorial` folder and run the following command to create an empty project:
 
 ```sh
-dlt project init
+data_load_tool project init
 ```
 
 This will create a project without any sources, destinations, datasets, or pipelines; the project will be named after the folder.
@@ -212,7 +212,7 @@ Add a source with:
 
 ```sh
 # add a new arrow source called "my_arrow_source"
-dlt source my_arrow_source add arrow
+data_load_tool source my_arrow_source add arrow
 ```
 
 Add a destination:
@@ -220,7 +220,7 @@ Add a destination:
 ```sh
 # add a new duckdb destination called "my_duckdb_destination"
 # this will also create a new dataset called "my_duckdb_destination_dataset"
-dlt destination my_duckdb_destination add duckdb
+data_load_tool destination my_duckdb_destination add duckdb
 ```
 
 Now we can add a pipeline that uses the source and destination we just added:
@@ -228,7 +228,7 @@ Now we can add a pipeline that uses the source and destination we just added:
 ```sh
 # add a new pipeline called "my_pipeline" which loads from my_arrow_source and saves to my_duckdb_destination
 # we select the my_duckdb_destination_dataset with the optional flag
-dlt pipeline my_pipeline add my_arrow_source my_duckdb_destination
+data_load_tool pipeline my_pipeline add my_arrow_source my_duckdb_destination
 ```
 
 ### Adding the core source
@@ -239,10 +239,10 @@ You can add multiple entities using CLI commands. Let's add another source - thi
 Run the following command to add an SQL database source named `sql_db_1`:
 ```sh
 # add a new sql_database source called "sql_db_1"
-dlt source sql_db_1 add sql_database
+data_load_tool source sql_db_1 add sql_database
 ```
 
-This will add the new source to your `dlt.yml` file:
+This will add the new source to your `data_load_tool.yml` file:
 
 ```yaml
 sources:
@@ -253,7 +253,7 @@ sources:
     type: sql_database
 ```
 
-The corresponding credential placeholders will be added to `.dlt/secrets.toml`, but you can also define them in `dlt.yml`.
+The corresponding credential placeholders will be added to `.data_load_tool/secrets.toml`, but you can also define them in `data_load_tool.yml`.
 ```toml
 [sources.sql_db_1]
 table_names = ["family", "clan"]
@@ -268,7 +268,7 @@ port = 4497
 
 ## Configuration and profiles
 
-dlt+ introduces a new core concept - [Profiles](../core-concepts/profiles.md), which provides a way to manage different configurations for different environments. Let's have a look at our example project. The profiles section currently looks like this:
+data_load_tool+ introduces a new core concept - [Profiles](../core-concepts/profiles.md), which provides a way to manage different configurations for different environments. Let's have a look at our example project. The profiles section currently looks like this:
 
 ```yaml
 profiles:
@@ -278,7 +278,7 @@ profiles:
 Which means the `dev` profile is empty and by default, all the settings are inherited from the project configuration. We can inspect the current state of the project configuration by running
 
 ```sh
-dlt project --profile dev config show
+data_load_tool project --profile dev config show
 ```
 
 This will show the current state of the project configuration with the `dev` profile loaded. If you don't specify the `--profile` option, the `dev` profile is used by default.
@@ -288,7 +288,7 @@ This will show the current state of the project configuration with the `dev` pro
 We can now create a new profile called `prod` that changes the location of the duckdb file we are loading to, as well as the log level of the project and the number of rows we are loading. Please run:
 
 ```sh
-dlt profile prod add
+data_load_tool profile prod add
 ```
 
 And change the prod profile to the following:
@@ -308,7 +308,7 @@ And change the prod profile to the following:
 We can now inspect the prod profile. You will see that the new settings are merged with the project configuration and the `dev` profile settings.
 
 ```sh
-dlt project --profile prod config show
+data_load_tool project --profile prod config show
 ```
 
 ### Run a pipeline with the new profile and inspect the results
@@ -316,14 +316,14 @@ dlt project --profile prod config show
 Now, let's run the pipeline with the `prod` profile.
 
 ```sh
-dlt pipeline --profile prod my_pipeline run
+data_load_tool pipeline --profile prod my_pipeline run
 ```
 
 You can now see more output in the console due to the more verbose log level, and the number of rows loaded is now 200 instead of 100. Let's inspect our datasets for each profile (assuming you still have the duckdb database file from the previous chapter).
 
 ```sh
-dlt dataset --profile dev my_duckdb_destination_dataset row-counts
-dlt dataset --profile prod my_duckdb_destination_dataset row-counts
+data_load_tool dataset --profile dev my_duckdb_destination_dataset row-counts
+data_load_tool dataset --profile prod my_duckdb_destination_dataset row-counts
 ```
 
 You will see that the number of rows loaded is now 200 instead of 100 in the prod profile.
@@ -334,12 +334,12 @@ Profiles can also be inherited from other profiles; you can find more informatio
 
 ### Using config files with profiles
 
-You can also use the same configuration and secrets toml files and environment variables. You have probably noticed that your project contains more than one secrets file with the profile name prepended. These secrets files are only loaded if a given profile is active. Let's move the duckdb credentials, runtime settings, and source settings to the toml files instead of the `dlt.yml` file to demonstrate this:
+You can also use the same configuration and secrets toml files and environment variables. You have probably noticed that your project contains more than one secrets file with the profile name prepended. These secrets files are only loaded if a given profile is active. Let's move the duckdb credentials, runtime settings, and source settings to the toml files instead of the `data_load_tool.yml` file to demonstrate this:
 
-First, remove all the content of the `prod` section in the `dlt.yml` file, but keep the key and the empty secrets file. We can also remove the `runtime` section from the `dlt.yml` file as well as the `credentials` key from the destination and the `row_count` key from the `sources.my_arrow_source` section. If you try to run the pipeline now, dlt will complain about missing configuration values:
+First, remove all the content of the `prod` section in the `data_load_tool.yml` file, but keep the key and the empty secrets file. We can also remove the `runtime` section from the `data_load_tool.yml` file as well as the `credentials` key from the destination and the `row_count` key from the `sources.my_arrow_source` section. If you try to run the pipeline now, data_load_tool will complain about missing configuration values:
 
 ```sh
-dlt pipeline my_pipeline run
+data_load_tool pipeline my_pipeline run
 ```
 
 Now let's add the following to the `dev.secrets.toml` file:
@@ -373,15 +373,15 @@ We can now clear the `_data` directory and repeat the steps above where you run 
 Load some data:
 
 ```sh
-dlt pipeline --profile dev my_pipeline run
-dlt pipeline --profile prod my_pipeline run
+data_load_tool pipeline --profile dev my_pipeline run
+data_load_tool pipeline --profile prod my_pipeline run
 ```
 
 Inspect the datasets:
 
 ```sh
-dlt dataset --profile dev my_duckdb_destination_dataset row-counts
-dlt dataset --profile prod my_duckdb_destination_dataset row-counts
+data_load_tool dataset --profile dev my_duckdb_destination_dataset row-counts
+data_load_tool dataset --profile prod my_duckdb_destination_dataset row-counts
 ```
 
 To locate your [loaded data](../features/projects.md#local-and-temporary-files-data_dir), check the `_data\{profile name}\local` directory.

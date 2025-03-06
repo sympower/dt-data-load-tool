@@ -3,7 +3,7 @@ from typing import NamedTuple, Callable, Pattern, List, Union, TYPE_CHECKING, Di
 
 import requests_mock
 
-from dlt.common import json
+from data_load_tool.common import json
 
 if TYPE_CHECKING:
     RequestCallback = Callable[

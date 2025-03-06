@@ -15,7 +15,7 @@ We start with a simple resource that lists files in specified folder. To that we
 
 To parse PDFs we use [PyPDF](https://pypdf2.readthedocs.io/en/3.0.0/user/extract-text.html) and return each page from a given PDF as separate data item.
 
-Parsing happens in `@dlt.transformer` which receives data from `list_files` resource. It splits PDF into pages, extracts text and yields pages separately
+Parsing happens in `@data_load_tool.transformer` which receives data from `list_files` resource. It splits PDF into pages, extracts text and yields pages separately
 so each PDF will correspond to many items in Weaviate `InvoiceText` class. We set the primary key and use merge disposition so if the same PDF comes twice
 we'll just update the vectors, and not duplicate.
 
@@ -24,12 +24,12 @@ Look how we pipe data from `list_files` resource (note that resource is deselect
 """
 
 import os
-import dlt
-from dlt.destinations.adapters import weaviate_adapter
+import data_load_tool
+from data_load_tool.destinations.adapters import weaviate_adapter
 from PyPDF2 import PdfReader
 
 
-@dlt.resource(selected=False)
+@data_load_tool.resource(selected=False)
 def list_files(folder_path: str):
     folder_path = os.path.abspath(folder_path)
     for filename in os.listdir(folder_path):
@@ -41,7 +41,7 @@ def list_files(folder_path: str):
         }
 
 
-@dlt.transformer(primary_key="page_id", write_disposition="merge")
+@data_load_tool.transformer(primary_key="page_id", write_disposition="merge")
 def pdf_to_text(file_item, separate_pages: bool = False):
     if not separate_pages:
         raise NotImplementedError()
@@ -56,7 +56,7 @@ def pdf_to_text(file_item, separate_pages: bool = False):
 
 
 if __name__ == "__main__":
-    pipeline = dlt.pipeline(pipeline_name="pdf_to_text", destination="weaviate")
+    pipeline = data_load_tool.pipeline(pipeline_name="pdf_to_text", destination="weaviate")
 
     # this constructs a simple pipeline that: (1) reads files from "invoices" folder (2) filters only those ending with ".pdf"
     # (3) sends them to pdf_to_text transformer with pipe (|) operator
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     ) | pdf_to_text(separate_pages=True)
 
     # set the name of the destination table to receive pages
-    # NOTE: Weaviate, dlt's tables are mapped to classes
+    # NOTE: Weaviate, data_load_tool's tables are mapped to classes
     pdf_pipeline.table_name = "InvoiceText"
 
     # use weaviate_adapter to tell destination to vectorize "text" column

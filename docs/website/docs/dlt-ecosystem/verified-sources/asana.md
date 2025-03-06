@@ -1,6 +1,6 @@
 ---
 title: Asana
-description: dlt verified source for Asana API
+description: data_load_tool verified source for Asana API
 keywords: [asana api, verified source, asana]
 ---
 import Header from './_source-info-header.md';
@@ -41,7 +41,7 @@ To get a complete list of sub-endpoints that can be loaded, see
    the API terms and conditions.
 1. After that, click "Create token" and you're all set!
 1. Now, copy your Access token safely as it is only displayed once.
-1. This token will be used to configure `.dlt/secrets.toml`, so keep it secure and don't share it
+1. This token will be used to configure `.data_load_tool/secrets.toml`, so keep it secure and don't share it
    with anyone.
 
 > Note: The Asana UI, which is described here, might change.
@@ -54,7 +54,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init asana_dlt duckdb
+   data_load_tool init asana_dlt duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -72,7 +72,7 @@ For more information, read the guide on [how to add a verified source guide](../
 
 ### Add credentials
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can
    securely store your access tokens and other sensitive information. It's important to handle this
    file with care and keep it safe. Here's what the file looks like:
    ```toml
@@ -101,7 +101,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `asana`, you may also use any
    custom name instead.
@@ -110,7 +110,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Default endpoints
@@ -121,35 +121,35 @@ it is important to note the complete list of the default endpoints given in
 
 ### Source `asana_source`
 
-This is a `dlt.source` function, which returns a list of DltResource objects: "workspaces",
+This is a `data_load_tool.source` function, which returns a list of DltResource objects: "workspaces",
 "projects", "sections","tags","tasks","stories", "teams", and "users".
 
 ```py
-@dlt.source
-def asana_source(access_token: str = dlt.secrets.value) -> Any:
+@data_load_tool.source
+def asana_source(access_token: str = data_load_tool.secrets.value) -> Any:
     return [
       workspaces, projects, sections, tags, tasks, stories, teams, users,
     ]
 ```
 
 `access_token`: Token required to authenticate the Asana API. This token is defined in the
-`.dlt/secret.toml` file.
+`.data_load_tool/secret.toml` file.
 
 ### Resource `workspaces`
 
-This is a `dlt.resource` function, which returns collections of tasks and related information.
+This is a `data_load_tool.resource` function, which returns collections of tasks and related information.
 
 ```py
-@dlt.resource(write_disposition="replace")
+@data_load_tool.resource(write_disposition="replace")
 def workspaces(
-    access_token: str = dlt.secrets.value,
+    access_token: str = data_load_tool.secrets.value,
     fields: Iterable[str] = WORKSPACE_FIELDS
 ) -> Iterable[TDataItem]:
     yield from get_client(access_token).workspaces.find_all(opt_fields=",".join(fields))
 ```
 
 `access_token`: Token required to authenticate the Asana API. This token is defined in the
-`.dlt/secret.toml` file.
+`.data_load_tool/secret.toml` file.
 
 `fields`: A list of workspace fields to be fetched from `asana_dlt/settings.py`. For example, "gid",
 "name", "is_organization", etc.
@@ -166,14 +166,14 @@ In addition to these source and resource functions, there are seven transformer 
 The transformer function `projects` processes data from the `workspaces` resource. It fetches and returns a list of projects for a given workspace from Asana.
 
 ```py
-@dlt.transformer(
+@data_load_tool.transformer(
     data_from=workspaces,
     write_disposition="replace",
 )
-@dlt.defer
+@data_load_tool.defer
 def projects(
     workspace: TDataItem,
-    access_token: str = dlt.secrets.value,
+    access_token: str = data_load_tool.secrets.value,
     fields: Iterable[str] = PROJECT_FIELDS,
 ) -> Iterable[TDataItem]:
     ...
@@ -181,22 +181,22 @@ def projects(
 
 `workspace`: The data item from the 'workspaces' resource.
 
-`access_token`: Token required to authenticate the Asana API. This token is defined in the `.dlt/secret.toml` file.
+`access_token`: Token required to authenticate the Asana API. This token is defined in the `.data_load_tool/secret.toml` file.
 
 `fields`: A list of workspace fields to be fetched from `asana_dlt/settings.py`. For example, "name", "members", "completed", etc.
 
-It uses the `@dlt.defer` decorator to enable parallel run in a thread pool.
+It uses the `@data_load_tool.defer` decorator to enable parallel run in a thread pool.
 
 ### Resource-transformer `tasks`
 
 This [incremental](../../general-usage/incremental-loading.md) resource-transformer fetches all tasks for a given project from Asana.
 
 ```py
-@dlt.transformer(data_from=projects, write_disposition="merge", primary_key="gid")
+@data_load_tool.transformer(data_from=projects, write_disposition="merge", primary_key="gid")
 def tasks(
     project_array: List[TDataItem],
-    access_token: str = dlt.secrets.value,
-    modified_at: dlt.sources.incremental[str] = dlt.sources.incremental(
+    access_token: str = data_load_tool.secrets.value,
+    modified_at: data_load_tool.sources.incremental[str] = data_load_tool.sources.incremental(
         "modified_at", initial_value=START_DATE_STRING
     ),
     fields: Iterable[str] = TASK_FIELDS,
@@ -206,7 +206,7 @@ def tasks(
 
 `workspace`: The data item from the 'projects' resource.
 
-`access_token`: Token required to authenticate the Asana API. This token is defined in the `.dlt/secret.toml` file.
+`access_token`: Token required to authenticate the Asana API. This token is defined in the `.data_load_tool/secret.toml` file.
 
 `modified_at`: The date from which to fetch modified tasks.
 
@@ -223,7 +223,7 @@ To create your data pipeline using single loading for the "workspaces" and "proj
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="asana_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="asana_dataset"  # Use a custom name if desired

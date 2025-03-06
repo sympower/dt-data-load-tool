@@ -6,25 +6,25 @@ from urllib.parse import urlparse
 
 import pytest
 
-from dlt.common.configuration.specs.azure_credentials import AzureCredentials
-from dlt.common.configuration.specs.base_configuration import (
+from data_load_tool.common.configuration.specs.azure_credentials import AzureCredentials
+from data_load_tool.common.configuration.specs.base_configuration import (
     CredentialsConfiguration,
     extract_inner_hint,
 )
-from dlt.common.known_env import DLT_LOCAL_DIR
-from dlt.common.schema.schema import Schema
-from dlt.common.storages.configuration import FilesystemConfiguration
-from dlt.common.time import ensure_pendulum_datetime
-from dlt.common.utils import digest128, uniq_id
-from dlt.common.storages import FileStorage, ParsedLoadJobFileName
+from data_load_tool.common.known_env import DLT_LOCAL_DIR
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.storages.configuration import FilesystemConfiguration
+from data_load_tool.common.time import ensure_pendulum_datetime
+from data_load_tool.common.utils import digest128, uniq_id
+from data_load_tool.common.storages import FileStorage, ParsedLoadJobFileName
 
-from dlt.destinations import filesystem
-from dlt.destinations.impl.filesystem.filesystem import (
+from data_load_tool.destinations import filesystem
+from data_load_tool.destinations.impl.filesystem.filesystem import (
     FilesystemDestinationClientConfiguration,
     INIT_FILE_NAME,
 )
 
-from dlt.destinations.path_utils import create_path, prepare_datetime_params
+from data_load_tool.destinations.path_utils import create_path, prepare_datetime_params
 from tests.load.filesystem.utils import perform_load
 from tests.utils import TEST_STORAGE_ROOT, clean_test_storage, init_test_logging
 from tests.load.utils import TEST_FILE_LAYOUTS
@@ -119,7 +119,7 @@ def test_successful_load(write_disposition: str, layout: str, with_gdrive_bucket
     timestamp = ensure_pendulum_datetime("2024-04-05T09:16:59.942779Z")
     mocked_timestamp = {"state": {"created_at": timestamp}}
     with mock.patch(
-        "dlt.current.load_package",
+        "data_load_tool.current.load_package",
         return_value=mocked_timestamp,
     ), perform_load(
         dataset_name,
@@ -167,7 +167,7 @@ def test_replace_write_disposition(layout: str, default_buckets_env: str) -> Non
     timestamp = ensure_pendulum_datetime("2024-04-05T09:16:59.942779Z")
     mocked_timestamp = {"state": {"created_at": timestamp}}
     with mock.patch(
-        "dlt.current.load_package",
+        "data_load_tool.current.load_package",
         return_value=mocked_timestamp,
     ), perform_load(
         dataset_name,
@@ -243,7 +243,7 @@ def test_append_write_disposition(layout: str, default_buckets_env: str) -> None
     timestamp = ensure_pendulum_datetime("2024-04-05T09:16:59.942779Z")
     mocked_timestamp = {"state": {"created_at": timestamp}}
     with mock.patch(
-        "dlt.current.load_package",
+        "data_load_tool.current.load_package",
         return_value=mocked_timestamp,
     ), perform_load(
         dataset_name,

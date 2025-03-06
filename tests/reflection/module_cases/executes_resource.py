@@ -1,7 +1,7 @@
-import dlt
+import data_load_tool
 
 
-@dlt.resource
+@data_load_tool.resource
 def aleph(n: int):
     for i in range(0, n):
         yield i

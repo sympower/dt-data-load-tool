@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "dlt"
+name = "data_load_tool"
 version = "1.8.0a0"
-description = "dlt is an open-source python-first scalable data loading library that does not require any backend to run."
+description = "data_load_tool is an open-source python-first scalable data loading library that does not require any backend to run."
 authors = ["dltHub Inc. <services@dlthub.com>"]
 maintainers = [ "Marcin Rudolf <marcin@dlthub.com>", "Adrian Brudaru <adrian@dlthub.com>", "Anton Burnashev <anton@dlthub.com>", "David Scharf <david@dlthub.com>" ]
 readme = "README.md"
 license = "Apache-2.0"
 homepage = "https://github.com/dlt-hub"
-repository = "https://github.com/dlt-hub/dlt"
+repository = "https://github.com/dlt-hub/data_load_tool"
 classifiers = [
 "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -23,9 +23,9 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",]
 keywords = [ "etl" ]
-include = [ "LICENSE.txt", "README.md", "dlt/sources/pipeline_templates/.gitignore", "dlt/sources/pipeline_templates/.dlt/config.toml" ]
+include = [ "LICENSE.txt", "README.md", "data_load_tool/sources/pipeline_templates/.gitignore", "data_load_tool/sources/pipeline_templates/.data_load_tool/config.toml" ]
 packages = [
-    { include = "dlt" },
+    { include = "data_load_tool" },
 ]
 
 [tool.poetry.dependencies]
@@ -146,7 +146,7 @@ pyiceberg = ["pyiceberg", "pyarrow", "sqlalchemy"]
 postgis = ["psycopg2-binary", "psycopg2cffi"]
 
 [tool.poetry.scripts]
-dlt = "dlt.cli._dlt:_main"
+data_load_tool = "data_load_tool.cli._dlt:_main"
 
 [tool.poetry.group.dev.dependencies]
 cffi = ">=1.16"
@@ -297,7 +297,7 @@ preview = true
 color_output = true
 line_length = 100
 profile = "black"
-src_paths = ["dlt"]
+src_paths = ["data_load_tool"]
 multi_line_output = 3
 
 [build-system]

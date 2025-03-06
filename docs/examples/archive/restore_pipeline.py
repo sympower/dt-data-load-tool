@@ -1,4 +1,4 @@
-# from dlt.pipeline import Pipeline, GCPPipelineCredentials
+# from data_load_tool.pipeline import Pipeline, GCPPipelineCredentials
 
 # if __name__ == '__main__':
 #     credentials = GCPPipelineCredentials.default_credentials("mainnet_3")

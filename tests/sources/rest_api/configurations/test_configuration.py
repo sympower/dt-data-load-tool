@@ -4,25 +4,25 @@ from unittest.mock import patch
 
 import pytest
 
-import dlt
-import dlt.common
-import dlt.common.exceptions
-import dlt.extract
-from dlt.common.utils import update_dict_nested
-from dlt.sources.helpers.rest_client.paginators import (
+import data_load_tool
+import data_load_tool.common
+import data_load_tool.common.exceptions
+import data_load_tool.extract
+from data_load_tool.common.utils import update_dict_nested
+from data_load_tool.sources.helpers.rest_client.paginators import (
     HeaderLinkPaginator,
     SinglePagePaginator,
 )
-from dlt.sources.rest_api import (
+from data_load_tool.sources.rest_api import (
     rest_api_resources,
     rest_api_source,
 )
-from dlt.sources.rest_api.config_setup import (
+from data_load_tool.sources.rest_api.config_setup import (
     _make_endpoint_resource,
     _merge_resource_endpoints,
     _setup_single_entity_endpoint,
 )
-from dlt.sources.rest_api.typing import (
+from data_load_tool.sources.rest_api.typing import (
     Endpoint,
     EndpointResource,
     EndpointResourceBase,
@@ -30,7 +30,7 @@ from dlt.sources.rest_api.typing import (
 )
 
 try:
-    from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+    from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 except ImportError:
     pass
 
@@ -173,7 +173,7 @@ def test_resource_endpoint_shallow_merge() -> None:
 
 def test_resource_merge_with_objects() -> None:
     paginator = SinglePagePaginator()
-    incremental = dlt.sources.incremental[int]("id", row_order="asc")
+    incremental = data_load_tool.sources.incremental[int]("id", row_order="asc")
     resource = _make_endpoint_resource(
         {
             "name": "resource",
@@ -187,7 +187,7 @@ def test_resource_merge_with_objects() -> None:
             "table_name": lambda item: item["type"],
             "endpoint": {
                 "paginator": HeaderLinkPaginator(),
-                "params": {"since": dlt.sources.incremental[int]("id", row_order="desc")},
+                "params": {"since": data_load_tool.sources.incremental[int]("id", row_order="desc")},
             },
         },
     )
@@ -314,7 +314,7 @@ def test_resource_hints_are_passed_to_resource_constructor() -> None:
         ],
     }
 
-    with patch.object(dlt, "resource", wraps=dlt.resource) as mock_resource_constructor:
+    with patch.object(data_load_tool, "resource", wraps=data_load_tool.resource) as mock_resource_constructor:
         rest_api_resources(config)
         mock_resource_constructor.assert_called_once()
         expected_kwargs = {
@@ -449,10 +449,10 @@ def test_resource_defaults_no_params() -> None:
     ],
 )
 def test_accepts_DltResource_in_resources(issues_resource_config: Dict[str, Any]) -> None:
-    @dlt.resource(selected=False)
+    @data_load_tool.resource(selected=False)
     def repositories():
         """A seed list of repositories to fetch"""
-        yield [{"name": "dlt"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
+        yield [{"name": "data_load_tool"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
 
     config: RESTAPIConfig = {
         "client": {"base_url": "https://github.com/api/v2"},
@@ -468,10 +468,10 @@ def test_accepts_DltResource_in_resources(issues_resource_config: Dict[str, Any]
 
 
 def test_resource_defaults_dont_apply_to_DltResource() -> None:
-    @dlt.resource()
+    @data_load_tool.resource()
     def repositories():
         """A seed list of repositories to fetch"""
-        yield [{"name": "dlt"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
+        yield [{"name": "data_load_tool"}, {"name": "verified-sources"}, {"name": "dlthub-education"}]
 
     config: RESTAPIConfig = {
         "client": {"base_url": "https://github.com/api/v2"},

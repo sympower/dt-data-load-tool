@@ -1,8 +1,8 @@
 from functools import partial
-from dlt.common.exceptions import UnsupportedProcessStartMethodException
+from data_load_tool.common.exceptions import UnsupportedProcessStartMethodException
 
-from dlt.common.runners import TRunMetrics
-from dlt.common.runners.stdout import exec_to_stdout
+from data_load_tool.common.runners import TRunMetrics
+from data_load_tool.common.runners.stdout import exec_to_stdout
 
 
 def worker(data1, data2):

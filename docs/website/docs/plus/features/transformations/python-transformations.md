@@ -7,10 +7,10 @@ import Link from '../../../_plus_admonition.md';
 <Link/>
 
 :::caution
-🚧 This feature is under development, and the interface may change in future releases. Interested in becoming an early tester? [Join dlt+ early access](https://info.dlthub.com/waiting-list).
+🚧 This feature is under development, and the interface may change in future releases. Interested in becoming an early tester? [Join data_load_tool+ early access](https://info.dlthub.com/waiting-list).
 :::
 
-dlt+ allows you to define Arrow-based transformations that operate on a [cache](../../core-concepts/cache.md). The actual transformation code is located in the `./transformations` folder.
+data_load_tool+ allows you to define Arrow-based transformations that operate on a [cache](../../core-concepts/cache.md). The actual transformation code is located in the `./transformations` folder.
 In this section, you will learn how you can define Arrow-based transformations with Python.
 
 ## Generate template
@@ -18,11 +18,11 @@ In this section, you will learn how you can define Arrow-based transformations w
 Since this feature is still under development and documentation is limited, we recommend starting with a template. You can generate one using the following command:
 
 :::note
-Make sure you have [configured your cache and transformation](./setup#configure-dltyml-file) in the `dlt.yml` file before running the command below.
+Make sure you have [configured your cache and transformation](./setup#configure-dltyml-file) in the `data_load_tool.yml` file before running the command below.
 :::
 
 ```sh
-dlt transformation <transformation-name> render-t-layer
+data_load_tool transformation <transformation-name> render-t-layer
 ```
 
 Running this command will create a new set of transformations inside the `./transformations` folder. The generated template includes:

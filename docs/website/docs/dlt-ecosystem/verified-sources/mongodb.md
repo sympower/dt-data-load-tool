@@ -1,6 +1,6 @@
 ---
 title: MongoDB
-description: dlt verified source for MongoDB
+description: data_load_tool verified source for MongoDB
 keywords: [mongodb, verified source, mongo database]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 [MongoDB](https://www.mongodb.com/what-is-mongodb) is a NoSQL database that stores JSON-like
 documents.
 
-This MongoDB `dlt` verified source and
+This MongoDB `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/mongodb_pipeline.py)
 loads data using the "MongoDB" source to the destination of your choice.
 
@@ -103,7 +103,7 @@ nested data. It employs a flexible schema, and its key terms include:
 
 `Databases`: Containers for collections; a single MongoDB server can have multiple databases.
 
-The `dlt` converts nested data into relational tables, deduces data types, and defines nested
+The `data_load_tool` converts nested data into relational tables, deduces data types, and defines nested
 relationships, creating an adaptive schema for future data adjustments.
 
 ### Initialize the verified source
@@ -113,7 +113,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init mongodb duckdb
+   data_load_tool init mongodb duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -131,7 +131,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can
    securely store your access tokens and other sensitive information. It's important to handle this
    file with care and keep it safe. Here's what the file looks like:
 
@@ -149,7 +149,7 @@ For more information, read the guide on [how to add a verified source](../../wal
    add credentials for your chosen destination, ensuring proper routing of your data to the final
    destination.
 
-1. Next, store your configuration details in the `.dlt/config.toml`.
+1. Next, store your configuration details in the `.data_load_tool/config.toml`.
 
    Here's what the `config.toml` looks like:
 
@@ -159,7 +159,7 @@ For more information, read the guide on [how to add a verified source](../../wal
    collection_names = ["collection_1", "collection_2"] # Collection names (Optional), all collections are loaded if not provided.
    ```
 
-   > Optionally, you can set database and collection names in ".dlt/secrets.toml" under
+   > Optionally, you can set database and collection names in ".data_load_tool/secrets.toml" under
    > [sources.mongodb] without listing the pipeline name.
 
 1. Replace the value of the "database" and "collections_names" with the ones
@@ -181,7 +181,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `local_mongo`, you may also
    use any custom name instead.
@@ -190,7 +190,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `mongodb`
@@ -198,13 +198,13 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 This function loads data from a MongoDB database, yielding one or multiple collections to be retrieved.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def mongodb(
-    connection_url: str = dlt.secrets.value,
-    database: Optional[str] = dlt.config.value,
-    collection_names: Optional[List[str]] = dlt.config.value,
-    incremental: Optional[dlt.sources.incremental] = None,  # type: ignore[type-arg]
-    write_disposition: Optional[str] = dlt.config.value,
+    connection_url: str = data_load_tool.secrets.value,
+    database: Optional[str] = data_load_tool.config.value,
+    collection_names: Optional[List[str]] = data_load_tool.config.value,
+    incremental: Optional[data_load_tool.sources.incremental] = None,  # type: ignore[type-arg]
+    write_disposition: Optional[str] = data_load_tool.config.value,
 ) -> Iterable[DltResource]:
    ...
 ```
@@ -226,11 +226,11 @@ This function fetches a single collection from a MongoDB database using PyMongo.
 
 ```py
 def mongodb_collection(
-    connection_url: str = dlt.secrets.value,
-    database: Optional[str] = dlt.config.value,
-    collection: str = dlt.config.value,
-    incremental: Optional[dlt.sources.incremental] = None,  # type: ignore[type-arg]
-    write_disposition: Optional[str] = dlt.config.value,
+    connection_url: str = data_load_tool.secrets.value,
+    database: Optional[str] = data_load_tool.config.value,
+    collection: str = data_load_tool.config.value,
+    incremental: Optional[data_load_tool.sources.incremental] = None,  # type: ignore[type-arg]
+    write_disposition: Optional[str] = data_load_tool.config.value,
     data_item_format: Optional[TDataItemFormat] = "object",
 ) -> Any:
    ...
@@ -248,7 +248,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="mongodb_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="mongodb_data"  # Use a custom name if desired
@@ -274,7 +274,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. To load specific collections from the source incrementally:
 
    ```py
-   load_data = mongodb(incremental=dlt.sources.incremental("date")).with_resources("collection_1")
+   load_data = mongodb(incremental=data_load_tool.sources.incremental("date")).with_resources("collection_1")
    load_info = pipeline.run(load_data, write_disposition="merge")
    print(load_info)
    ```
@@ -285,7 +285,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    ```py
    load_data = mongodb_collection(
        collection="movies",
-       incremental=dlt.sources.incremental(
+       incremental=data_load_tool.sources.incremental(
            "lastupdated", initial_value=pendulum.DateTime(2020, 9, 10, 0, 0, 0)
      ))
 
@@ -306,7 +306,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    airbnb = mongodb().with_resources("listingsAndReviews")
 
    airbnb.listingsAndReviews.apply_hints(
-       incremental=dlt.sources.incremental("last_scraped")
+       incremental=data_load_tool.sources.incremental("last_scraped")
    )
    info = pipeline.run(airbnb, write_disposition="append")
 

@@ -2,12 +2,12 @@ import os
 from typing import Type
 import pytest
 
-from dlt.common.configuration.container import Container
-from dlt.common.data_writers.writers import DataWriter
-from dlt.common.destination.capabilities import DestinationCapabilitiesContext
-from dlt.common.metrics import DataWriterMetrics
-from dlt.common.schema.utils import new_column
-from dlt.common.storages.data_item_storage import DataItemStorage
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.data_writers.writers import DataWriter
+from data_load_tool.common.destination.capabilities import DestinationCapabilitiesContext
+from data_load_tool.common.metrics import DataWriterMetrics
+from data_load_tool.common.schema.utils import new_column
+from data_load_tool.common.storages.data_item_storage import DataItemStorage
 
 from tests.utils import TEST_STORAGE_ROOT
 from tests.common.data_writers.utils import ALL_OBJECT_WRITERS

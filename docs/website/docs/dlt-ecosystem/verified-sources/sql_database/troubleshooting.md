@@ -58,7 +58,7 @@ sources.sql_database.credentials="mssql+pyodbc://loader:loader@localhost/dlt_dat
 
 **To fix MS SQL Server connection issues with ConnectorX**:
 
-Some users have reported issues with MS SQL Server and Connector X. The problems are not caused by dlt, but by how connections are made. A big thanks to [Mark-James M](https://github.com/markjamesm) for suggesting a solution.
+Some users have reported issues with MS SQL Server and Connector X. The problems are not caused by data_load_tool, but by how connections are made. A big thanks to [Mark-James M](https://github.com/markjamesm) for suggesting a solution.
 
 To fix connection issues with ConnectorX and MS SQL Server, include both `Encrypt=yes` and `encrypt=true` in your connection string:
 ```toml
@@ -72,14 +72,14 @@ This approach can help resolve connection-related issues.
 
 #### Oracle
 1. When using the `oracledb` dialect in thin mode, we are getting protocol errors. Use thick mode or the `cx_oracle` (old) client.
-2. Mind that `SQLAlchemy` translates Oracle identifiers into lower case! Keep the default `dlt` naming convention (`snake_case`) when loading data. We'll support more naming conventions soon.
+2. Mind that `SQLAlchemy` translates Oracle identifiers into lower case! Keep the default `data_load_tool` naming convention (`snake_case`) when loading data. We'll support more naming conventions soon.
 3. `Connectorx` is for some reason slower for Oracle than the `PyArrow` backend.  
   
 See [here](https://github.com/dlt-hub/sql_database_benchmarking/tree/main/oracledb#installing-and-setting-up-oracle-db) for information and code on setting up and benchmarking on Oracle.
 
 #### DB2
-1. Mind that `SQLAlchemy` translates DB2 identifiers into lower case! Keep the default `dlt` naming convention (`snake_case`) when loading data. We'll support more naming conventions soon.
-2. The DB2 type `DOUBLE` gets incorrectly mapped to the Python type `float` (instead of the `SQLAlchemy` type `Numeric` with default precision). This requires `dlt` to perform additional casts. The cost of the cast, however, is minuscule compared to the cost of reading rows from the database.  
+1. Mind that `SQLAlchemy` translates DB2 identifiers into lower case! Keep the default `data_load_tool` naming convention (`snake_case`) when loading data. We'll support more naming conventions soon.
+2. The DB2 type `DOUBLE` gets incorrectly mapped to the Python type `float` (instead of the `SQLAlchemy` type `Numeric` with default precision). This requires `data_load_tool` to perform additional casts. The cost of the cast, however, is minuscule compared to the cost of reading rows from the database.  
 
 See [here](https://github.com/dlt-hub/sql_database_benchmarking/tree/main/db2#installing-and-setting-up-db2) for information and code on setting up and benchmarking on DB2.
 

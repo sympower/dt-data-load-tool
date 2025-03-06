@@ -1,15 +1,15 @@
 import pytest
 from typing import Any
 
-from dlt.common.typing import TSecretValue
-from dlt.common.configuration import (
+from data_load_tool.common.typing import TSecretValue
+from data_load_tool.common.configuration import (
     configspec,
     ConfigFieldMissingException,
     ConfigFileNotFoundException,
     resolve,
 )
-from dlt.common.configuration.specs import RuntimeConfiguration, BaseConfiguration
-from dlt.common.configuration.providers import environ as environ_provider
+from data_load_tool.common.configuration.specs import RuntimeConfiguration, BaseConfiguration
+from data_load_tool.common.configuration.providers import environ as environ_provider
 
 from tests.utils import preserve_environ
 from tests.common.configuration.utils import WrongConfiguration, SecretConfiguration, environment
@@ -64,7 +64,7 @@ def test_secret(environment: Any) -> None:
     C = resolve.resolve_configuration(SecretConfiguration())
     assert C.secret_value == "1"
     # mock the path to point to secret storage
-    # from dlt.common.configuration import config_utils
+    # from data_load_tool.common.configuration import config_utils
     path = environ_provider.SECRET_STORAGE_PATH
     del environment["SECRET_VALUE"]
     try:

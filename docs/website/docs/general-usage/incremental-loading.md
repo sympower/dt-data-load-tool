@@ -1,6 +1,6 @@
 ---
 title: Incremental loading
-description: Incremental loading with dlt
+description: Incremental loading with data_load_tool
 keywords: [incremental loading, loading methods, append, merge]
 ---
 
@@ -58,7 +58,7 @@ The `delete-insert` strategy loads data to a `staging` dataset, deduplicates the
 Example below loads all the GitHub events and updates them in the destination using "id" as the primary key, making sure that only a single copy of the event is present in the `github_repo_events` table:
 
 ```py
-@dlt.resource(primary_key="id", write_disposition="merge")
+@data_load_tool.resource(primary_key="id", write_disposition="merge")
 def github_repo_events():
     yield from _get_event_pages()
 ```
@@ -66,7 +66,7 @@ def github_repo_events():
 You can use compound primary keys:
 
 ```py
-@dlt.resource(primary_key=("id", "url"), write_disposition="merge")
+@data_load_tool.resource(primary_key=("id", "url"), write_disposition="merge")
 def resource():
     ...
 ```
@@ -74,7 +74,7 @@ def resource():
 By default, `primary_key` deduplication is arbitrary. You can pass the `dedup_sort` column hint with a value of `desc` or `asc` to influence which record remains after deduplication. Using `desc`, the records sharing the same `primary_key` are sorted in descending order before deduplication, making sure the record with the highest value for the column with the `dedup_sort` hint remains. `asc` has the opposite behavior.
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     primary_key="id",
     write_disposition="merge",
     columns={"created_at": {"dedup_sort": "desc"}}  # select "latest" record
@@ -87,7 +87,7 @@ Example below merges on a column `batch_day` that holds the day for which the gi
 Merge keys also can be compound:
 
 ```py
-@dlt.resource(merge_key="batch_day", write_disposition="merge")
+@data_load_tool.resource(merge_key="batch_day", write_disposition="merge")
 def get_daily_batch(day):
     yield _get_batch_from_bucket(day)
 ```
@@ -95,7 +95,7 @@ def get_daily_batch(day):
 As with any other write disposition, you can use it to load data ad hoc. Below we load issues with top reactions for the `duckdb` repo. The lists have, obviously, many overlapping issues, but we want to keep just one instance of each.
 
 ```py
-p = dlt.pipeline(destination="bigquery", dataset_name="github")
+p = data_load_tool.pipeline(destination="bigquery", dataset_name="github")
 issues = []
 reactions = ["%2B1", "-1", "smile", "tada", "thinking_face", "heart", "rocket", "eyes"]
 for reaction in reactions:
@@ -109,8 +109,8 @@ p.run(issues, write_disposition="merge", primary_key="id", table_name="issues")
 Example below dispatches GitHub events to several tables by event type, keeps one copy of each event by "id" and skips loading of past records using "last value" incremental. As you can see, all of this we can just declare in our resource.
 
 ```py
-@dlt.resource(primary_key="id", write_disposition="merge", table_name=lambda i: i['type'])
-def github_repo_events(last_created_at = dlt.sources.incremental("created_at", "1970-01-01T00:00:00Z")):
+@data_load_tool.resource(primary_key="id", write_disposition="merge", table_name=lambda i: i['type'])
+def github_repo_events(last_created_at = data_load_tool.sources.incremental("created_at", "1970-01-01T00:00:00Z")):
     """A resource taking a stream of github events and dispatching them to tables named by event type. Deduplicates by 'id'. Loads incrementally by 'created_at' """
     yield from _get_rest_pages("events")
 ```
@@ -131,7 +131,7 @@ Deletes are propagated to any nested table that might exist. For each record tha
 
 ##### Example: with primary key and boolean delete column
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     primary_key="id",
     write_disposition="merge",
     columns={"deleted_flag": {"hard_delete": True}}
@@ -154,7 +154,7 @@ def resource():
 
 ##### Example: with merge key and non-boolean delete column
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     merge_key="id",
     write_disposition="merge",
     columns={"deleted_at_ts": {"hard_delete": True}})
@@ -172,7 +172,7 @@ def resource():
 
 ##### Example: with primary key and "dedup_sort" hint
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     primary_key="id",
     write_disposition="merge",
     columns={"deleted_flag": {"hard_delete": True}, "lsn": {"dedup_sort": "desc"}})
@@ -201,7 +201,7 @@ Indexing is important for doing lookups by column value, especially for merge wr
 Merge write disposition requires that the `_dlt_id` (`row_key`) of the root table be propagated to nested tables. This concept is similar to a foreign key but always references the root (top level) table, skipping any intermediate parents. We call it `root key`. The root key is automatically propagated for all tables that have the `merge` write disposition set. We do not enable it everywhere because it takes up storage space. Nevertheless, in some cases, you may want to permanently enable root key propagation.
 
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='facebook_insights',
     destination='duckdb',
     dataset_name='facebook_insights_data',
@@ -220,10 +220,10 @@ fb_ads.ads.bind(states=("PAUSED", ))
 info = pipeline.run(fb_ads.with_resources("ads"), write_disposition="merge")
 ```
 
-In the example above, we enforce the root key propagation with `fb_ads.root_key = True`. This ensures that the correct data is propagated on the initial `replace` load so the future `merge` load can be executed. You can achieve the same in the decorator `@dlt.source(root_key=True)`.
+In the example above, we enforce the root key propagation with `fb_ads.root_key = True`. This ensures that the correct data is propagated on the initial `replace` load so the future `merge` load can be executed. You can achieve the same in the decorator `@data_load_tool.source(root_key=True)`.
 
 ### `scd2` strategy
-`dlt` can create [Slowly Changing Dimension Type 2](https://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2:_add_new_row) (SCD2) destination tables for dimension tables that change in the source. By default, the resource is expected to provide a full extract of the source table each run, but [incremental extracts](#example-incremental-scd2) are also possible. A row hash is stored in `_dlt_id` and used as surrogate key to identify source records that have been inserted, updated, or deleted. A `NULL` value is used by default to indicate an active record, but it's possible to use a configurable high timestamp (e.g. 9999-12-31 00:00:00.000000) instead.
+`data_load_tool` can create [Slowly Changing Dimension Type 2](https://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2:_add_new_row) (SCD2) destination tables for dimension tables that change in the source. By default, the resource is expected to provide a full extract of the source table each run, but [incremental extracts](#example-incremental-scd2) are also possible. A row hash is stored in `_dlt_id` and used as surrogate key to identify source records that have been inserted, updated, or deleted. A `NULL` value is used by default to indicate an active record, but it's possible to use a configurable high timestamp (e.g. 9999-12-31 00:00:00.000000) instead.
 
 :::note
 The `unique` hint for `_dlt_id` in the root table is set to `false` when using `scd2`. This differs from [default behavior](./destination-tables.md#nested-tables). The reason is that the surrogate key stored in `_dlt_id` contains duplicates after an _insert-delete-reinsert_ pattern:
@@ -240,7 +240,7 @@ Note that:
 
 #### Example: `scd2` merge strategy
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     write_disposition={"disposition": "merge", "strategy": "scd2"}
 )
 def dim_customer():
@@ -308,7 +308,7 @@ A `merge_key` can be provided to work with incremental extracts instead of full 
 You can set the natural key as `merge_key` to prevent retirement of absent rows. In this case you don't consider any absent row deleted. Records are not retired in the destination if their corresponding natural keys are not present in the source extract. This allows for incremental extracts that only contain updated records.
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     merge_key="customer_key",
     write_disposition={"disposition": "merge", "strategy": "scd2"}
 )
@@ -357,7 +357,7 @@ Technically this is not SCD2 because the key used to merge records is not a natu
 You can set a "partition" column as `merge_key` to retire absent rows for given partitions. In this case you only consider absent rows deleted if their partition value is present in the extract. Physical partitioning of the table is not required—the word "partition" is used conceptually here.
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     merge_key="date",
     write_disposition={"disposition": "merge", "strategy": "scd2"}
 )
@@ -428,7 +428,7 @@ pipeline.run(some_data())  # third run — 2024-01-03 10:30:05.750356
 #### Example: configure validity column names
 `_dlt_valid_from` and `_dlt_valid_to` are used by default as validity column names. Other names can be configured as follows:
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     write_disposition={
         "disposition": "merge",
         "strategy": "scd2",
@@ -443,7 +443,7 @@ def dim_customer():
 #### Example: configure active record timestamp
 You can configure the literal used to indicate an active record with `active_record_timestamp`. The default literal `NULL` is used if `active_record_timestamp` is omitted or set to `None`. Provide a date value if you prefer to use a high timestamp instead.
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     write_disposition={
         "disposition": "merge",
         "strategy": "scd2",
@@ -458,7 +458,7 @@ def dim_customer():
 #### Example: configure boundary timestamp
 You can configure the "boundary timestamp" used for record validity windows with `boundary_timestamp`. The provided date(time) value is used as "valid from" for new records and as "valid to" for retired records. The timestamp at which a load package is created is used if `boundary_timestamp` is omitted.
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     write_disposition={
         "disposition": "merge",
         "strategy": "scd2",
@@ -471,9 +471,9 @@ def dim_customer():
 ```
 
 #### Example: Use your own row hash
-By default, `dlt` generates a row hash based on all columns provided by the resource and stores it in `_dlt_id`. You can use your own hash instead by specifying `row_version_column_name` in the `write_disposition` dictionary. You might already have a column present in your resource that can naturally serve as a row hash, in which case it's more efficient to use those pre-existing hash values than to generate new artificial ones. This option also allows you to use hashes based on a subset of columns, in case you want to ignore changes in some of the columns. When using your own hash, values for `_dlt_id` are randomly generated.
+By default, `data_load_tool` generates a row hash based on all columns provided by the resource and stores it in `_dlt_id`. You can use your own hash instead by specifying `row_version_column_name` in the `write_disposition` dictionary. You might already have a column present in your resource that can naturally serve as a row hash, in which case it's more efficient to use those pre-existing hash values than to generate new artificial ones. This option also allows you to use hashes based on a subset of columns, in case you want to ignore changes in some of the columns. When using your own hash, values for `_dlt_id` are randomly generated.
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     write_disposition={
         "disposition": "merge",
         "strategy": "scd2",
@@ -486,13 +486,13 @@ def dim_customer():
 ```
 
 #### 🧪 Use scd2 with Arrow tables and Panda frames
-`dlt` will not add a **row hash** column to the tabular data automatically (we are working on it).
+`data_load_tool` will not add a **row hash** column to the tabular data automatically (we are working on it).
 You need to do that yourself by adding a transform function to the `scd2` resource that computes row hashes (using pandas.util, should be fairly fast).
 ```py
-import dlt
-from dlt.sources.helpers.transform import add_row_hash_to_table
+import data_load_tool
+from data_load_tool.sources.helpers.transform import add_row_hash_to_table
 
-scd2_r = dlt.resource(
+scd2_r = data_load_tool.resource(
           arrow_table,
           name="tabular",
           write_disposition={
@@ -542,13 +542,13 @@ You can [delete records](#delete-records) with the `hard_delete` hint.
 
 Unlike the default `delete-insert` merge strategy, the `upsert` strategy:
 1. needs a `primary_key`
-2. expects this `primary_key` to be unique (`dlt` does not deduplicate)
+2. expects this `primary_key` to be unique (`data_load_tool` does not deduplicate)
 3. does not support `merge_key`
 4. uses `MERGE` or `UPDATE` operations to process updates
 
 #### Example: `upsert` merge strategy
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     write_disposition={"disposition": "merge", "strategy": "upsert"},
     primary_key="my_primary_key"
 )
@@ -566,14 +566,14 @@ To do incremental loading this way, we need to:
 - Figure out which field is used to track changes (the so-called **cursor field**) (e.g., “inserted_at”, "updated_at”, etc.);
 - Determine how to pass the "last" (maximum/minimum) value of the cursor field to an API to get just new or modified data (how we do this depends on the source API).
 
-Once you've figured that out, `dlt` takes care of finding maximum/minimum cursor field values, removing duplicates, and managing the state with the last values of the cursor. Take a look at the GitHub example below, where we request recently created issues.
+Once you've figured that out, `data_load_tool` takes care of finding maximum/minimum cursor field values, removing duplicates, and managing the state with the last values of the cursor. Take a look at the GitHub example below, where we request recently created issues.
 
 ```py
-@dlt.resource(primary_key="id")
+@data_load_tool.resource(primary_key="id")
 def repo_issues(
     access_token,
     repository,
-    updated_at = dlt.sources.incremental("updated_at", initial_value="1970-01-01T00:00:00Z")
+    updated_at = data_load_tool.sources.incremental("updated_at", initial_value="1970-01-01T00:00:00Z")
 ):
     # Get issues since "updated_at" stored in state on previous run (or initial_value on first run)
     for page in _get_issues_page(access_token, repository, since=updated_at.start_value):
@@ -582,9 +582,9 @@ def repo_issues(
         print(updated_at.last_value)
 ```
 
-Here we add an `updated_at` argument that will receive incremental state, initialized to `1970-01-01T00:00:00Z`. It is configured to track the `updated_at` field in issues yielded by the `repo_issues` resource. It will store the newest `updated_at` value in `dlt` [state](state.md) and make it available in `updated_at.start_value` on the next pipeline run. This value is inserted in the `_get_issues_page` function into the request query param **since** to the [GitHub API](https://docs.github.com/en/rest/issues/issues?#list-repository-issues).
+Here we add an `updated_at` argument that will receive incremental state, initialized to `1970-01-01T00:00:00Z`. It is configured to track the `updated_at` field in issues yielded by the `repo_issues` resource. It will store the newest `updated_at` value in `data_load_tool` [state](state.md) and make it available in `updated_at.start_value` on the next pipeline run. This value is inserted in the `_get_issues_page` function into the request query param **since** to the [GitHub API](https://docs.github.com/en/rest/issues/issues?#list-repository-issues).
 
-In essence, the `dlt.sources.incremental` instance above:
+In essence, the `data_load_tool.sources.incremental` instance above:
 * **updated_at.initial_value** which is always equal to "1970-01-01T00:00:00Z" passed in the constructor
 * **updated_at.start_value** a maximum `updated_at` value from the previous run or the **initial_value** on the first run
 * **updated_at.last_value** a "real-time" `updated_at` value updated with each yielded item or page. Before the first yield, it equals **start_value**
@@ -592,26 +592,26 @@ In essence, the `dlt.sources.incremental` instance above:
 
 When paginating, you probably need the **start_value** which does not change during the execution of the resource, however, most paginators will return a **next page** link which you should use.
 
-Behind the scenes, dlt will deduplicate the results, i.e., in case the last issue is returned again (`updated_at` filter is inclusive) and skip already loaded ones.
+Behind the scenes, data_load_tool will deduplicate the results, i.e., in case the last issue is returned again (`updated_at` filter is inclusive) and skip already loaded ones.
 
-In the example below, we incrementally load the GitHub events, where the API does not let us filter for the newest events - it always returns all of them. Nevertheless, `dlt` will load only the new items, filtering out all the duplicates and past issues.
+In the example below, we incrementally load the GitHub events, where the API does not let us filter for the newest events - it always returns all of them. Nevertheless, `data_load_tool` will load only the new items, filtering out all the duplicates and past issues.
 ```py
 # Use naming function in table name to generate separate tables for each event
-@dlt.resource(primary_key="id", table_name=lambda i: i['type'])  # type: ignore
+@data_load_tool.resource(primary_key="id", table_name=lambda i: i['type'])  # type: ignore
 def repo_events(
-    last_created_at = dlt.sources.incremental("created_at", initial_value="1970-01-01T00:00:00Z", last_value_func=max), row_order="desc"
+    last_created_at = data_load_tool.sources.incremental("created_at", initial_value="1970-01-01T00:00:00Z", last_value_func=max), row_order="desc"
 ) -> Iterator[TDataItems]:
     repos_path = "/repos/%s/%s/events" % (urllib.parse.quote(owner), urllib.parse.quote(name))
     for page in _get_rest_pages(access_token, repos_path + "?per_page=100"):
         yield page
 ```
 
-We just yield all the events and `dlt` does the filtering (using the `id` column declared as `primary_key`).
+We just yield all the events and `data_load_tool` does the filtering (using the `id` column declared as `primary_key`).
 
 GitHub returns events ordered from newest to oldest. So we declare the `rows_order` as **descending** to [stop requesting more pages once the incremental value is out of range](#declare-row-order-to-not-request-unnecessary-data). We stop requesting more data from the API after finding the first event with `created_at` earlier than `initial_value`.
 
 :::note
-`dlt.sources.incremental` is implemented as a [filter function](resource.md#filter-transform-and-pivot-data) that is executed **after** all other transforms you add with `add_map` or  `add_filter`. This means that you can manipulate the data item before the incremental filter sees it. For example:
+`data_load_tool.sources.incremental` is implemented as a [filter function](resource.md#filter-transform-and-pivot-data) that is executed **after** all other transforms you add with `add_map` or  `add_filter`. This means that you can manipulate the data item before the incremental filter sees it. For example:
 * You can create a surrogate primary key from other columns
 * You can modify the cursor value or create a new field composed of other fields
 * Dump Pydantic models to Python dicts to allow incremental to find custom values
@@ -621,7 +621,7 @@ GitHub returns events ordered from newest to oldest. So we declare the `rows_ord
 
 ### Max, min, or custom `last_value_func`
 
-`dlt.sources.incremental` allows you to choose a function that orders (compares) cursor values to the current `last_value`.
+`data_load_tool.sources.incremental` allows you to choose a function that orders (compares) cursor values to the current `last_value`.
 * The default function is the built-in `max`, which returns the larger value of the two.
 * Another built-in, `min`, returns the smaller value.
 
@@ -648,8 +648,8 @@ def by_event_type(event):
     last_value[item_type] = max(item["created_at"], last_value.get(item_type, "1970-01-01T00:00:00Z"))
     return last_value
 
-@dlt.resource(primary_key="id", table_name=lambda i: i['type'])
-def get_events(last_created_at = dlt.sources.incremental("$", last_value_func=by_event_type)):
+@data_load_tool.resource(primary_key="id", table_name=lambda i: i['type'])
+def get_events(last_created_at = data_load_tool.sources.incremental("$", last_value_func=by_event_type)):
     with open("tests/normalize/cases/github.events.load_page_1_duck.json", "r", encoding="utf-8") as f:
         yield json.load(f)
 ```
@@ -658,21 +658,21 @@ def get_events(last_created_at = dlt.sources.incremental("$", last_value_func=by
 
 You can specify both initial and end dates when defining incremental loading. Let's go back to our Github example:
 ```py
-@dlt.resource(primary_key="id")
+@data_load_tool.resource(primary_key="id")
 def repo_issues(
     access_token,
     repository,
-    created_at=dlt.sources.incremental("created_at", initial_value="1970-01-01T00:00:00Z", end_value="2022-07-01T00:00:00Z")
+    created_at=data_load_tool.sources.incremental("created_at", initial_value="1970-01-01T00:00:00Z", end_value="2022-07-01T00:00:00Z")
 ):
     # get issues created from the last "created_at" value
     for page in _get_issues_page(access_token, repository, since=created_at.start_value, until=created_at.end_value):
         yield page
 ```
 Above, we use the `initial_value` and `end_value` arguments of the `incremental` to define the range of issues that we want to retrieve
-and pass this range to the Github API (`since` and `until`). As in the examples above, `dlt` will make sure that only the issues from
+and pass this range to the Github API (`since` and `until`). As in the examples above, `data_load_tool` will make sure that only the issues from
 the defined range are returned.
 
-Please note that when `end_date` is specified, `dlt` **will not modify the existing incremental state**. The backfill is **stateless** and:
+Please note that when `end_date` is specified, `data_load_tool` **will not modify the existing incremental state**. The backfill is **stateless** and:
 1. You can run backfill and incremental load in parallel (i.e., in an Airflow DAG) in a single pipeline.
 2. You can partition your backfill into several smaller chunks and run them in parallel as well.
 
@@ -680,27 +680,27 @@ To define specific ranges to load, you can simply override the incremental argum
 
 ```py
 july_issues = repo_issues(
-    created_at=dlt.sources.incremental(
+    created_at=data_load_tool.sources.incremental(
         initial_value='2022-07-01T00:00:00Z', end_value='2022-08-01T00:00:00Z'
     )
 )
 august_issues = repo_issues(
-    created_at=dlt.sources.incremental(
+    created_at=data_load_tool.sources.incremental(
         initial_value='2022-08-01T00:00:00Z', end_value='2022-09-01T00:00:00Z'
     )
 )
 ...
 ```
 
-Note that dlt's incremental filtering considers the ranges half-closed. `initial_value` is inclusive, `end_value` is exclusive, so chaining ranges like above works without overlaps. This behaviour can be changed with the `range_start` (default `"closed"`) and `range_end` (default `"open"`) arguments.
+Note that data_load_tool's incremental filtering considers the ranges half-closed. `initial_value` is inclusive, `end_value` is exclusive, so chaining ranges like above works without overlaps. This behaviour can be changed with the `range_start` (default `"closed"`) and `range_end` (default `"open"`) arguments.
 
 ### Declare row order to not request unnecessary data
 
-With the `row_order` argument set, dlt will stop retrieving data from the data source (e.g., GitHub API) if it detects that the values of the cursor field are out of the range of **start** and **end** values.
+With the `row_order` argument set, data_load_tool will stop retrieving data from the data source (e.g., GitHub API) if it detects that the values of the cursor field are out of the range of **start** and **end** values.
 
 In particular:
-* dlt stops processing when the resource yields any item with a cursor value _equal to or greater than_ the `end_value` and `row_order` is set to **asc**. (`end_value` is not included)
-* dlt stops processing when the resource yields any item with a cursor value _lower_ than the `last_value` and `row_order` is set to **desc**. (`last_value` is included)
+* data_load_tool stops processing when the resource yields any item with a cursor value _equal to or greater than_ the `end_value` and `row_order` is set to **asc**. (`end_value` is not included)
+* data_load_tool stops processing when the resource yields any item with a cursor value _lower_ than the `last_value` and `row_order` is set to **desc**. (`last_value` is included)
 
 :::note
 "higher" and "lower" here refer to when the default `last_value_func` is used (`max()`),
@@ -724,10 +724,10 @@ In the same fashion, the `row_order` can be used to **optimize backfill** so we 
 making unnecessary API requests after the end of the range is reached. For example:
 
 ```py
-@dlt.resource(primary_key="id")
+@data_load_tool.resource(primary_key="id")
 def tickets(
     zendesk_client,
-    updated_at=dlt.sources.incremental(
+    updated_at=data_load_tool.sources.incremental(
         "updated_at",
         initial_value="2023-01-01T00:00:00Z",
         end_value="2023-02-01T00:00:00Z",
@@ -742,25 +742,25 @@ def tickets(
 
 In this example, we're loading tickets from Zendesk. The Zendesk API yields items paginated and ordered from oldest to newest,
 but only offers a `start_time` parameter for filtering, so we cannot tell it to
-stop retrieving data at `end_value`. Instead, we set `row_order` to `asc` and `dlt` will stop
+stop retrieving data at `end_value`. Instead, we set `row_order` to `asc` and `data_load_tool` will stop
 getting more pages from the API after the first page with a cursor value `updated_at` is found older
 than `end_value`.
 
 :::caution
-In rare cases when you use Incremental with a transformer, `dlt` will not be able to automatically close
+In rare cases when you use Incremental with a transformer, `data_load_tool` will not be able to automatically close
 the generator associated with a row that is out of range. You can still call the `can_close()` method on
 incremental and exit the yield loop when true.
 :::
 
 :::tip
-The `dlt.sources.incremental` instance provides `start_out_of_range` and `end_out_of_range`
+The `data_load_tool.sources.incremental` instance provides `start_out_of_range` and `end_out_of_range`
 attributes which are set when the resource yields an element with a higher/lower cursor value than the
-initial or end values. If you do not want `dlt` to stop processing automatically and instead want to handle such events yourself, do not specify `row_order`:
+initial or end values. If you do not want `data_load_tool` to stop processing automatically and instead want to handle such events yourself, do not specify `row_order`:
 ```py
-@dlt.transformer(primary_key="id")
+@data_load_tool.transformer(primary_key="id")
 def tickets(
     zendesk_client,
-    updated_at=dlt.sources.incremental(
+    updated_at=data_load_tool.sources.incremental(
         "updated_at",
         initial_value="2023-01-01T00:00:00Z",
         end_value="2023-02-01T00:00:00Z",
@@ -780,14 +780,14 @@ def tickets(
 
 ### Deduplicate overlapping ranges with primary key
 
-`Incremental` **does not** deduplicate datasets like the **merge** write disposition does. However, it ensures that when another portion of data is extracted, records that were previously loaded won't be included again. `dlt` assumes that you load a range of data, where the lower bound is inclusive (i.e., greater than or equal). This ensures that you never lose any data but will also re-acquire some rows. For example, if you have a database table with a cursor field on `updated_at` which has a day resolution, then there's a high chance that after you extract data on a given day, more records will still be added. When you extract on the next day, you should reacquire data from the last day to ensure all records are present; however, this will create overlap with data from the previous extract.
+`Incremental` **does not** deduplicate datasets like the **merge** write disposition does. However, it ensures that when another portion of data is extracted, records that were previously loaded won't be included again. `data_load_tool` assumes that you load a range of data, where the lower bound is inclusive (i.e., greater than or equal). This ensures that you never lose any data but will also re-acquire some rows. For example, if you have a database table with a cursor field on `updated_at` which has a day resolution, then there's a high chance that after you extract data on a given day, more records will still be added. When you extract on the next day, you should reacquire data from the last day to ensure all records are present; however, this will create overlap with data from the previous extract.
 
-By default, a content hash (a hash of the JSON representation of a row) will be used to deduplicate. This may be slow, so `dlt.sources.incremental` will inherit the primary key that is set on the resource. You can optionally set a `primary_key` that is used exclusively to deduplicate and which does not become a table hint. The same setting lets you disable the deduplication altogether when an empty tuple is passed. Below, we pass `primary_key` directly to `incremental` to disable deduplication. That overrides the `delta` primary_key set in the resource:
+By default, a content hash (a hash of the JSON representation of a row) will be used to deduplicate. This may be slow, so `data_load_tool.sources.incremental` will inherit the primary key that is set on the resource. You can optionally set a `primary_key` that is used exclusively to deduplicate and which does not become a table hint. The same setting lets you disable the deduplication altogether when an empty tuple is passed. Below, we pass `primary_key` directly to `incremental` to disable deduplication. That overrides the `delta` primary_key set in the resource:
 
 ```py
-@dlt.resource(primary_key="delta")
+@data_load_tool.resource(primary_key="delta")
 # disable the unique value check by passing () as primary key to incremental
-def some_data(last_timestamp=dlt.sources.incremental("item.ts", primary_key=())):
+def some_data(last_timestamp=data_load_tool.sources.incremental("item.ts", primary_key=())):
     for i in range(-10, 10):
         yield {"delta": i, "item": {"ts": pendulum.now().timestamp()}}
 ```
@@ -795,23 +795,23 @@ def some_data(last_timestamp=dlt.sources.incremental("item.ts", primary_key=()))
 This deduplication process is always enabled when `range_start` is set to `"closed"` (default).
 When you pass `range_start="open"` no deduplication is done as it is not needed as rows with the previous cursor value are excluded. This can be a useful optimization to avoid the performance overhead of deduplication if the cursor field is guaranteed to be unique.
 
-### Using `dlt.sources.incremental` with dynamically created resources
+### Using `data_load_tool.sources.incremental` with dynamically created resources
 
-When resources are [created dynamically](source.md#create-resources-dynamically), it is possible to use the `dlt.sources.incremental` definition as well.
+When resources are [created dynamically](source.md#create-resources-dynamically), it is possible to use the `data_load_tool.sources.incremental` definition as well.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def stripe():
     # declare a generator function
     def get_resource(
         endpoints: List[str] = ENDPOINTS,
-        created: dlt.sources.incremental=dlt.sources.incremental("created")
+        created: data_load_tool.sources.incremental=data_load_tool.sources.incremental("created")
     ):
         ...
 
     # create resources for several endpoints on a single decorator function
     for endpoint in endpoints:
-        yield dlt.resource(
+        yield data_load_tool.resource(
             get_resource,
             name=endpoint.value,
             write_disposition="merge",
@@ -819,14 +819,14 @@ def stripe():
         )(endpoint)
 ```
 
-Please note that in the example above, `get_resource` is passed as a function to `dlt.resource` to which we bind the endpoint: **dlt.resource(...)(endpoint)**.
+Please note that in the example above, `get_resource` is passed as a function to `data_load_tool.resource` to which we bind the endpoint: **data_load_tool.resource(...)(endpoint)**.
 
 :::caution
 The typical mistake is to pass a generator (not a function) as below:
 
-`yield dlt.resource(get_resource(endpoint), name=endpoint.value, write_disposition="merge", primary_key="id")`.
+`yield data_load_tool.resource(get_resource(endpoint), name=endpoint.value, write_disposition="merge", primary_key="id")`.
 
-Here we call **get_resource(endpoint)** and that creates an un-evaluated generator on which the resource is created. That prevents `dlt` from controlling the **created** argument during runtime and will result in an `IncrementalUnboundError` exception.
+Here we call **get_resource(endpoint)** and that creates an un-evaluated generator on which the resource is created. That prevents `data_load_tool` from controlling the **created** argument during runtime and will result in an `IncrementalUnboundError` exception.
 :::
 
 ### Using Airflow schedule for backfill and incremental loading
@@ -834,10 +834,10 @@ Here we call **get_resource(endpoint)** and that creates an un-evaluated generat
 When [running an Airflow task](../walkthroughs/deploy-a-pipeline/deploy-with-airflow-composer.md#2-modify-dag-file), you can opt-in your resource to get the `initial_value`/`start_value` and `end_value` from the Airflow schedule associated with your DAG. Let's assume that the **Zendesk tickets** resource contains a year of data with thousands of tickets. We want to backfill the last year of data week by week and then continue with incremental loading daily.
 
 ```py
-@dlt.resource(primary_key="id")
+@data_load_tool.resource(primary_key="id")
 def tickets(
     zendesk_client,
-    updated_at=dlt.sources.incremental[int](
+    updated_at=data_load_tool.sources.incremental[int](
         "updated_at",
         allow_external_schedulers=True
     ),
@@ -849,13 +849,13 @@ def tickets(
 ```
 
 We opt-in to the Airflow scheduler by setting `allow_external_schedulers` to `True`:
-1. When running on Airflow, the start and end values are controlled by Airflow and the dlt [state](state.md) is not used.
-2. In all other environments, the `incremental` behaves as usual, maintaining the dlt state.
+1. When running on Airflow, the start and end values are controlled by Airflow and the data_load_tool [state](state.md) is not used.
+2. In all other environments, the `incremental` behaves as usual, maintaining the data_load_tool state.
 
-Let's generate a deployment with `dlt deploy zendesk_pipeline.py airflow-composer` and customize the DAG:
+Let's generate a deployment with `data_load_tool deploy zendesk_pipeline.py airflow-composer` and customize the DAG:
 
 ```py
-from dlt.helpers.airflow_helper import PipelineTasksGroup
+from data_load_tool.helpers.airflow_helper import PipelineTasksGroup
 
 @dag(
     schedule_interval='@weekly',
@@ -871,14 +871,14 @@ def zendesk_backfill_bigquery():
     # import zendesk like in the demo script
     from zendesk import zendesk_support
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="zendesk_support_backfill",
         dataset_name="zendesk_support_data",
         destination='bigquery',
     )
     # select only incremental endpoints in support api
     data = zendesk_support().with_resources("tickets", "ticket_events", "ticket_metric_events")
-    # create the source, the "serialize" decompose option will convert dlt resources into Airflow tasks. use "none" to disable it
+    # create the source, the "serialize" decompose option will convert data_load_tool resources into Airflow tasks. use "none" to disable it
     tasks.add_run(pipeline, data, decompose="serialize", trigger_rule="all_done", retries=0, provide_context=True)
 
 
@@ -908,7 +908,7 @@ def zendesk_new_bigquery():
     # import your source from pipeline script
     from zendesk import zendesk_support
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="zendesk_support_new",
         dataset_name="zendesk_support_data",
         destination='bigquery',
@@ -921,14 +921,14 @@ If you want to run this DAG parallel with the backfill DAG, change the pipeline 
 
 **Under the hood**
 
-Before `dlt` starts executing incremental resources, it looks for `data_interval_start` and `data_interval_end` Airflow task context variables. These are mapped to `initial_value` and `end_value` of the `Incremental` class:
-1. `dlt` is smart enough to convert Airflow datetime to ISO strings or Unix timestamps if your resource is using them. In our example, we instantiate `updated_at=dlt.sources.incremental[int]`, where we declare the last value type to be **int**. `dlt` can also infer the type if you provide the `initial_value` argument.
-2. If `data_interval_end` is in the future or is None, `dlt` sets the `end_value` to **now**.
+Before `data_load_tool` starts executing incremental resources, it looks for `data_interval_start` and `data_interval_end` Airflow task context variables. These are mapped to `initial_value` and `end_value` of the `Incremental` class:
+1. `data_load_tool` is smart enough to convert Airflow datetime to ISO strings or Unix timestamps if your resource is using them. In our example, we instantiate `updated_at=data_load_tool.sources.incremental[int]`, where we declare the last value type to be **int**. `data_load_tool` can also infer the type if you provide the `initial_value` argument.
+2. If `data_interval_end` is in the future or is None, `data_load_tool` sets the `end_value` to **now**.
 3. If `data_interval_start` == `data_interval_end`, we have a manually triggered DAG run. In that case, `data_interval_end` will also be set to **now**.
 
 **Manual runs**
 
-You can run DAGs manually, but you must remember to specify the Airflow logical date of the run in the past (use the Run with config option). For such a run, `dlt` will load all data from that past date until now.
+You can run DAGs manually, but you must remember to specify the Airflow logical date of the run in the past (use the Run with config option). For such a run, `data_load_tool` will load all data from that past date until now.
 If you do not specify the past date, a run with a range (now, now) will happen, yielding no data.
 
 ### Reading incremental loading parameters from configuration
@@ -947,12 +947,12 @@ Consider the example below for reading incremental loading parameters from "conf
 
 1. Here's how the `generate_incremental_records` resource uses the `cursor_path` defined in "config.toml":
    ```py
-   @dlt.resource(table_name="incremental_records")
-   def generate_incremental_records(id_after: dlt.sources.incremental = dlt.config.value):
+   @data_load_tool.resource(table_name="incremental_records")
+   def generate_incremental_records(id_after: data_load_tool.sources.incremental = data_load_tool.config.value):
        for i in range(150):
            yield {"id": i, "idAfter": i, "name": "name-" + str(i)}
 
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="pipeline_with_incremental",
        destination="duckdb",
    )
@@ -963,7 +963,7 @@ Consider the example below for reading incremental loading parameters from "conf
 
 ### Loading when incremental cursor path is missing or value is None/NULL
 
-You can customize the incremental processing of dlt by setting the parameter `on_cursor_value_missing`.
+You can customize the incremental processing of data_load_tool by setting the parameter `on_cursor_value_missing`.
 
 When loading incrementally with the default settings, there are two assumptions:
 1. Each row contains the cursor path.
@@ -971,8 +971,8 @@ When loading incrementally with the default settings, there are two assumptions:
 
 For example, the two following source data will raise an error:
 ```py
-@dlt.resource
-def some_data_without_cursor_path(updated_at=dlt.sources.incremental("updated_at")):
+@data_load_tool.resource
+def some_data_without_cursor_path(updated_at=data_load_tool.sources.incremental("updated_at")):
     yield [
         {"id": 1, "created_at": 1, "updated_at": 1},
         {"id": 2, "created_at": 2},  # cursor field is missing
@@ -980,8 +980,8 @@ def some_data_without_cursor_path(updated_at=dlt.sources.incremental("updated_at
 
 list(some_data_without_cursor_path())
 
-@dlt.resource
-def some_data_without_cursor_value(updated_at=dlt.sources.incremental("updated_at")):
+@data_load_tool.resource
+def some_data_without_cursor_value(updated_at=data_load_tool.sources.incremental("updated_at")):
     yield [
         {"id": 1, "created_at": 1, "updated_at": 1},
         {"id": 3, "created_at": 4, "updated_at": None},  # value at cursor field is None
@@ -1000,8 +1000,8 @@ To process a data set where some records do not include the incremental cursor p
 
 Here is an example of including rows where the incremental cursor value is missing or `None`:
 ```py
-@dlt.resource
-def some_data(updated_at=dlt.sources.incremental("updated_at", on_cursor_value_missing="include")):
+@data_load_tool.resource
+def some_data(updated_at=data_load_tool.sources.incremental("updated_at", on_cursor_value_missing="include")):
     yield [
         {"id": 1, "created_at": 1, "updated_at": 1},
         {"id": 2, "created_at": 2},
@@ -1017,8 +1017,8 @@ assert result[2] == {"id": 3, "created_at": 4, "updated_at": None}
 If you do not want to import records without the cursor path or where the value at the cursor path is `None`, use the following incremental configuration:
 
 ```py
-@dlt.resource
-def some_data(updated_at=dlt.sources.incremental("updated_at", on_cursor_value_missing="exclude")):
+@data_load_tool.resource
+def some_data(updated_at=data_load_tool.sources.incremental("updated_at", on_cursor_value_missing="exclude")):
     yield [
         {"id": 1, "created_at": 1, "updated_at": 1},
         {"id": 2, "created_at": 2},
@@ -1041,8 +1041,8 @@ In the following example, the step of data yielding is at `index = 0`, the custo
 See below how you can modify rows before the incremental processing using `add_map()` and filter rows using `add_filter()`.
 
 ```py
-@dlt.resource
-def some_data(updated_at=dlt.sources.incremental("updated_at")):
+@data_load_tool.resource
+def some_data(updated_at=data_load_tool.sources.incremental("updated_at")):
     yield [
         {"id": 1, "created_at": 1, "updated_at": 1},
         {"id": 2, "created_at": 2, "updated_at": 2},
@@ -1090,16 +1090,16 @@ This example demonstrates how to use a `datetime` cursor with a `lag` parameter,
 This setup demonstrates how `lag` ensures that a defined period of data remains refreshed, capturing updates or changes within the attribution window.
 
 ```py
-pipeline = dlt.pipeline(
-    destination=dlt.destinations.duckdb(credentials=duckdb.connect(":memory:")),
+pipeline = data_load_tool.pipeline(
+    destination=data_load_tool.destinations.duckdb(credentials=duckdb.connect(":memory:")),
 )
 
 # Flag to indicate the second run
 is_second_run = False
 
-@dlt.resource(name="events", primary_key="id", write_disposition="merge")
+@data_load_tool.resource(name="events", primary_key="id", write_disposition="merge")
 def events_resource(
-    _=dlt.sources.incremental("created_at", lag=3600, last_value_func=max)
+    _=data_load_tool.sources.incremental("created_at", lag=3600, last_value_func=max)
 ):
     global is_second_run
 
@@ -1131,12 +1131,12 @@ pipeline.run(events_resource)
 You may force a full refresh of `merge` and `append` pipelines:
 
 1. In the case of a `merge`, the data in the destination is deleted and loaded fresh. Currently, we do not deduplicate data during the full refresh.
-1. In the case of `dlt.sources.incremental`, the data is deleted and loaded from scratch. The state of the incremental is reset to the initial value.
+1. In the case of `data_load_tool.sources.incremental`, the data is deleted and loaded from scratch. The state of the incremental is reset to the initial value.
 
 Example:
 
 ```py
-p = dlt.pipeline(destination="bigquery", dataset_name="dataset_name")
+p = data_load_tool.pipeline(destination="bigquery", dataset_name="dataset_name")
 # Do a full refresh
 p.run(merge_source(), write_disposition="replace")
 # Do a full refresh of just one table
@@ -1160,20 +1160,20 @@ can be shared across resources.
 
 ### Preserving the last value in resource state
 
-For the purpose of preserving the "last value" or similar loading checkpoints, we can open a dlt state dictionary with a key and a default value as below. When the resource is executed and the data is loaded, the yielded resource data will be loaded at the same time with the update to the state.
+For the purpose of preserving the "last value" or similar loading checkpoints, we can open a data_load_tool state dictionary with a key and a default value as below. When the resource is executed and the data is loaded, the yielded resource data will be loaded at the same time with the update to the state.
 
-In the two examples below, you see how the `dlt.sources.incremental` is working under the hood.
+In the two examples below, you see how the `data_load_tool.sources.incremental` is working under the hood.
 
 ```py
 @resource()
 def tweets():
     # Get the last value from loaded metadata. If it does not exist, get None
-    last_val = dlt.current.resource_state().setdefault("last_updated", None)
+    last_val = data_load_tool.current.resource_state().setdefault("last_updated", None)
     # Get data and yield it
     data = _get_data(start_from=last_val)
     yield data
     # Change the state to the new value
-    dlt.current.resource_state()["last_updated"] = data["last_timestamp"]
+    data_load_tool.current.resource_state()["last_updated"] = data["last_timestamp"]
 ```
 
 If we keep a list or a dictionary in the state, we can modify the underlying values in the objects, and thus we do not need to set the state back explicitly.
@@ -1182,9 +1182,9 @@ If we keep a list or a dictionary in the state, we can modify the underlying val
 @resource()
 def tweets():
     # Get the last value from loaded metadata. If it does not exist, get None
-    loaded_dates = dlt.current.resource_state().setdefault("days_loaded", [])
+    loaded_dates = data_load_tool.current.resource_state().setdefault("days_loaded", [])
     # Do stuff: get data and add new values to the list
-    # `loaded_date` is a reference to the `dlt.current.resource_state()["days_loaded"]` list
+    # `loaded_date` is a reference to the `data_load_tool.current.resource_state()["days_loaded"]` list
     # and thus modifying it modifies the state
     yield data
     loaded_dates.append('2023-01-01')
@@ -1192,7 +1192,7 @@ def tweets():
 
 Step by step explanation of how to get or set the state:
 
-1. We can use the function `var = dlt.current.resource_state().setdefault("key", [])`. This allows us to retrieve the values of `key`. If `key` was not set yet, we will get the default value `[]` instead.
+1. We can use the function `var = data_load_tool.current.resource_state().setdefault("key", [])`. This allows us to retrieve the values of `key`. If `key` was not set yet, we will get the default value `[]` instead.
 2. We can now treat `var` as a Python list - We can append new values to it, or if applicable, we can read the values from previous loads.
 3. On pipeline run, the data will load, and the new `var`'s value will get saved in the state. The state is stored at the destination, so it will be available on subsequent runs.
 
@@ -1211,9 +1211,9 @@ Let's look at the `player_games` resource from the chess pipeline. The chess API
 In the following example, we initialize a variable with an empty list as a default:
 
 ```py
-@dlt.resource(write_disposition="append")
+@data_load_tool.resource(write_disposition="append")
 def players_games(chess_url, players, start_month=None, end_month=None):
-    loaded_archives_cache = dlt.current.resource_state().setdefault("archives", [])
+    loaded_archives_cache = data_load_tool.current.resource_state().setdefault("archives", [])
 
     # As far as Python is concerned, this variable behaves like
     # loaded_archives_cache = state['archives'] or []
@@ -1237,12 +1237,12 @@ def players_games(chess_url, players, start_month=None, end_month=None):
 ### Advanced state usage: tracking the last value for all search terms in Twitter API
 
 ```py
-@dlt.resource(write_disposition="append")
-def search_tweets(twitter_bearer_token=dlt.secrets.value, search_terms=None, start_time=None, end_time=None, last_value=None):
+@data_load_tool.resource(write_disposition="append")
+def search_tweets(twitter_bearer_token=data_load_tool.secrets.value, search_terms=None, start_time=None, end_time=None, last_value=None):
     headers = _headers(twitter_bearer_token)
     for search_term in search_terms:
         # Make cache for each term
-        last_value_cache = dlt.current.resource_state().setdefault(f"last_value_{search_term}", None)
+        last_value_cache = data_load_tool.current.resource_state().setdefault(f"last_value_{search_term}", None)
         print(f'last_value_cache: {last_value_cache}')
         params = {...}
         url = "https://api.twitter.com/2/tweets/search/recent"
@@ -1251,7 +1251,7 @@ def search_tweets(twitter_bearer_token=dlt.secrets.value, search_terms=None, sta
             page['search_term'] = search_term
             last_id = page.get('meta', {}).get('newest_id', 0)
             # Set it back - not needed if we
-            dlt.current.resource_state()[f"last_value_{search_term}"] = max(last_value_cache or 0, int(last_id))
+            data_load_tool.current.resource_state()[f"last_value_{search_term}"] = max(last_value_cache or 0, int(last_id))
             # Print the value for each search term
             print(f'new_last_value_cache for term {search_term}: {last_value_cache}')
 
@@ -1271,19 +1271,19 @@ If you see that the incremental loading is not working as expected and the incre
 4. After the pipeline run, check the state of the pipeline. You can do this by running the following command:
 
 ```sh
-dlt pipeline -v <pipeline_name> info
+data_load_tool pipeline -v <pipeline_name> info
 ```
 
 For example, if your pipeline is defined as follows:
 
 ```py
-@dlt.resource
+@data_load_tool.resource
 def my_resource(
-    incremental_object = dlt.sources.incremental("some_key", initial_value=0),
+    incremental_object = data_load_tool.sources.incremental("some_key", initial_value=0),
 ):
     ...
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="example_pipeline",
     destination="duckdb",
 )

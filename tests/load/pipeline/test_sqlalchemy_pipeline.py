@@ -21,8 +21,8 @@ def test_sqlalchemy_create_indexes(
     create_unique_indexes: bool,
     create_primary_keys: bool,
 ) -> None:
-    from dlt.destinations import sqlalchemy
-    from dlt.common.libs.sql_alchemy import Table, MetaData
+    from data_load_tool.destinations import sqlalchemy
+    from data_load_tool.common.libs.sql_alchemy import Table, MetaData
 
     alchemy_ = sqlalchemy(
         create_unique_indexes=create_unique_indexes, create_primary_keys=create_primary_keys

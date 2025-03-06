@@ -3,15 +3,15 @@ import pytest
 import shutil
 from typing import Iterator
 
-from dlt.common import git
-from dlt.common.pipeline import get_dlt_repos_dir
-from dlt.common.storages.file_storage import FileStorage
-from dlt.common.utils import set_working_dir, uniq_id
+from data_load_tool.common import git
+from data_load_tool.common.pipeline import get_dlt_repos_dir
+from data_load_tool.common.storages.file_storage import FileStorage
+from data_load_tool.common.utils import set_working_dir, uniq_id
 
-from dlt.sources import SourceReference
+from data_load_tool.sources import SourceReference
 
-from dlt.cli import echo
-from dlt.cli.init_command import DEFAULT_VERIFIED_SOURCES_REPO
+from data_load_tool.cli import echo
+from data_load_tool.cli.init_command import DEFAULT_VERIFIED_SOURCES_REPO
 
 from tests.utils import TEST_STORAGE_ROOT
 
@@ -58,9 +58,9 @@ def get_repo_dir(cloned_init_repo: FileStorage) -> str:
 
 
 def get_project_files(clear_all_sources: bool = True) -> FileStorage:
-    # we only remove sources registered outside of dlt core
+    # we only remove sources registered outside of data_load_tool core
     for name, source in SourceReference.SOURCES.copy().items():
-        if not source.ref.startswith("dlt.sources") and not source.ref.startswith(
+        if not source.ref.startswith("data_load_tool.sources") and not source.ref.startswith(
             "default_pipeline"
         ):
             SourceReference.SOURCES.pop(name)

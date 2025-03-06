@@ -1,8 +1,8 @@
 import os
 from tempfile import mkdtemp
 
-import dlt
-from dlt.common.runners import Venv
+import data_load_tool
+from data_load_tool.common.runners import Venv
 
 from docs.examples.sources.singer_tap import tap
 
@@ -29,7 +29,7 @@ with Venv.create(mkdtemp(), ["git+https://github.com/MeltanoLabs/tap-csv.git"]) 
     }
     print("running tap-csv")
     tap_source = tap(venv, "tap-csv", csv_tap_config, "examples/data/singer_taps/csv_catalog.json")
-    info = dlt.pipeline("meltano_csv", destination="postgres").run(
+    info = data_load_tool.pipeline("meltano_csv", destination="postgres").run(
         tap_source, credentials="postgres://loader@localhost:5432/dlt_data"
     )
     print(info)

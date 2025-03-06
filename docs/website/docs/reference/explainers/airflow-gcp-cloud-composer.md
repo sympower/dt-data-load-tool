@@ -46,7 +46,7 @@ Assuming you have already spun up a Cloud Composer:
   - Artifact Registry Repository Administrator;
   - Remote Build Execution Artifact Admin;
 
-- Navigate to your composer environment and add the needed libraries. In the case of this example pipedrive pipeline, we only need the sdf library, so add the `dlt` library.
+- Navigate to your composer environment and add the needed libraries. In the case of this example pipedrive pipeline, we only need the sdf library, so add the `data_load_tool` library.
 
   ![add-package](/img/add-package.png)
 

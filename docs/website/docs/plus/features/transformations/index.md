@@ -1,14 +1,14 @@
 ---
 title: "Local transformations"
-description: Run local transformations with dlt+ Cache
-keywords: ["dlt+", "transformations", "cache", "dbt"]
+description: Run local transformations with data_load_tool+ Cache
+keywords: ["data_load_tool+", "transformations", "cache", "dbt"]
 ---
 import DocCardList from '@theme/DocCardList';
 import Link from '../../../_plus_admonition.md';
 
 <Link/>
 
-As part of dlt+, we provide a local transformation [cache](../../core-concepts/cache.md) — a staging layer for data transformations allowing you to test, validate, and debug data pipelines without running everything in the warehouse. With local transformations, you can:
+As part of data_load_tool+, we provide a local transformation [cache](../../core-concepts/cache.md) — a staging layer for data transformations allowing you to test, validate, and debug data pipelines without running everything in the warehouse. With local transformations, you can:
 
 * Run transformations locally, eliminating the need to wait for warehouse queries.
 * Validate the schema before loading to catch mismatches early.

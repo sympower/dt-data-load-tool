@@ -1,4 +1,4 @@
-from dlt.common.exceptions import MissingDependencyException
+from data_load_tool.common.exceptions import MissingDependencyException
 
 
 try:

@@ -1,6 +1,6 @@
 ---
 title: Kafka
-description: dlt verified source for Confluent Kafka
+description: data_load_tool verified source for Confluent Kafka
 keywords: [kafka api, kafka verified source, kafka]
 ---
 import Header from './_source-info-header.md';
@@ -11,7 +11,7 @@ import Header from './_source-info-header.md';
 
 [Kafka](https://www.confluent.io/) is an open-source distributed event streaming platform, organized
 in the form of a log with message publishers and subscribers.
-The Kafka `dlt` verified source loads data using the Confluent Kafka API to the destination of your choice.
+The Kafka `data_load_tool` verified source loads data using the Confluent Kafka API to the destination of your choice.
 See a [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/kafka_pipeline.py).
 
 The resource that can be loaded:
@@ -36,7 +36,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init kafka duckdb
+   data_load_tool init kafka duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -55,7 +55,7 @@ For more information, read the
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe.
 
    Use the following format for service account authentication:
@@ -91,18 +91,18 @@ sasl_password="example_secret"
    the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
 For more information, read the [Walkthrough: Run a pipeline](../../walkthroughs/run-a-pipeline).
 
 :::info
-If you created a topic and start reading from it immediately, the brokers may not yet be synchronized, and the offset from which `dlt` reads messages may become invalid. In this case, the resource will return no messages. Pending messages will be received on the next run (or when brokers synchronize).
+If you created a topic and start reading from it immediately, the brokers may not yet be synchronized, and the offset from which `data_load_tool` reads messages may become invalid. In this case, the resource will return no messages. Pending messages will be received on the next run (or when brokers synchronize).
 :::
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `kafka_consumer`
@@ -110,10 +110,10 @@ If you created a topic and start reading from it immediately, the brokers may no
 This function retrieves messages from the given Kafka topics.
 
 ```py
-@dlt.resource(name="kafka_messages", table_name=lambda msg: msg["_kafka"]["topic"], standalone=True)
+@data_load_tool.resource(name="kafka_messages", table_name=lambda msg: msg["_kafka"]["topic"], standalone=True)
 def kafka_consumer(
     topics: Union[str, List[str]],
-    credentials: Union[KafkaCredentials, Consumer] = dlt.secrets.value,
+    credentials: Union[KafkaCredentials, Consumer] = data_load_tool.secrets.value,
     msg_processor: Optional[Callable[[Message], Dict[str, Any]]] = default_msg_processor,
     batch_size: Optional[int] = 3000,
     batch_timeout: Optional[int] = 3,
@@ -141,7 +141,7 @@ at once. It can be set to tweak performance.
 operation. It can be set to tweak performance.
 
 `start_from`: A timestamp, starting from which the messages must
-be read. When passed, `dlt` asks the Kafka cluster for an offset,
+be read. When passed, `data_load_tool` asks the Kafka cluster for an offset,
 which is actual for the given timestamp, and starts to read messages from
 this offset.
 
@@ -154,7 +154,7 @@ this offset.
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
         pipeline_name="kafka",     # Use a custom name if desired
         destination="duckdb",      # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dataset_name="kafka_data"  # Use a custom name if desired

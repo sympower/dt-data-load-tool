@@ -1,15 +1,15 @@
 from typing import Generator, Dict, cast
 
-import dlt
-from dlt.destinations.adapters import clickhouse_adapter
-from dlt.destinations.impl.clickhouse.sql_client import ClickHouseSqlClient
-from dlt.destinations.impl.clickhouse.typing import TDeployment
+import data_load_tool
+from data_load_tool.destinations.adapters import clickhouse_adapter
+from data_load_tool.destinations.impl.clickhouse.sql_client import ClickHouseSqlClient
+from data_load_tool.destinations.impl.clickhouse.typing import TDeployment
 from tests.load.clickhouse.utils import get_deployment_type
 from tests.pipeline.utils import assert_load_info
 
 
 def test_clickhouse_adapter() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     def merge_tree_resource() -> Generator[Dict[str, int], None, None]:
         yield {"field1": 1, "field2": 2}
 
@@ -20,11 +20,11 @@ def test_clickhouse_adapter() -> None:
     # The `Log` Family of engines are only supported in self-managed deployments.
     # So can't test in CH Cloud CI.
 
-    @dlt.resource
+    @data_load_tool.resource
     def replicated_merge_tree_resource() -> Generator[Dict[str, int], None, None]:
         yield {"field1": 1, "field2": 2}
 
-    @dlt.resource
+    @data_load_tool.resource
     def not_annotated_resource() -> Generator[Dict[str, int], None, None]:
         """Non annotated resource will default to `SharedMergeTree` for CH cloud
         and `MergeTree` for self-managed installation."""
@@ -33,7 +33,7 @@ def test_clickhouse_adapter() -> None:
     clickhouse_adapter(merge_tree_resource, table_engine_type="merge_tree")
     clickhouse_adapter(replicated_merge_tree_resource, table_engine_type="replicated_merge_tree")
 
-    pipe = dlt.pipeline(
+    pipe = data_load_tool.pipeline(
         pipeline_name="adapter_test",
         destination="clickhouse",
         dev_mode=True,

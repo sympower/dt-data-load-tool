@@ -3,10 +3,10 @@ from typing import Any, Iterator
 from git import GitCommandError
 import pytest
 
-from dlt.common.utils import uniq_id
+from data_load_tool.common.utils import uniq_id
 
-from dlt.helpers.dbt.dbt_utils import DBTProcessingError
-from dlt.helpers.dbt.exceptions import PrerequisitesException
+from data_load_tool.helpers.dbt.dbt_utils import DBTProcessingError
+from data_load_tool.helpers.dbt.exceptions import PrerequisitesException
 from tests.helpers.dbt_tests.utils import find_run_result
 
 from tests.utils import TEST_STORAGE_ROOT, clean_test_storage, preserve_environ

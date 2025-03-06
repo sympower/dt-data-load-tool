@@ -4,21 +4,21 @@ from typing import Iterator
 import pytest
 from unittest.mock import patch
 
-from dlt.common import json, pendulum
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.schema.schema import Schema
-from dlt.common.schema.typing import VERSION_TABLE_NAME
-from dlt.common.storages import FileStorage
-from dlt.common.storages.schema_storage import SchemaStorage
-from dlt.common.utils import uniq_id
+from data_load_tool.common import json, pendulum
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.schema.typing import VERSION_TABLE_NAME
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.storages.schema_storage import SchemaStorage
+from data_load_tool.common.utils import uniq_id
 
-from dlt.destinations.exceptions import DatabaseTerminalException
-from dlt.destinations import redshift
-from dlt.destinations.impl.redshift.configuration import (
+from data_load_tool.destinations.exceptions import DatabaseTerminalException
+from data_load_tool.destinations import redshift
+from data_load_tool.destinations.impl.redshift.configuration import (
     RedshiftCredentials,
     RedshiftClientConfiguration,
 )
-from dlt.destinations.impl.redshift.redshift import RedshiftClient, psycopg2
+from data_load_tool.destinations.impl.redshift.redshift import RedshiftClient, psycopg2
 
 from tests.common.utils import COMMON_TEST_CASES_PATH
 from tests.utils import TEST_STORAGE_ROOT, skipifpypy

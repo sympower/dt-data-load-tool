@@ -4,23 +4,23 @@ from typing import Any
 from unittest.mock import patch
 import pytest
 
-import dlt
-from dlt.common import pendulum
-from dlt.common.destination.capabilities import DestinationCapabilitiesContext
-from dlt.common.schema.schema import Schema, utils
-from dlt.common.schema.utils import normalize_table_identifiers
-from dlt.common.utils import uniq_id
-from dlt.common.destination.exceptions import DestinationUndefinedEntity
-from dlt.common.destination.client import WithStateSync
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.common.destination.capabilities import DestinationCapabilitiesContext
+from data_load_tool.common.schema.schema import Schema, utils
+from data_load_tool.common.schema.utils import normalize_table_identifiers
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.destination.exceptions import DestinationUndefinedEntity
+from data_load_tool.common.destination.client import WithStateSync
 
-from dlt.load import Load
-from dlt.pipeline.exceptions import SqlClientNotAvailable
-from dlt.pipeline.pipeline import Pipeline
-from dlt.pipeline.state_sync import (
+from data_load_tool.load import Load
+from data_load_tool.pipeline.exceptions import SqlClientNotAvailable
+from data_load_tool.pipeline.pipeline import Pipeline
+from data_load_tool.pipeline.state_sync import (
     load_pipeline_state_from_destination,
     state_resource,
 )
-from dlt.destinations.job_client_impl import SqlJobClientBase
+from data_load_tool.destinations.job_client_impl import SqlJobClientBase
 
 from tests.utils import TEST_STORAGE_ROOT
 from tests.cases import JSON_TYPED_DICT, JSON_TYPED_DICT_DECODED
@@ -91,8 +91,8 @@ def test_restore_state_utils(destination_config: DestinationTestConfiguration) -
         schema.update_table(
             normalize_table_identifiers(resource.compute_table_schema(), schema.naming)
         )
-        # do not bump version here or in sync_schema, dlt won't recognize that schema changed and it won't update it in storage
-        # so dlt in normalize stage infers _state_version table again but with different column order and the column order in schema is different
+        # do not bump version here or in sync_schema, data_load_tool won't recognize that schema changed and it won't update it in storage
+        # so data_load_tool in normalize stage infers _state_version table again but with different column order and the column order in schema is different
         # then in database. parquet is created in schema order and in Redshift it must exactly match the order.
         # schema.bump_version()
     p.sync_schema()
@@ -327,26 +327,26 @@ def test_restore_state_pipeline(
     assert_naming_to_caps(destination_config.destination_type, p.destination.capabilities())
 
     def some_data_gen(param: str) -> Any:
-        dlt.current.source_state()[param] = param
+        data_load_tool.current.source_state()[param] = param
         yield param
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data(param: str):
         yield from some_data_gen(param)
 
-    @dlt.source(schema=Schema("two"), section="two")
+    @data_load_tool.source(schema=Schema("two"), section="two")
     def source_two(param: str):
         return some_data(param)
 
-    @dlt.source(schema=Schema("three"), section="three")
+    @data_load_tool.source(schema=Schema("three"), section="three")
     def source_three(param: str):
         return some_data(param)
 
-    @dlt.source(schema=Schema("four"), section="four")
+    @data_load_tool.source(schema=Schema("four"), section="four")
     def source_four():
-        @dlt.resource
+        @data_load_tool.resource
         def some_data():
-            dlt.current.source_state()["state5"] = dict(JSON_TYPED_DICT_DECODED)
+            data_load_tool.current.source_state()["state5"] = dict(JSON_TYPED_DICT_DECODED)
             yield "four"
 
         return some_data()
@@ -451,9 +451,9 @@ def test_ignore_state_unfinished_load(destination_config: DestinationTestConfigu
     dataset_name = "state_test_" + uniq_id()
     p = destination_config.setup_pipeline(pipeline_name=pipeline_name, dataset_name=dataset_name)
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data(param: str) -> Any:
-        dlt.current.source_state()[param] = param
+        data_load_tool.current.source_state()[param] = param
         yield {"col1": param, param: 1}
 
     job_client: WithStateSync
@@ -543,7 +543,7 @@ def test_restore_schemas_while_import_schemas_exist(
 
     print("----> wipe")
     p._wipe_working_folder()
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name=pipeline_name,
         import_schema_path=import_schema_path,
         export_schema_path=export_schema_path,
@@ -587,11 +587,11 @@ def test_restore_state_parallel_changes(destination_config: DestinationTestConfi
     pipeline_name = "pipe_" + uniq_id()
     dataset_name = "state_test_" + uniq_id()
     destination_config.setup()
-    p = dlt.pipeline(pipeline_name=pipeline_name)
+    p = data_load_tool.pipeline(pipeline_name=pipeline_name)
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data(param: str) -> Any:
-        dlt.current.source_state()[param] = param
+        data_load_tool.current.source_state()[param] = param
         yield param
 
     # extract two resources that modify the state
@@ -609,7 +609,7 @@ def test_restore_state_parallel_changes(destination_config: DestinationTestConfi
     orig_state = p.state
 
     # create a production pipeline in separate pipelines_dir
-    production_p = dlt.pipeline(pipeline_name=pipeline_name, pipelines_dir=TEST_STORAGE_ROOT)
+    production_p = data_load_tool.pipeline(pipeline_name=pipeline_name, pipelines_dir=TEST_STORAGE_ROOT)
     production_p.run(
         destination=destination_config.destination_factory(),
         staging=destination_config.staging,
@@ -713,11 +713,11 @@ def test_reset_pipeline_on_deleted_dataset(
     pipeline_name = "pipe_" + uniq_id()
     dataset_name = "state_test_" + uniq_id()
     destination_config.setup()
-    p = dlt.pipeline(pipeline_name=pipeline_name)
+    p = data_load_tool.pipeline(pipeline_name=pipeline_name)
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data(param: str) -> Any:
-        dlt.current.source_state()[param] = param
+        data_load_tool.current.source_state()[param] = param
         yield param
 
     data4 = some_data("state4")
@@ -787,7 +787,7 @@ def set_naming_env(destination: str, naming_convention: str) -> None:
             if naming_convention.endswith("sql_upper"):
                 pytest.skip(f"{naming_convention} not supported on weaviate")
             else:
-                naming_convention = "dlt.destinations.impl.weaviate.ci_naming"
+                naming_convention = "data_load_tool.destinations.impl.weaviate.ci_naming"
         os.environ["SCHEMA__NAMING"] = naming_convention
 
 

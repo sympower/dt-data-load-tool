@@ -2,11 +2,11 @@ from typing import Any, Optional, List
 import pytest
 from itertools import zip_longest
 
-from dlt.common.storages import PackageStorage, ParsedLoadJobFileName
-from dlt.common.typing import TDataItem, TDataItems
+from data_load_tool.common.storages import PackageStorage, ParsedLoadJobFileName
+from data_load_tool.common.typing import TDataItem, TDataItems
 
-from dlt.extract.extract import ExtractStorage
-from dlt.extract.items_transform import ItemTransform
+from data_load_tool.extract.extract import ExtractStorage
+from data_load_tool.extract.items_transform import ItemTransform
 
 from tests.utils import TestDataItemFormat
 

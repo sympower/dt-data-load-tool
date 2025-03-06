@@ -8,10 +8,10 @@ import requests
 import requests_mock
 from tenacity import wait_exponential
 
-import dlt
-from dlt.common.configuration.specs import RuntimeConfiguration
-from dlt.sources.helpers.requests import Client, client as default_client
-from dlt.sources.helpers.requests.retry import (
+import data_load_tool
+from data_load_tool.common.configuration.specs import RuntimeConfiguration
+from data_load_tool.sources.helpers.requests import Client, client as default_client
+from data_load_tool.sources.helpers.requests.retry import (
     DEFAULT_RETRY_EXCEPTIONS,
     DEFAULT_RETRY_STATUS,
     retry_if_status,
@@ -212,7 +212,7 @@ def test_init_default_client() -> None:
 
     os.environ.update({key: str(value) for key, value in cfg.items()})
 
-    dlt.pipeline(pipeline_name="dummy_pipeline")
+    data_load_tool.pipeline(pipeline_name="dummy_pipeline")
 
     session = default_client.session
     assert session.timeout == cfg["RUNTIME__REQUEST_TIMEOUT"]

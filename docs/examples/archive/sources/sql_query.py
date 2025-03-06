@@ -1,11 +1,11 @@
 from typing import Iterator, List, Any, Union
 from functools import partial
 
-import dlt
+import data_load_tool
 
-from dlt.common.configuration.specs import ConnectionStringCredentials
-from dlt.common.typing import AnyFun, DictStrAny, StrAny, TDataItem
-from dlt.common.exceptions import MissingDependencyException
+from data_load_tool.common.configuration.specs import ConnectionStringCredentials
+from data_load_tool.common.typing import AnyFun, DictStrAny, StrAny, TDataItem
+from data_load_tool.common.exceptions import MissingDependencyException
 
 
 try:
@@ -44,10 +44,10 @@ def _query_data(f: AnyFun) -> Iterator[DictStrAny]:
             yield record[0]
 
 
-@dlt.resource
+@data_load_tool.resource
 def query_table(
     table_name: str,
-    credentials: Union[ConnectionStringCredentials, str, StrAny] = dlt.secrets.value,
+    credentials: Union[ConnectionStringCredentials, str, StrAny] = data_load_tool.secrets.value,
     table_schema_name: str = None,
     # index_col: Union[str, Sequence[str], None] = None,
     coerce_float: bool = True,
@@ -69,13 +69,13 @@ def query_table(
         chunksize=chunk_size,
     )
     # if resource is returned from decorator function, it will override the hints from decorator
-    return dlt.resource(_query_data(f), name=table_name)
+    return data_load_tool.resource(_query_data(f), name=table_name)
 
 
-@dlt.resource
+@data_load_tool.resource
 def query_sql(
     sql: str,
-    credentials: Union[ConnectionStringCredentials, str, StrAny] = dlt.secrets.value,
+    credentials: Union[ConnectionStringCredentials, str, StrAny] = data_load_tool.secrets.value,
     coerce_float: bool = True,
     parse_dates: Any = None,
     chunk_size: int = 1000,

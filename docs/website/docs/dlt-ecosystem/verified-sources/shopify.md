@@ -1,6 +1,6 @@
 ---
 title: Shopify
-description: dlt pipeline for Shopify API
+description: data_load_tool pipeline for Shopify API
 keywords: [shopify api, shopify pipeline, shopify]
 ---
 import Header from './_source-info-header.md';
@@ -14,7 +14,7 @@ own online store. Whereas a [Shopify partner](https://partners.shopify.com/) is 
 develops e-commerce stores, applications, or themes for Shopify merchants, often earning revenue through services, app sales, or
 referrals.
 
-This Shopify `dlt` verified source and
+This Shopify `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/shopify_dlt_pipeline.py)
 loads data using the 'Shopify API' or 'Shopify Partner API' to the destination of your choice.
 
@@ -65,7 +65,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init shopify_dlt duckdb
+   data_load_tool init shopify_dlt duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -83,7 +83,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credential
 
-1. Inside the `.dlt` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe.
+1. Inside the `.data_load_tool` folder, you'll find a file called `secrets.toml`, which is where you can securely store your access tokens and other sensitive information. It's important to handle this file with care and keep it safe.
 
    Here's what the file looks like:
 
@@ -100,7 +100,7 @@ For more information, read the guide on [how to add a verified source](../../wal
    >To load data using the Shopify API, update the `private_app_password`.
    >To load data using the Shopify partner API, update the `access_token`.
 
-1. Next, store your pipeline configuration details in the `.dlt/config.toml`.
+1. Next, store your pipeline configuration details in the `.data_load_tool/config.toml`.
 
    Here's what the `config.toml` looks like:
 
@@ -130,7 +130,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    ```
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `shopify_data`, you may also use any custom name instead.
 
@@ -138,18 +138,18 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
 
 ### Source `shopify_source`:
 
 This function returns a list of resources to load products, orders, and customers data from the Shopify API.
 
 ```py
-@dlt.source()
+@data_load_tool.source()
 def shopify_source(
-    private_app_password: str = dlt.secrets.value,
+    private_app_password: str = data_load_tool.secrets.value,
     api_version: str = API_VERSION,
-    shop_url: str = dlt.config.value,
+    shop_url: str = data_load_tool.config.value,
     start_date: TAnyDateTime = FIRST_DAY_OF_MILLENNIUM,
     end_date: Optional[TAnyDateTime] = None,
     created_at_min: TAnyDateTime = FIRST_DAY_OF_MILLENNIUM,
@@ -180,11 +180,11 @@ def shopify_source(
 This resource loads products from your Shopify shop into the destination. It supports incremental loading and pagination.
 
 ```py
-@dlt.resource(primary_key="id", write_disposition="merge")
+@data_load_tool.resource(primary_key="id", write_disposition="merge")
 def products(
-    updated_at: dlt.sources.incremental[
+    updated_at: data_load_tool.sources.incremental[
         pendulum.DateTime
-    ] = dlt.sources.incremental(
+    ] = data_load_tool.sources.incremental(
         "updated_at",
         initial_value=START_DATE,
         end_value=END_DATE,
@@ -204,15 +204,15 @@ Similar to the mentioned resource, there are two more resources "orders" and "cu
 This resource can be used to run custom GraphQL queries to load paginated data.
 
 ```py
-@dlt.resource
+@data_load_tool.resource
 def shopify_partner_query(
     query: str,
     data_items_path: jp.TJsonPath,
     pagination_cursor_path: jp.TJsonPath,
     pagination_variable_name: str = "after",
     variables: Optional[Dict[str, Any]] = None,
-    access_token: str = dlt.secrets.value,
-    organization_id: str = dlt.config.value,
+    access_token: str = data_load_tool.secrets.value,
+    organization_id: str = data_load_tool.config.value,
     api_version: str = API_VERSION,
 ) -> Iterable[TDataItem]:
    ...
@@ -245,7 +245,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="shopify",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="shopify_data"  # Use a custom name if desired

@@ -1,4 +1,4 @@
-from dlt.common.versioned_state import (
+from data_load_tool.common.versioned_state import (
     generate_state_version_hash,
     bump_state_version_if_modified,
     default_versioned_state,

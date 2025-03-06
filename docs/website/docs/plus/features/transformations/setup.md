@@ -6,14 +6,14 @@ import Link from '../../../_plus_admonition.md';
 
 <Link/>
 
-dlt+ provides a powerful mechanism for executing transformations on your data using a locally spun-up cache. It automatically creates and manages the cache before execution and cleans it up afterward.
+data_load_tool+ provides a powerful mechanism for executing transformations on your data using a locally spun-up cache. It automatically creates and manages the cache before execution and cleans it up afterward.
 
 A transformation consists of functions that modify data stored in a [cache](../../core-concepts/cache.md). These transformations can be implemented using:
 
 * [dbt models](./dbt-transformations.md)
 * [🧪 Python user-defined functions](./python-transformations.md)
 
-By combining a cache and transformations, you can efficiently process data loaded via dlt and move it to a new destination.
+By combining a cache and transformations, you can efficiently process data loaded via data_load_tool and move it to a new destination.
 
 :::caution
 Local transformations are currently limited to specific use cases and are only compatible with data stored in filesystem-based destinations:
@@ -27,14 +27,14 @@ Make sure to specify a dataset located in a filesystem-based destination when [d
 
 To use this feature, follow these steps:
 
-1. [Configure the `dlt.yml` file](#configure-dltyml-file): define a cache and specify transformations.
+1. [Configure the `data_load_tool.yml` file](#configure-dltyml-file): define a cache and specify transformations.
 2. [Generate scaffolding](#generate-scaffolding): automatically create transformation templates.
 3. [Modify transformations](#modify-transformations): update the generated Python functions or dbt models.
 4. [Run transformations](#run-transformations): execute them on your data.
 
-## Configure `dlt.yml` file
+## Configure `data_load_tool.yml` file
 
-Before setting up the transformations in the `dlt.yml` file, you need to make sure you have defined the cache.
+Before setting up the transformations in the `data_load_tool.yml` file, you need to make sure you have defined the cache.
 
 ### Defining the cache
 
@@ -60,7 +60,7 @@ Please make sure that the input dataset for the cache is located in a filesystem
 
 ### Defining transformations
 
-Specify transformations in `dlt.yml` with the following parameters:
+Specify transformations in `data_load_tool.yml` with the following parameters:
 
 * unique identifier for the transformation.
 * engine – choose between:
@@ -79,13 +79,13 @@ transformations:
 
 ## Generate scaffolding
 
-To create transformation scaffolding based on your dlt pipeline:
+To create transformation scaffolding based on your data_load_tool pipeline:
 
-1. Run the dlt pipeline at least once; this ensures dlt has the dataset schemas.
+1. Run the data_load_tool pipeline at least once; this ensures data_load_tool has the dataset schemas.
 2. Execute the following CLI command:
 
 ```sh
-dlt transformation <transformation-name> render-t-layer
+data_load_tool transformation <transformation-name> render-t-layer
 ```
 
 This will generate transformation files inside the `./transformations` folder. Depending on the engine:
@@ -101,12 +101,12 @@ Now you can update the generated transformations and create new ones to reflect 
 
 ## Run transformations
 
-dlt+ offers comprehensive CLI support for executing transformations. You can find the full list of available commands in the [command line interface](../../reference.md).
+data_load_tool+ offers comprehensive CLI support for executing transformations. You can find the full list of available commands in the [command line interface](../../reference.md).
 
 To run the defined transformation, use the [following command](../../reference.md#dlt-transformation-run):
 
 ```sh
-dlt transformation <transformation_name> run
+data_load_tool transformation <transformation_name> run
 ```
 
 This command populates the local cache, applies the defined transformations, and then flushes the transformed tables to the specified destination.

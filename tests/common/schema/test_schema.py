@@ -3,26 +3,26 @@ from typing import Dict, List, Sequence
 import pytest
 from copy import deepcopy
 
-from dlt.common import pendulum
-from dlt.common.json import json
-from dlt.common.data_types.typing import TDataType
-from dlt.common.exceptions import DictValidationException
-from dlt.common.normalizers.naming import snake_case
-from dlt.common.typing import DictStrAny, StrAny
-from dlt.common.utils import uniq_id
-from dlt.common.schema import TColumnSchema, Schema, TStoredSchema, utils
-from dlt.common.schema.exceptions import (
+from data_load_tool.common import pendulum
+from data_load_tool.common.json import json
+from data_load_tool.common.data_types.typing import TDataType
+from data_load_tool.common.exceptions import DictValidationException
+from data_load_tool.common.normalizers.naming import snake_case
+from data_load_tool.common.typing import DictStrAny, StrAny
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema import TColumnSchema, Schema, TStoredSchema, utils
+from data_load_tool.common.schema.exceptions import (
     InvalidSchemaName,
     ParentTableNotFoundException,
 )
-from dlt.common.schema.typing import (
+from data_load_tool.common.schema.typing import (
     LOADS_TABLE_NAME,
     VERSION_TABLE_NAME,
     TColumnName,
     TSimpleRegex,
     COLUMN_HINTS,
 )
-from dlt.common.storages import SchemaStorage
+from data_load_tool.common.storages import SchemaStorage
 
 from tests.common.utils import load_json_case, load_yml_case, COMMON_TEST_CASES_PATH
 
@@ -754,7 +754,7 @@ def assert_new_schema_props(schema: Schema) -> None:
     )
     # check normalizers config
     assert schema._normalizers_config["names"] == "snake_case"
-    assert schema._normalizers_config["json"]["module"] == "dlt.common.normalizers.json.relational"
+    assert schema._normalizers_config["json"]["module"] == "data_load_tool.common.normalizers.json.relational"
     assert isinstance(schema.naming, snake_case.NamingConvention)
     # check if schema was extended by json normalizer
     assert set(

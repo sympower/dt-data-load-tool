@@ -3,9 +3,9 @@ from typing import cast
 import pytest
 import copy
 
-from dlt.common.schema import Schema, DEFAULT_SCHEMA_CONTRACT_MODE, TSchemaContractDict
-from dlt.common.schema.exceptions import DataValidationError
-from dlt.common.schema.typing import TTableSchema
+from data_load_tool.common.schema import Schema, DEFAULT_SCHEMA_CONTRACT_MODE, TSchemaContractDict
+from data_load_tool.common.schema.exceptions import DataValidationError
+from data_load_tool.common.schema.typing import TTableSchema
 
 
 def get_schema() -> Schema:

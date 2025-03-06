@@ -3,10 +3,10 @@ FROM python:3.11.11-alpine
 # Metadata
 LABEL org.label-schema.vendor="dltHub" \
     org.label-schema.url="https://dlthub.com" \
-    org.label-schema.name="dlt" \
-    org.label-schema.description="**data load tool (dlt)** is a simple, open source Python library that makes data loading easy."
+    org.label-schema.name="data_load_tool" \
+    org.label-schema.description="**data load tool (data_load_tool)** is a simple, open source Python library that makes data loading easy."
 
-# prepare dirs to install dlt
+# prepare dirs to install data_load_tool
 RUN mkdir -p /tmp/pydlt
 
 WORKDIR /tmp/pydlt
@@ -54,6 +54,6 @@ RUN pip install /tmp/pydlt/dlt-${IMAGE_VERSION}.tar.gz[gcp,redshift,duckdb]
 
 WORKDIR /
 RUN rm -r /tmp/pydlt
-# make sure dlt can be actually imported
+# make sure data_load_tool can be actually imported
 # TODO: pendulum breaks alpine
-# RUN python -c 'import dlt'
+# RUN python -c 'import data_load_tool'

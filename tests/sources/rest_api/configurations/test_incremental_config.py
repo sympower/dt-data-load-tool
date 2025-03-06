@@ -1,39 +1,39 @@
 import re
-import dlt.common
-import dlt.common.exceptions
-from dlt.common import pendulum
+import data_load_tool.common
+import data_load_tool.common.exceptions
+from data_load_tool.common import pendulum
 
-import dlt.extract
+import data_load_tool.extract
 import pytest
 from typing import cast
 
 
-import dlt
+import data_load_tool
 
-from dlt.extract.incremental import Incremental
+from data_load_tool.extract.incremental import Incremental
 
-from dlt.sources.rest_api import (
+from data_load_tool.sources.rest_api import (
     _validate_param_type,
     _set_incremental_params,
 )
 
-from dlt.sources.rest_api.config_setup import (
+from data_load_tool.sources.rest_api.config_setup import (
     IncrementalParam,
     setup_incremental_object,
 )
-from dlt.sources.rest_api.typing import (
+from data_load_tool.sources.rest_api.typing import (
     IncrementalConfig,
 )
 
 try:
-    from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+    from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 except ImportError:
     pass
 
 
 @pytest.fixture()
 def incremental_with_init_and_end() -> Incremental[str]:
-    return dlt.sources.incremental(
+    return data_load_tool.sources.incremental(
         cursor_path="updated_at",
         initial_value="2024-01-01T00:00:00Z",
         end_value="2024-06-30T00:00:00Z",
@@ -42,7 +42,7 @@ def incremental_with_init_and_end() -> Incremental[str]:
 
 @pytest.fixture()
 def incremental_with_init() -> Incremental[str]:
-    return dlt.sources.incremental(
+    return data_load_tool.sources.incremental(
         cursor_path="updated_at",
         initial_value="2024-01-01T00:00:00Z",
     )
@@ -117,7 +117,7 @@ def test_constructs_incremental_from_request_param() -> None:
     }
     (incremental, incremental_param, _) = setup_incremental_object(request_params)
     # incremental is a dataclass so you can compare field-wise
-    assert incremental == dlt.sources.incremental(
+    assert incremental == data_load_tool.sources.incremental(
         cursor_path="updated_at", initial_value="2024-01-01T00:00:00Z", lag=360.5
     )
     assert incremental_param == IncrementalParam(start="since", end=None)
@@ -128,7 +128,7 @@ def test_constructs_incremental_from_request_param_with_incremental_object(
 ) -> None:
     request_params = {
         "foo": "bar",
-        "since": dlt.sources.incremental(
+        "since": data_load_tool.sources.incremental(
             cursor_path="updated_at", initial_value="2024-01-01T00:00:00Z"
         ),
     }

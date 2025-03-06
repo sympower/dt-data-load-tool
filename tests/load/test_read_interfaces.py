@@ -1,18 +1,18 @@
 from typing import Any, cast, Tuple, List
 import re
 import pytest
-import dlt
+import data_load_tool
 import os
 
-from dlt import Pipeline
-from dlt.common import Decimal
+from data_load_tool import Pipeline
+from data_load_tool.common import Decimal
 
 from typing import List
 from functools import reduce
 
-from dlt.common.schema.schema import Schema
-from dlt.common.storages.exceptions import SchemaNotFoundError
-from dlt.common.storages.file_storage import FileStorage
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.storages.exceptions import SchemaNotFoundError
+from data_load_tool.common.storages.file_storage import FileStorage
 from tests.load.utils import (
     destinations_configs,
     DestinationTestConfiguration,
@@ -20,32 +20,32 @@ from tests.load.utils import (
     SFTP_BUCKET,
     MEMORY_BUCKET,
 )
-from dlt.destinations import filesystem
+from data_load_tool.destinations import filesystem
 from tests.utils import TEST_STORAGE_ROOT, clean_test_storage
-from dlt.destinations.dataset.dataset import ReadableDBAPIDataset
-from dlt.destinations.dataset.exceptions import (
+from data_load_tool.destinations.dataset.dataset import ReadableDBAPIDataset
+from data_load_tool.destinations.dataset.exceptions import (
     ReadableRelationUnknownColumnException,
 )
 from tests.load.utils import drop_pipeline_data
-from dlt.destinations.dataset import dataset as _dataset
+from data_load_tool.destinations.dataset import dataset as _dataset
 
 EXPECTED_COLUMNS = ["id", "decimal", "other_decimal", "_dlt_load_id", "_dlt_id"]
 
 
 def _total_records(p: Pipeline) -> int:
     """how many records to load for a given pipeline"""
-    if p.destination.destination_type == "dlt.destinations.bigquery":
+    if p.destination.destination_type == "data_load_tool.destinations.bigquery":
         return 80
-    elif p.destination.destination_type == "dlt.destinations.mssql":
+    elif p.destination.destination_type == "data_load_tool.destinations.mssql":
         return 1000
     return 3000
 
 
 def _chunk_size(p: Pipeline) -> int:
     """chunk size for a given pipeline"""
-    if p.destination.destination_type == "dlt.destinations.bigquery":
+    if p.destination.destination_type == "data_load_tool.destinations.bigquery":
         return 50
-    elif p.destination.destination_type == "dlt.destinations.mssql":
+    elif p.destination.destination_type == "data_load_tool.destinations.mssql":
         return 700
     return 2048
 
@@ -81,9 +81,9 @@ def populated_pipeline(request, autouse_test_storage) -> Any:
     os.environ["DATA_WRITER__FILE_MAX_ITEMS"] = "700"
     total_records = _total_records(pipeline)
 
-    @dlt.source()
+    @data_load_tool.source()
     def source():
-        @dlt.resource(
+        @data_load_tool.resource(
             table_format=destination_config.table_format,
             write_disposition="replace",
             columns={
@@ -104,7 +104,7 @@ def populated_pipeline(request, autouse_test_storage) -> Any:
                 for i in range(total_records)
             ]
 
-        @dlt.resource(
+        @data_load_tool.resource(
             table_format=destination_config.table_format,
             write_disposition="replace",
             columns={
@@ -173,8 +173,8 @@ configs = destinations_configs(
     ids=lambda x: x.name,
 )
 def test_explicit_dataset_type_selection(populated_pipeline: Pipeline):
-    from dlt.destinations.dataset.dataset import ReadableDBAPIRelation
-    from dlt.destinations.dataset.ibis_relation import ReadableIbisRelation
+    from data_load_tool.destinations.dataset.dataset import ReadableDBAPIRelation
+    from data_load_tool.destinations.dataset.ibis_relation import ReadableIbisRelation
 
     assert isinstance(
         populated_pipeline.dataset(dataset_type="default").items, ReadableDBAPIRelation
@@ -229,7 +229,7 @@ def test_dataframe_access(populated_pipeline: Pipeline) -> None:
     chunk_size = _chunk_size(populated_pipeline)
     expected_chunk_counts = _expected_chunk_count(populated_pipeline)
     skip_df_chunk_size_check = (
-        populated_pipeline.destination.destination_type == "dlt.destinations.filesystem"
+        populated_pipeline.destination.destination_type == "data_load_tool.destinations.filesystem"
     )
 
     # full frame
@@ -301,7 +301,7 @@ def test_hint_preservation(populated_pipeline: Pipeline) -> None:
     # check that hints are carried over to arrow table
     expected_decimal_precision = 10
     expected_decimal_precision_2 = 12
-    if populated_pipeline.destination.destination_type == "dlt.destinations.bigquery":
+    if populated_pipeline.destination.destination_type == "data_load_tool.destinations.bigquery":
         # bigquery does not allow precision configuration..
         expected_decimal_precision = 38
         expected_decimal_precision_2 = 38
@@ -368,7 +368,7 @@ def test_row_counts(populated_pipeline: Pipeline) -> None:
             total_records,
         ),
     }
-    # get all dlt tables
+    # get all data_load_tool tables
     assert set(
         dataset.row_counts(dlt_tables=True, data_tables=False)
         .df()
@@ -491,7 +491,7 @@ def test_column_selection(populated_pipeline: Pipeline) -> None:
     # hints should also be preserved via computed reduced schema
     expected_decimal_precision = 10
     expected_decimal_precision_2 = 12
-    if populated_pipeline.destination.destination_type == "dlt.destinations.bigquery":
+    if populated_pipeline.destination.destination_type == "data_load_tool.destinations.bigquery":
         # bigquery does not allow precision configuration..
         expected_decimal_precision = 38
         expected_decimal_precision_2 = 38
@@ -586,7 +586,7 @@ def test_ibis_expression_relation(populated_pipeline: Pipeline) -> None:
     filtered_table = items_table.filter(items_table.id < 10)
     assert len(filtered_table.fetchall()) == 10
 
-    if populated_pipeline.destination.destination_type != "dlt.destinations.duckdb":
+    if populated_pipeline.destination.destination_type != "data_load_tool.destinations.duckdb":
         return
 
     # we check a bunch of expressions without executing them to see that they produce correct sql
@@ -745,7 +745,7 @@ def test_ibis_expression_relation(populated_pipeline: Pipeline) -> None:
 def test_ibis_dataset_access(populated_pipeline: Pipeline) -> None:
     # NOTE: we could generalize this with a context for certain deps
 
-    from dlt.helpers.ibis import SUPPORTED_DESTINATIONS
+    from data_load_tool.helpers.ibis import SUPPORTED_DESTINATIONS
 
     # check correct error if not supported
     if populated_pipeline.destination.destination_type not in SUPPORTED_DESTINATIONS:
@@ -757,7 +757,7 @@ def test_ibis_dataset_access(populated_pipeline: Pipeline) -> None:
     ibis_connection = populated_pipeline.dataset().ibis()
 
     map_i = lambda x: x
-    if populated_pipeline.destination.destination_type == "dlt.destinations.snowflake":
+    if populated_pipeline.destination.destination_type == "data_load_tool.destinations.snowflake":
         map_i = lambda x: x.upper()
 
     dataset_name = map_i(populated_pipeline.dataset_name)
@@ -766,7 +766,7 @@ def test_ibis_dataset_access(populated_pipeline: Pipeline) -> None:
     additional_tables = []
 
     # clickhouse has no datasets, but table prefixes and a sentinel table
-    if populated_pipeline.destination.destination_type == "dlt.destinations.clickhouse":
+    if populated_pipeline.destination.destination_type == "data_load_tool.destinations.clickhouse":
         table_like_statement = dataset_name + "."
         table_name_prefix = dataset_name + "___"
         dataset_name = None
@@ -774,7 +774,7 @@ def test_ibis_dataset_access(populated_pipeline: Pipeline) -> None:
 
     # filesystem uses duckdb and views to map know tables. for other ibis will list
     # all available tables so both schemas tables are visible
-    if populated_pipeline.destination.destination_type != "dlt.destinations.filesystem":
+    if populated_pipeline.destination.destination_type != "data_load_tool.destinations.filesystem":
         # from aleph schema
         additional_tables += ["digits"]
 
@@ -868,8 +868,8 @@ def test_standalone_dataset(populated_pipeline: Pipeline) -> None:
 
     # NOTE: this breaks the following test, it will need to be fixed somehow
     # create a newer schema with different name and see wether this is loaded
-    from dlt.common.schema import Schema
-    from dlt.common.schema import utils
+    from data_load_tool.common.schema import Schema
+    from data_load_tool.common.schema import utils
 
     other_schema = Schema("some_other_schema")
     other_schema.tables["other_table"] = utils.new_table("other_table")

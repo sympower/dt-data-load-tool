@@ -5,18 +5,18 @@ description: Learn how control nested data
 keywords: [incremental loading, example]
 ---
 
-In this example, you'll find a Python script that demonstrates how to control nested data using the `dlt` library.
+In this example, you'll find a Python script that demonstrates how to control nested data using the `data_load_tool` library.
 
 We'll learn how to:
 - [Adjust maximum nesting level in three ways:](../general-usage/source#reduce-the-nesting-level-of-generated-tables)
-  - Limit nesting levels with dlt decorator.
+  - Limit nesting levels with data_load_tool decorator.
   - Dynamic nesting level adjustment.
   - Apply data type hints.
-- Work with [MongoDB](../dlt-ecosystem/verified-sources/mongodb) in Python and `dlt`.
+- Work with [MongoDB](../dlt-ecosystem/verified-sources/mongodb) in Python and `data_load_tool`.
 - Enable [incremental loading](../general-usage/incremental-loading) for efficient data extraction.
 """
 
-# NOTE: this line is only for dlt CI purposes, you may delete it if you are using this example
+# NOTE: this line is only for data_load_tool CI purposes, you may delete it if you are using this example
 __source_name__ = "mongodb"
 
 from itertools import islice
@@ -27,26 +27,26 @@ from bson.objectid import ObjectId
 from pendulum import _datetime  # noqa: I251
 from pymongo import MongoClient
 
-import dlt
-from dlt.common.time import ensure_pendulum_datetime
-from dlt.common.typing import TDataItem
-from dlt.common.utils import map_nested_in_place
+import data_load_tool
+from data_load_tool.common.time import ensure_pendulum_datetime
+from data_load_tool.common.typing import TDataItem
+from data_load_tool.common.utils import map_nested_in_place
 
 CHUNK_SIZE = 10000
 
 
-# You can limit how deep dlt goes when generating nested tables.
+# You can limit how deep data_load_tool goes when generating nested tables.
 # By default, the library will descend and generate nested tables
 # for all nested lists, without a limit.
 # In this example, we specify that we only want to generate nested tables up to level 2,
 # so there will be only one level of nested tables within nested tables.
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def mongodb_collection(
-    connection_url: str = dlt.secrets.value,
-    database: Optional[str] = dlt.config.value,
-    collection: str = dlt.config.value,
-    incremental: Optional[dlt.sources.incremental] = None,  # type: ignore[type-arg]
-    write_disposition: Optional[str] = dlt.config.value,
+    connection_url: str = data_load_tool.secrets.value,
+    database: Optional[str] = data_load_tool.config.value,
+    collection: str = data_load_tool.config.value,
+    incremental: Optional[data_load_tool.sources.incremental] = None,  # type: ignore[type-arg]
+    write_disposition: Optional[str] = data_load_tool.config.value,
 ) -> Any:
     # set up mongo client
     client: Any = MongoClient(connection_url, uuidRepresentation="standard", tz_aware=True)
@@ -56,14 +56,14 @@ def mongodb_collection(
     def collection_documents(
         client: Any,
         collection: Any,
-        incremental: Optional[dlt.sources.incremental[Any]] = None,
+        incremental: Optional[data_load_tool.sources.incremental[Any]] = None,
     ) -> Iterator[TDataItem]:
         LoaderClass = CollectionLoader
 
         loader = LoaderClass(client, collection, incremental=incremental)
         yield from loader.load_documents()
 
-    return dlt.resource(  # type: ignore
+    return data_load_tool.resource(  # type: ignore
         collection_documents,
         name=collection_obj.name,
         primary_key="_id",
@@ -76,7 +76,7 @@ class CollectionLoader:
         self,
         client: Any,
         collection: Any,
-        incremental: Optional[dlt.sources.incremental[Any]] = None,
+        incremental: Optional[data_load_tool.sources.incremental[Any]] = None,
     ) -> None:
         self.client = client
         self.collection = collection
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     # When we created the source, we set max_table_nesting to 2.
     # This ensures that the generated tables do not have more than two
     # levels of nesting, even if the original data structure is more deeply nested.
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="mongodb_pipeline",
         destination="duckdb",
         dataset_name="unpacked_data",
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     # This allows for dynamic control over the maximum nesting
     # level for a specific data source.
     # Here the nesting level is adjusted before running the pipeline.
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="mongodb_pipeline",
         destination="duckdb",
         dataset_name="not_unpacked_data",
@@ -147,10 +147,10 @@ if __name__ == "__main__":
     assert len(tables) == 1, pipeline.last_trace.last_normalize_info
 
     # The third method involves applying data type hints to specific columns in the data.
-    # In this case, we tell dlt that column 'cast' (containing a list of actors)
+    # In this case, we tell data_load_tool that column 'cast' (containing a list of actors)
     # in 'movies' table should have type 'json' which means
     # that it will be loaded as JSON/struct and not as nested table.
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="mongodb_pipeline",
         destination="duckdb",
         dataset_name="unpacked_data_without_cast",

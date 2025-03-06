@@ -1,4 +1,4 @@
-from dlt.common.runners.stdout import exec_to_stdout
+from data_load_tool.common.runners.stdout import exec_to_stdout
 
 
 def worker():

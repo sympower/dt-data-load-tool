@@ -2,10 +2,10 @@ import pytest
 import os
 
 from pytest_mock import MockerFixture
-import dlt
+import data_load_tool
 
-from dlt.common.utils import uniq_id
-from dlt.destinations import databricks
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations import databricks
 from tests.load.utils import (
     GCS_BUCKET,
     DestinationTestConfiguration,
@@ -38,8 +38,8 @@ def test_databricks_external_location(destination_config: DestinationTestConfigu
 
     dataset_name = "test_databricks_external_location" + uniq_id()
 
-    from dlt.destinations import databricks, filesystem
-    from dlt.destinations.impl.databricks.databricks import DatabricksLoadJob
+    from data_load_tool.destinations import databricks, filesystem
+    from data_load_tool.destinations.impl.databricks.databricks import DatabricksLoadJob
 
     abfss_bucket_url = DatabricksLoadJob.ensure_databricks_abfss_url(AZ_BUCKET, "dltdata")
     stage = filesystem(abfss_bucket_url)
@@ -121,7 +121,7 @@ def test_databricks_gcs_external_location(destination_config: DestinationTestCon
     dataset_name = "test_databricks_gcs_external_location" + uniq_id()
 
     # swap AZ bucket for GCS_BUCKET
-    from dlt.destinations import databricks, filesystem
+    from data_load_tool.destinations import databricks, filesystem
 
     stage = filesystem(GCS_BUCKET)
 
@@ -165,8 +165,8 @@ def test_databricks_gcs_external_location(destination_config: DestinationTestCon
 def test_databricks_auth_oauth(destination_config: DestinationTestConfiguration) -> None:
     os.environ["DESTINATION__DATABRICKS__CREDENTIALS__ACCESS_TOKEN"] = ""
 
-    from dlt.destinations import databricks, filesystem
-    from dlt.destinations.impl.databricks.databricks import DatabricksLoadJob
+    from data_load_tool.destinations import databricks, filesystem
+    from data_load_tool.destinations.impl.databricks.databricks import DatabricksLoadJob
 
     abfss_bucket_url = DatabricksLoadJob.ensure_databricks_abfss_url(AZ_BUCKET, "dltdata")
     stage = filesystem(abfss_bucket_url)
@@ -201,8 +201,8 @@ def test_databricks_auth_token(destination_config: DestinationTestConfiguration)
     os.environ["DESTINATION__DATABRICKS__CREDENTIALS__CLIENT_ID"] = ""
     os.environ["DESTINATION__DATABRICKS__CREDENTIALS__CLIENT_SECRET"] = ""
 
-    from dlt.destinations import databricks, filesystem
-    from dlt.destinations.impl.databricks.databricks import DatabricksLoadJob
+    from data_load_tool.destinations import databricks, filesystem
+    from data_load_tool.destinations.impl.databricks.databricks import DatabricksLoadJob
 
     abfss_bucket_url = DatabricksLoadJob.ensure_databricks_abfss_url(AZ_BUCKET, "dltdata")
     stage = filesystem(abfss_bucket_url)
@@ -256,7 +256,7 @@ def test_databricks_direct_load_with_custom_staging_volume_name_and_file_removal
     keep_staged_files: bool,
     mocker: MockerFixture,
 ) -> None:
-    from dlt.destinations.impl.databricks.databricks import DatabricksLoadJob
+    from data_load_tool.destinations.impl.databricks.databricks import DatabricksLoadJob
 
     remove_spy = mocker.spy(DatabricksLoadJob, "_handle_staged_file_remove")
     custom_staging_volume_name = "dlt_ci.dlt_tests_shared.static_volume"

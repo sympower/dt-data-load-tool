@@ -3,15 +3,15 @@ from typing import Iterator, Tuple, Union, cast
 
 import pytest
 
-import dlt
-from dlt.common.libs.pyarrow import pyarrow as pa
-from dlt.common.libs.deltalake import (
+import data_load_tool
+from data_load_tool.common.libs.pyarrow import pyarrow as pa
+from data_load_tool.common.libs.deltalake import (
     DeltaTable,
     write_delta_table,
     _deltalake_storage_options,
 )
-from dlt.common.configuration.specs import AwsCredentials
-from dlt.destinations.impl.filesystem.filesystem import (
+from data_load_tool.common.configuration.specs import AwsCredentials
+from data_load_tool.destinations.impl.filesystem.filesystem import (
     FilesystemClient,
     FilesystemDestinationClientConfiguration,
 )
@@ -27,7 +27,7 @@ def filesystem_client() -> Iterator[Tuple[FilesystemClient, str]]:
     """
     # setup
     os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = "_storage"
-    client = cast(FilesystemClient, dlt.pipeline(destination="filesystem").destination_client())
+    client = cast(FilesystemClient, data_load_tool.pipeline(destination="filesystem").destination_client())
     remote_dir = os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] + "/tmp_dir"
 
     yield (client, remote_dir)

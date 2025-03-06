@@ -1,12 +1,12 @@
 import os
 import pytest
 import fsspec
-import dlt
+import data_load_tool
 
-from dlt.common.json import json
-from dlt.common.configuration.inject import with_config
-from dlt.common.storages import FilesystemConfiguration, fsspec_from_config
-from dlt.destinations.impl.filesystem.filesystem import FilesystemClient
+from data_load_tool.common.json import json
+from data_load_tool.common.configuration.inject import with_config
+from data_load_tool.common.storages import FilesystemConfiguration, fsspec_from_config
+from data_load_tool.destinations.impl.filesystem.filesystem import FilesystemClient
 
 from tests.load.utils import ALL_FILESYSTEM_DRIVERS
 
@@ -102,11 +102,11 @@ def test_filesystem_sftp_pipeline(sftp_filesystem):
     os.environ["DESTINATION__FILESYSTEM__CREDENTIALS__SFTP_USERNAME"] = "foo"
     os.environ["DESTINATION__FILESYSTEM__CREDENTIALS__SFTP_PASSWORD"] = "pass"
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def states():
         yield [{"id": 1, "name": "DE"}, {"id": 2, "name": "AK"}, {"id": 3, "name": "CA"}]
 
-    pipeline = dlt.pipeline(destination="filesystem", dataset_name="test")
+    pipeline = data_load_tool.pipeline(destination="filesystem", dataset_name="test")
     pipeline.run([states], loader_file_format="parquet")
 
     client: FilesystemClient = pipeline.destination_client()  # type: ignore[assignment]

@@ -2,8 +2,8 @@ import pytest
 from datetime import datetime, date, timezone, timedelta  # noqa: I251
 from pendulum.tz import UTC
 
-from dlt.common import pendulum
-from dlt.common.time import (
+from data_load_tool.common import pendulum
+from data_load_tool.common.time import (
     parse_iso_like_datetime,
     timestamp_before,
     timestamp_within,
@@ -14,8 +14,8 @@ from dlt.common.time import (
     detect_datetime_format,
     ensure_pendulum_datetime_non_utc,
 )
-from dlt.common.typing import TAnyDateTime
-from dlt.common.time import datatime_obj_to_str
+from data_load_tool.common.typing import TAnyDateTime
+from data_load_tool.common.time import datatime_obj_to_str
 
 
 def test_timestamp_within() -> None:

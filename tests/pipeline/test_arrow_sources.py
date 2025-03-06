@@ -4,16 +4,16 @@ import pytest
 import pandas as pd
 import pyarrow as pa
 
-import dlt
-from dlt.common import json, Decimal
-from dlt.common.utils import uniq_id
-from dlt.common.libs.pyarrow import (
+import data_load_tool
+from data_load_tool.common import json, Decimal
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.libs.pyarrow import (
     NameNormalizationCollision,
     remove_columns,
     normalize_py_arrow_item,
 )
 
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 from tests.cases import (
     arrow_table_all_data_types,
@@ -41,9 +41,9 @@ from tests.utils import (
 def test_extract_and_normalize(item_type: TPythonTableFormat, is_list: bool):
     item, records, data = arrow_table_all_data_types(item_type)
 
-    pipeline = dlt.pipeline("arrow_" + uniq_id(), destination="filesystem")
+    pipeline = data_load_tool.pipeline("arrow_" + uniq_id(), destination="filesystem")
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         if is_list:
             yield [item]
@@ -81,7 +81,7 @@ def test_extract_and_normalize(item_type: TPythonTableFormat, is_list: bool):
 
         # use original data to create data frame to preserve timestamp precision, timezones etc.
         tbl_expected = pa.Table.from_pandas(pd.DataFrame(data))
-        # null is removed by dlt
+        # null is removed by data_load_tool
         tbl_expected = remove_columns(tbl_expected, ["null"])
         # we want to normalize column names
         tbl_expected = normalize_py_arrow_item(
@@ -128,9 +128,9 @@ def test_normalize_jsonl(item_type: TPythonTableFormat, is_list: bool):
 
     item, records, _ = arrow_table_all_data_types(item_type, tz="Europe/Berlin")
 
-    pipeline = dlt.pipeline("arrow_" + uniq_id(), destination="dummy")
+    pipeline = data_load_tool.pipeline("arrow_" + uniq_id(), destination="dummy")
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         if is_list:
             yield [item]
@@ -159,7 +159,7 @@ def test_normalize_jsonl(item_type: TPythonTableFormat, is_list: bool):
 def test_add_map(item_type: TPythonTableFormat):
     item, _, _ = arrow_table_all_data_types(item_type, num_rows=200)
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield item
 
@@ -185,11 +185,11 @@ def test_extract_normalize_file_rotation(item_type: TPythonTableFormat) -> None:
     os.environ["DESTINATION__LOADER_FILE_FORMAT"] = "parquet"
 
     pipeline_name = "arrow_" + uniq_id()
-    pipeline = dlt.pipeline(pipeline_name=pipeline_name, destination="dummy")
+    pipeline = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="dummy")
 
     item, rows, _ = arrow_table_all_data_types(item_type)
 
-    @dlt.resource
+    @data_load_tool.resource
     def data_frames():
         for _ in range(10):
             yield item
@@ -214,11 +214,11 @@ def test_arrow_clashing_names(item_type: TPythonTableFormat) -> None:
     # # use parquet for dummy
     os.environ["DESTINATION__LOADER_FILE_FORMAT"] = "parquet"
     pipeline_name = "arrow_" + uniq_id()
-    pipeline = dlt.pipeline(pipeline_name=pipeline_name, destination="dummy")
+    pipeline = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="dummy")
 
     item, _, _ = arrow_table_all_data_types(item_type, include_name_clash=True)
 
-    @dlt.resource
+    @data_load_tool.resource
     def data_frames():
         for _ in range(10):
             yield item
@@ -231,7 +231,7 @@ def test_arrow_clashing_names(item_type: TPythonTableFormat) -> None:
 @pytest.mark.parametrize("item_type", ["arrow-table", "arrow-batch"])
 def test_load_arrow_vary_schema(item_type: TPythonTableFormat) -> None:
     pipeline_name = "arrow_" + uniq_id()
-    pipeline = dlt.pipeline(pipeline_name=pipeline_name, destination="duckdb")
+    pipeline = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="duckdb")
 
     item, _, _ = arrow_table_all_data_types(item_type, include_not_normalized_name=False)
     pipeline.run(item, table_name="data")
@@ -254,11 +254,11 @@ def test_arrow_as_data_loading(item_type: TPythonTableFormat) -> None:
 
     item, rows, _ = arrow_table_all_data_types(item_type)
 
-    item_resource = dlt.resource(item, name="item")
+    item_resource = data_load_tool.resource(item, name="item")
     assert id(item) == id(list(item_resource)[0])
 
     pipeline_name = "arrow_" + uniq_id()
-    pipeline = dlt.pipeline(pipeline_name=pipeline_name, destination="dummy")
+    pipeline = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="dummy")
     pipeline.extract(item, table_name="items")
     assert len(pipeline.list_extracted_resources()) == 1
     info = pipeline.normalize()
@@ -274,11 +274,11 @@ def test_normalize_with_dlt_columns(item_type: TPythonTableFormat):
     os.environ["DATA_WRITER__BUFFER_MAX_ITEMS"] = "100"
     os.environ["DATA_WRITER__ROW_GROUP_SIZE"] = "100"
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield item
 
-    pipeline = dlt.pipeline("arrow_" + uniq_id(), destination="duckdb")
+    pipeline = data_load_tool.pipeline("arrow_" + uniq_id(), destination="duckdb")
 
     pipeline.extract(some_data())
     pipeline.normalize(loader_file_format="parquet")
@@ -341,7 +341,7 @@ def test_normalize_reorder_columns_separate_packages(item_type: TPythonTableForm
 
     pipeline_name = "arrow_" + uniq_id()
     # all arrows will be written to the same table in the destination
-    pipeline = dlt.pipeline(pipeline_name=pipeline_name, destination="duckdb")
+    pipeline = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="duckdb")
     storage = pipeline._get_normalize_storage()
     extract_info = pipeline.extract(_to_item(shuffled_removed_column), table_name="table")
     job_file = extract_info.load_packages[0].jobs["new_jobs"][0].file_path
@@ -393,7 +393,7 @@ def test_normalize_reorder_columns_single_package(item_type: TPythonTableFormat)
 
     pipeline_name = "arrow_" + uniq_id()
     # all arrows will be written to the same table in the destination
-    pipeline = dlt.pipeline(pipeline_name=pipeline_name, destination="duckdb")
+    pipeline = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="duckdb")
 
     # extract arrows one by one
     extract_info = pipeline.extract(
@@ -435,7 +435,7 @@ def test_normalize_reorder_columns_single_batch(item_type: TPythonTableFormat) -
 
     pipeline_name = "arrow_" + uniq_id()
     # all arrows will be written to the same table in the destination
-    pipeline = dlt.pipeline(pipeline_name=pipeline_name, destination="duckdb")
+    pipeline = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="duckdb")
 
     # extract arrows in a single batch. this should unify the schema and generate just a single file
     # that can be directly imported
@@ -482,10 +482,10 @@ def test_empty_arrow(item_type: TPythonTableFormat) -> None:
 
     # always return pandas
     item, _, _ = arrow_table_all_data_types("pandas", num_rows=1)
-    item_resource = dlt.resource(item, name="items", write_disposition="replace")
+    item_resource = data_load_tool.resource(item, name="items", write_disposition="replace")
 
     pipeline_name = "arrow_" + uniq_id()
-    pipeline = dlt.pipeline(pipeline_name=pipeline_name, destination="dummy")
+    pipeline = data_load_tool.pipeline(pipeline_name=pipeline_name, destination="dummy")
     # E & L
     info = pipeline.extract(item_resource)
     load_id = info.loads_ids[0]
@@ -497,7 +497,7 @@ def test_empty_arrow(item_type: TPythonTableFormat) -> None:
     # load 0 elements to replace
     empty_df = pd.DataFrame(columns=item.columns)
 
-    item_resource = dlt.resource(
+    item_resource = data_load_tool.resource(
         arrow_item_from_pandas(empty_df, item_type), name="items", write_disposition="replace"
     )
     info = pipeline.extract(item_resource)
@@ -509,7 +509,7 @@ def test_empty_arrow(item_type: TPythonTableFormat) -> None:
 
 
 def test_import_file_with_arrow_schema() -> None:
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_jsonl_import",
         destination="duckdb",
         dev_mode=True,
@@ -541,7 +541,7 @@ def test_import_file_with_arrow_schema() -> None:
     # columns should be created from empty table
     import_file = "tests/load/cases/loading/header.jsonl"
     pipeline.run(
-        [dlt.mark.with_file_import(import_file, "jsonl", 2, hints=empty_table)],
+        [data_load_tool.mark.with_file_import(import_file, "jsonl", 2, hints=empty_table)],
         table_name="no_header",
     )
 
@@ -557,11 +557,11 @@ def test_extract_adds_dlt_load_id(item_type: TPythonTableFormat) -> None:
 
     item, _, _ = arrow_table_all_data_types(item_type, num_rows=5432)
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield item
 
-    pipeline: dlt.Pipeline = dlt.pipeline("arrow_" + uniq_id(), destination="duckdb")
+    pipeline: data_load_tool.Pipeline = data_load_tool.pipeline("arrow_" + uniq_id(), destination="duckdb")
     info = pipeline.extract(some_data())
 
     load_id = info.loads_ids[0]
@@ -587,11 +587,11 @@ def test_extract_json_normalize_parquet_adds_dlt_load_id():
 
     rows, _, _ = arrow_table_all_data_types("object", num_rows=1001)
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data():
         yield rows
 
-    pipeline: dlt.Pipeline = dlt.pipeline("arrow_" + uniq_id(), destination="duckdb")
+    pipeline: data_load_tool.Pipeline = data_load_tool.pipeline("arrow_" + uniq_id(), destination="duckdb")
 
     pipeline.extract(some_data())
     n_info = pipeline.normalize(loader_file_format="parquet")

@@ -1,16 +1,16 @@
 import os
 import pytest
 import yaml
-from dlt.common import json
+from data_load_tool.common import json
 
-from dlt.common.schema.normalizers import configured_normalizers
-from dlt.common.schema.schema import Schema
-from dlt.common.storages.exceptions import (
+from data_load_tool.common.schema.normalizers import configured_normalizers
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.storages.exceptions import (
     InStorageSchemaModified,
     SchemaNotFoundError,
     UnexpectedSchemaName,
 )
-from dlt.common.storages import (
+from data_load_tool.common.storages import (
     SchemaStorageConfiguration,
     SchemaStorage,
     LiveSchemaStorage,

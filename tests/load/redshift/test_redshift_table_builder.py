@@ -2,13 +2,13 @@ import pytest
 import sqlfluff
 from copy import deepcopy
 
-from dlt.common.utils import uniq_id, custom_environ, digest128
-from dlt.common.schema import Schema, utils
-from dlt.common.configuration import resolve_configuration
+from data_load_tool.common.utils import uniq_id, custom_environ, digest128
+from data_load_tool.common.schema import Schema, utils
+from data_load_tool.common.configuration import resolve_configuration
 
-from dlt.destinations import redshift
-from dlt.destinations.impl.redshift.redshift import RedshiftClient
-from dlt.destinations.impl.redshift.configuration import (
+from data_load_tool.destinations import redshift
+from data_load_tool.destinations.impl.redshift.redshift import RedshiftClient
+from data_load_tool.destinations.impl.redshift.configuration import (
     RedshiftClientConfiguration,
     RedshiftCredentials,
 )

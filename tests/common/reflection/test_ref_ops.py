@@ -2,8 +2,8 @@ from typing import Iterator
 import pytest
 import sys
 
-from dlt.common.reflection.ref import object_from_ref, callable_typechecker
-from dlt.extract.reference import SourceFactory, SourceReference
+from data_load_tool.common.reflection.ref import object_from_ref, callable_typechecker
+from data_load_tool.extract.reference import SourceFactory, SourceReference
 from tests.utils import unload_modules
 
 

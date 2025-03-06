@@ -73,11 +73,11 @@ jobs:
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}-dbt-runner
 
       - name: Install dependencies
-        # install dlt with postgres support
+        # install data_load_tool with postgres support
         run: poetry install --no-interaction -E postgres -E postgis --with sentry-sdk,dbt
 
       - name: create secrets.toml
-        run: pwd && echo "$DLT_SECRETS_TOML" > tests/.dlt/secrets.toml
+        run: pwd && echo "$DLT_SECRETS_TOML" > tests/.data_load_tool/secrets.toml
 
       - run: |
           poetry run pytest tests/helpers/dbt_tests -k '(not venv)'
@@ -90,7 +90,7 @@ jobs:
         shell: cmd
 
       - name: Remove dbt-core
-        # install dlt with postgres support
+        # install data_load_tool with postgres support
         run: poetry run pip uninstall dbt-core -y
 
       - run: |

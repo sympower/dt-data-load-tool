@@ -15,12 +15,12 @@ We'll learn how to:
 
 """
 
-import dlt
+import data_load_tool
 import pandas as pd
 import pyarrow as pa
 from google.cloud import bigquery
 
-from dlt.common.configuration.specs import GcpServiceAccountCredentials
+from data_load_tool.common.configuration.specs import GcpServiceAccountCredentials
 
 # constants
 OWID_DISASTERS_URL = (
@@ -33,8 +33,8 @@ OWID_DISASTERS_URL = (
 BIGQUERY_TABLE_ID = "chat-analytics-rasa-ci.ci_streaming_insert.natural-disasters"
 
 
-# dlt sources
-@dlt.resource(name="natural_disasters")
+# data_load_tool sources
+@data_load_tool.resource(name="natural_disasters")
 def resource(url: str):
     # load pyarrow table with pandas
     table = pa.Table.from_pandas(pd.read_csv(url))
@@ -50,21 +50,21 @@ def resource(url: str):
     table = table.append_column(
         "meta",
         pa.array(
-            [{"loaded_by": "dlt"}] * len(table),
+            [{"loaded_by": "data_load_tool"}] * len(table),
             pa.struct([("loaded_by", pa.string())]),
         ),
     )
     yield table
 
 
-# dlt bigquery custom destination
-# we can use the dlt provided credentials class
+# data_load_tool bigquery custom destination
+# we can use the data_load_tool provided credentials class
 # to retrieve the gcp credentials from the secrets
-@dlt.destination(
+@data_load_tool.destination(
     name="bigquery", loader_file_format="parquet", batch_size=0, naming_convention="snake_case"
 )
 def bigquery_insert(
-    items, table=BIGQUERY_TABLE_ID, credentials: GcpServiceAccountCredentials = dlt.secrets.value
+    items, table=BIGQUERY_TABLE_ID, credentials: GcpServiceAccountCredentials = data_load_tool.secrets.value
 ) -> None:
     client = bigquery.Client(
         credentials.project_id, credentials.to_native_credentials(), location="US"
@@ -82,7 +82,7 @@ def bigquery_insert(
 
 if __name__ == "__main__":
     # run the pipeline and print load results
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="csv_to_bigquery_insert",
         destination=bigquery_insert,
         dataset_name="mydata",

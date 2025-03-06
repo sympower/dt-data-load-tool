@@ -1,21 +1,21 @@
 import pytest
 
-import dlt
-from dlt.common.pipeline import LoadInfo
-from dlt.destinations.adapters import bigquery_adapter
-from dlt.load.exceptions import LoadClientJobFailed
-from dlt.pipeline.exceptions import PipelineStepFailed
+import data_load_tool
+from data_load_tool.common.pipeline import LoadInfo
+from data_load_tool.destinations.adapters import bigquery_adapter
+from data_load_tool.load.exceptions import LoadClientJobFailed
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 from tests.pipeline.utils import assert_load_info
 
 
 def test_bigquery_adapter_streaming_insert():
-    @dlt.resource
+    @data_load_tool.resource
     def test_resource():
         yield {"field1": 1, "field2": 2}
 
     bigquery_adapter(test_resource, insert_api="streaming")
 
-    pipe = dlt.pipeline(pipeline_name="insert_test", destination="bigquery", dev_mode=True)
+    pipe = data_load_tool.pipeline(pipeline_name="insert_test", destination="bigquery", dev_mode=True)
     pack = pipe.run(test_resource, table_name="test_streaming_items44")
 
     assert_load_info(pack)
@@ -27,7 +27,7 @@ def test_bigquery_adapter_streaming_insert():
 
 
 def test_bigquery_adapter_streaming_wrong_disposition():
-    @dlt.resource(write_disposition="merge")
+    @data_load_tool.resource(write_disposition="merge")
     def test_resource():
         yield {"field1": 1, "field2": 2}
 
@@ -36,13 +36,13 @@ def test_bigquery_adapter_streaming_wrong_disposition():
 
 
 def test_bigquery_streaming_wrong_disposition():
-    @dlt.resource(write_disposition="merge")
+    @data_load_tool.resource(write_disposition="merge")
     def test_resource():
         yield {"field1": 1, "field2": 2}
 
     test_resource.apply_hints(additional_table_hints={"x-insert-api": "streaming"})
 
-    pipe = dlt.pipeline(pipeline_name="insert_test", destination="bigquery")
+    pipe = data_load_tool.pipeline(pipeline_name="insert_test", destination="bigquery")
     with pytest.raises(PipelineStepFailed) as pip_ex:
         pipe.run(test_resource)
     assert isinstance(pip_ex.value.step_info, LoadInfo)
@@ -56,13 +56,13 @@ def test_bigquery_streaming_wrong_disposition():
 
 
 def test_bigquery_streaming_nested_data():
-    @dlt.resource
+    @data_load_tool.resource
     def test_resource():
         yield {"field1": {"nested_field": 1}, "field2": [{"nested_field": 2}]}
 
     bigquery_adapter(test_resource, insert_api="streaming")
 
-    pipe = dlt.pipeline(pipeline_name="insert_test", destination="bigquery", dev_mode=True)
+    pipe = data_load_tool.pipeline(pipeline_name="insert_test", destination="bigquery", dev_mode=True)
     pack = pipe.run(test_resource, table_name="test_streaming_items")
 
     assert_load_info(pack)

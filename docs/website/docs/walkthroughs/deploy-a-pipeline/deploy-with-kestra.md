@@ -30,19 +30,19 @@ Kestra provides a robust orchestration engine with features including:
 
 To know more, please refer to [Kestra's documentation.](https://kestra.io/docs)
 
-## Building data pipelines with `dlt`
+## Building data pipelines with `data_load_tool`
 
-**`dlt`** is an open-source Python library that allows you to declaratively load data sources
+**`data_load_tool`** is an open-source Python library that allows you to declaratively load data sources
 into well-structured tables or datasets. It does this through automatic schema inference and evolution.
 The library simplifies building data pipelines by providing functionality to support the entire extract 
 and load process.
 
-### How does `dlt` integrate with Kestra for pipeline orchestration?
+### How does `data_load_tool` integrate with Kestra for pipeline orchestration?
 
 To illustrate setting up a pipeline in Kestra, we’ll be using the following example: 
-[From Inbox to Insights: AI-Enhanced Email Analysis with dlt and Kestra.](https://kestra.io/blogs/2023-12-04-dlt-kestra-usage)
+[From Inbox to Insights: AI-Enhanced Email Analysis with data_load_tool and Kestra.](https://kestra.io/blogs/2023-12-04-dlt-kestra-usage)
 
-The example demonstrates automating a workflow to load data from Gmail to BigQuery using the `dlt`,
+The example demonstrates automating a workflow to load data from Gmail to BigQuery using the `data_load_tool`,
 complemented by AI-driven summarization and sentiment analysis. You can refer to the project's
 GitHub repo by clicking [here.](https://github.com/dlt-hub/dlt-kestra-demo)
 
@@ -107,10 +107,10 @@ For detailed information on these steps, please consult the `README.md` in the
 
 ### Additional resources
 
-- Ingest Zendesk data into Weaviate using `dlt` with Kestra:
+- Ingest Zendesk data into Weaviate using `data_load_tool` with Kestra:
   [here](https://kestra.io/blueprints/148-ingest-zendesk-data-into-weaviate-using-dlt).
-- Ingest Zendesk data into DuckDb using dlt with Kestra:
+- Ingest Zendesk data into DuckDb using data_load_tool with Kestra:
   [here.](https://kestra.io/blueprints/147-ingest-zendesk-data-into-duckdb-using-dlt)
-- Ingest Pipedrive CRM data to BigQuery using `dlt` and schedule it to run every hour:
+- Ingest Pipedrive CRM data to BigQuery using `data_load_tool` and schedule it to run every hour:
   [here.](https://kestra.io/blueprints/146-ingest-pipedrive-crm-data-to-bigquery-using-dlt-and-schedule-it-to-run-every-hour)
 

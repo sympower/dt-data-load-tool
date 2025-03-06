@@ -1,8 +1,8 @@
 <h1 align="center">
-    <strong>data load tool (dlt) — the open-source Python library for data loading</strong>
+    <strong>data load tool (data_load_tool) — the open-source Python library for data loading</strong>
 </h1>
 <p align="center">
-Be it a Google Colab notebook, AWS Lambda function, an Airflow DAG, your local laptop,<br/>or a GPT-4 assisted development playground—<strong>dlt</strong> can be dropped in anywhere.
+Be it a Google Colab notebook, AWS Lambda function, an Airflow DAG, your local laptop,<br/>or a GPT-4 assisted development playground—<strong>data_load_tool</strong> can be dropped in anywhere.
 </p>
 
 
@@ -18,23 +18,23 @@ Be it a Google Colab notebook, AWS Lambda function, an Airflow DAG, your local l
   </a>
 </div>
 <div align="center">
-  <a target="_blank" href="https://pypi.org/project/dlt/" style="background:none">
-    <img src="https://img.shields.io/pypi/v/dlt?labelColor=191937&color=6F6FF7">
+  <a target="_blank" href="https://pypi.org/project/data_load_tool/" style="background:none">
+    <img src="https://img.shields.io/pypi/v/data_load_tool?labelColor=191937&color=6F6FF7">
   </a>
-  <a target="_blank" href="https://pypi.org/project/dlt/" style="background:none">
-    <img src="https://img.shields.io/pypi/pyversions/dlt?labelColor=191937&color=6F6FF7">
+  <a target="_blank" href="https://pypi.org/project/data_load_tool/" style="background:none">
+    <img src="https://img.shields.io/pypi/pyversions/data_load_tool?labelColor=191937&color=6F6FF7">
   </a>
-  <a target="_blank" href="https://pypi.org/project/dlt/" style="background:none">
-    <img src="https://img.shields.io/pypi/dm/dlt?labelColor=191937&color=6F6FF7">
+  <a target="_blank" href="https://pypi.org/project/data_load_tool/" style="background:none">
+    <img src="https://img.shields.io/pypi/dm/data_load_tool?labelColor=191937&color=6F6FF7">
   </a>
 </div>
 
 ## Installation
 
-dlt supports Python 3.9+. Python 3.13 is supported but considered experimental at this time as not all of dlts extras have python 3.13. support. We additionally maintain a [forked version of pendulum](https://github.com/dlt-hub/pendulum) for 3.13 until there is a release for 3.13.
+data_load_tool supports Python 3.9+. Python 3.13 is supported but considered experimental at this time as not all of dlts extras have python 3.13. support. We additionally maintain a [forked version of pendulum](https://github.com/dlt-hub/pendulum) for 3.13 until there is a release for 3.13.
 
 ```sh
-pip install dlt
+pip install data_load_tool
 ```
 
 More options: [Install via Conda or Pixi](https://dlthub.com/docs/reference/installation#install-dlt-via-pixi-and-conda)
@@ -45,12 +45,12 @@ More options: [Install via Conda or Pixi](https://dlthub.com/docs/reference/inst
 Load chess game data from chess.com API and save it in DuckDB:
 
 ```python
-import dlt
-from dlt.sources.helpers import requests
+import data_load_tool
+from data_load_tool.sources.helpers import requests
 
-# Create a dlt pipeline that will load
+# Create a data_load_tool pipeline that will load
 # chess player data to the DuckDB destination
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='chess_pipeline',
     destination='duckdb',
     dataset_name='player_data'
@@ -97,27 +97,27 @@ You can find examples for various use cases in the [examples](docs/examples) fol
 
 ## Adding as dependency
 
-`dlt` follows the semantic versioning with the [`MAJOR.MINOR.PATCH`](https://peps.python.org/pep-0440/#semantic-versioning) pattern.
+`data_load_tool` follows the semantic versioning with the [`MAJOR.MINOR.PATCH`](https://peps.python.org/pep-0440/#semantic-versioning) pattern.
 
 * `major` means breaking changes and removed deprecations
 * `minor` new features, sometimes automatic migrations
 * `patch` bug fixes
 
 We suggest that you allow only `patch` level updates automatically:
-* Using the [Compatible Release Specifier](https://packaging.python.org/en/latest/specifications/version-specifiers/#compatible-release). For example **dlt~=1.0** allows only versions **>=1.0** and less than **<1.1**
+* Using the [Compatible Release Specifier](https://packaging.python.org/en/latest/specifications/version-specifiers/#compatible-release). For example **data_load_tool~=1.0** allows only versions **>=1.0** and less than **<1.1**
 * Poetry [caret requirements](https://python-poetry.org/docs/dependency-specification/). For example **^1.0** allows only versions **>=1.0** to **<1.0**
 
 ## Get Involved
 
-The dlt project is quickly growing, and we're excited to have you join our community! Here's how you can get involved:
+The data_load_tool project is quickly growing, and we're excited to have you join our community! Here's how you can get involved:
 
-- **Connect with the Community**: Join other dlt users and contributors on our [Slack](https://dlthub.com/community)
-- **Report issues and suggest features**: Please use the [GitHub Issues](https://github.com/dlt-hub/dlt/issues) to report bugs or suggest new features. Before creating a new issue, make sure to search the tracker for possible duplicates and add a comment if you find one.
+- **Connect with the Community**: Join other data_load_tool users and contributors on our [Slack](https://dlthub.com/community)
+- **Report issues and suggest features**: Please use the [GitHub Issues](https://github.com/dlt-hub/data_load_tool/issues) to report bugs or suggest new features. Before creating a new issue, make sure to search the tracker for possible duplicates and add a comment if you find one.
 - **Track progress of our work and our plans**: Please check out our [public Github project](https://github.com/orgs/dlt-hub/projects/9)
 - **Contribute Verified Sources**: Contribute your custom sources to the [dlt-hub/verified-sources](https://github.com/dlt-hub/verified-sources) to help other folks in handling their data tasks.
 - **Contribute code**: Check out our [contributing guidelines](CONTRIBUTING.md) for information on how to make a pull request.
-- **Improve documentation**: Help us enhance the dlt documentation.
+- **Improve documentation**: Help us enhance the data_load_tool documentation.
 
 ## License
 
-`dlt` is released under the [Apache 2.0 License](LICENSE.txt).
+`data_load_tool` is released under the [Apache 2.0 License](LICENSE.txt).

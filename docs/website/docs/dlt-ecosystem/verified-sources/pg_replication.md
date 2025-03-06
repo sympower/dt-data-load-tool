@@ -1,6 +1,6 @@
 ---
 title: Postgres replication
-description: dlt verified source for Postgres replication
+description: data_load_tool verified source for Postgres replication
 keywords: [postgres, postgres replication, database replication]
 ---
 import Header from './_source-info-header.md';
@@ -62,7 +62,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
     
    ```sh
-   dlt init pg_replication duckdb
+   data_load_tool init pg_replication duckdb
    ```
     
    It will initialize [the pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/pg_replication_pipeline.py) with a Postgres replication as the [source](../../general-usage/source) and [DuckDB](../../dlt-ecosystem/destinations/duckdb) as the [destination](../../dlt-ecosystem/destinations).
@@ -73,7 +73,7 @@ To get started with your data pipeline, follow these steps:
 3. This source uses the `sql_database` source; you can initialize it as follows:
     
    ```sh
-   dlt init sql_database duckdb
+   data_load_tool init sql_database duckdb
    ```
    :::note
    It is important to note that it is now only required if a user performs an initial load, specifically when `persist_snapshots` is set to `True`.
@@ -90,7 +90,7 @@ To get started with your data pipeline, follow these steps:
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive information securely, like access tokens. Keep this file safe.
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive information securely, like access tokens. Keep this file safe.
     
    Here's what the `secrets.toml` looks like:
     
@@ -126,7 +126,7 @@ For more information, read the [Configuration section.](../../general-usage/cred
    ```
 3. Once the pipeline has finished running, you can verify that everything loaded correctly by using the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `pg_replication_pipeline`, you may also use any custom name instead.
 
@@ -136,21 +136,21 @@ For more information, read the [Configuration section.](../../general-usage/cred
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
 
 ### Resource `replication_resource`
 
 This resource yields data items for changes in one or more Postgres tables.
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     name=lambda args: args["slot_name"] + "_" + args["pub_name"],
     standalone=True,
 )
 def replication_resource(
     slot_name: str,
     pub_name: str,
-    credentials: ConnectionStringCredentials = dlt.secrets.value,
+    credentials: ConnectionStringCredentials = data_load_tool.secrets.value,
     include_columns: Optional[Dict[str, Sequence[str]]] = None,
     columns: Optional[Dict[str, TTableSchemaColumns]] = None,
     target_batch_size: int = 1000,
@@ -179,7 +179,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
     
    ```py
    # Defining source pipeline
-   src_pl = dlt.pipeline(
+   src_pl = data_load_tool.pipeline(
        pipeline_name="source_pipeline",
        destination="postgres",
        dataset_name="source_dataset",
@@ -197,7 +197,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 2. Similarly, define the destination pipeline.
     
    ```py
-   dest_pl = dlt.pipeline(
+   dest_pl = data_load_tool.pipeline(
        pipeline_name="pg_replication_pipeline",
        destination='duckdb',
        dataset_name="replicate_single_table",
@@ -212,7 +212,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    pub_name = "example_pub"
    ```
     
-4. To initialize replication, you can use the `init_replication` function. A user can use this function to let `dlt` configure Postgres and make it ready for replication.
+4. To initialize replication, you can use the `init_replication` function. A user can use this function to let `data_load_tool` configure Postgres and make it ready for replication.
     
    ```py
    # requires the Postgres user to have the REPLICATION attribute assigned

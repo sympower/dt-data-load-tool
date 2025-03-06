@@ -1,9 +1,9 @@
 import pytest
 import semver
 
-from dlt.common.storages.file_storage import FileStorage
-from dlt.common.storages.exceptions import NoMigrationPathException, WrongStorageVersionException
-from dlt.common.storages.versioned_storage import VersionedStorage
+from data_load_tool.common.storages.file_storage import FileStorage
+from data_load_tool.common.storages.exceptions import NoMigrationPathException, WrongStorageVersionException
+from data_load_tool.common.storages.versioned_storage import VersionedStorage
 
 from tests.utils import write_version, test_storage
 

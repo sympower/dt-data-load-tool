@@ -10,7 +10,7 @@ import {useCurrentSidebarCategory} from '@docusaurus/theme-common';
 
 import DocCardList from '@theme/DocCardList';
 
-Planning to use `dlt` in production and need a source that isn't listed? We're happy to help you build it: <Link/>.
+Planning to use `data_load_tool` in production and need a source that isn't listed? We're happy to help you build it: <Link/>.
 
 ### Core sources
 
@@ -20,7 +20,7 @@ item => item.label === '30+ SQL databases' || item.label === 'REST APIs' || item
 
 ### Verified sources
 
-Choose from our collection of verified sources, developed and maintained by the `dlt` team and community. Each source is rigorously tested against a real API and provided as Python code for easy customization.
+Choose from our collection of verified sources, developed and maintained by the `data_load_tool` team and community. Each source is rigorously tested against a real API and provided as Python code for easy customization.
 
 :::tip
 If you couldn't find a source implementation, you can easily create your own. Check out the [resource page](../../general-usage/resource) to learn how!
@@ -39,9 +39,9 @@ database that supports SQLAlchemy.
 
 According to our telemetry, core sources are the most widely used among our users!
 
-It's also important to note that core sources are integrated into the `dlt` core library,
+It's also important to note that core sources are integrated into the `data_load_tool` core library,
 whereas verified sources are maintained in a separate [repository](https://github.com/dlt-hub/verified-sources).
-To use a verified source, you need to run the `dlt` init command, which will download the verified source code to
+To use a verified source, you need to run the `data_load_tool` init command, which will download the verified source code to
 your working directory.
 
 

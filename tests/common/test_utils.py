@@ -4,10 +4,10 @@ import inspect
 import binascii
 import pytest
 from typing import Any, Dict
-from dlt.common.exceptions import PipelineException, TerminalValueError
+from data_load_tool.common.exceptions import PipelineException, TerminalValueError
 
-from dlt.common.runners import Venv
-from dlt.common.utils import (
+from data_load_tool.common.runners import Venv
+from data_load_tool.common.utils import (
     clone_dict_nested,
     graph_find_scc_nodes,
     flatten_list_of_str_or_dicts,
@@ -236,7 +236,7 @@ def test_extend_list_deduplicated() -> None:
 
 
 def test_exception_traces() -> None:
-    from dlt.common.destination.exceptions import IdentifierTooLongException
+    from data_load_tool.common.destination.exceptions import IdentifierTooLongException
 
     # bare exception without stack trace
     trace = get_exception_trace(Exception("Message"))
@@ -245,12 +245,12 @@ def test_exception_traces() -> None:
     assert "stack_trace" not in trace
     assert trace["is_terminal"] is False
 
-    # dlt exception with traceback
+    # data_load_tool exception with traceback
     try:
         raise IdentifierTooLongException("postgres", "table", "too_long_table", 8)
     except Exception as exc:
         trace = get_exception_trace(exc)
-    assert trace["exception_type"] == "dlt.common.destination.exceptions.IdentifierTooLongException"
+    assert trace["exception_type"] == "data_load_tool.common.destination.exceptions.IdentifierTooLongException"
     assert isinstance(trace["stack_trace"], list)
     assert trace["exception_attrs"] == {
         "destination_name": "postgres",
@@ -260,7 +260,7 @@ def test_exception_traces() -> None:
     }
     assert trace["is_terminal"] is True
 
-    # dlt exception with additional props
+    # data_load_tool exception with additional props
     try:
         raise PipelineException("test_pipeline", "Message")
     except Exception as exc:
@@ -269,7 +269,7 @@ def test_exception_traces() -> None:
 
 
 def test_exception_trace_chain() -> None:
-    from dlt.common.destination.exceptions import IdentifierTooLongException
+    from data_load_tool.common.destination.exceptions import IdentifierTooLongException
 
     try:
         raise TerminalValueError("Val")
@@ -284,12 +284,12 @@ def test_exception_trace_chain() -> None:
                 traces = get_exception_trace_chain(exc)
     # outer exception first
     assert len(traces) == 3
-    assert traces[0]["exception_type"] == "dlt.common.exceptions.PipelineException"
+    assert traces[0]["exception_type"] == "data_load_tool.common.exceptions.PipelineException"
     assert (
         traces[1]["exception_type"]
-        == "dlt.common.destination.exceptions.IdentifierTooLongException"
+        == "data_load_tool.common.destination.exceptions.IdentifierTooLongException"
     )
-    assert traces[2]["exception_type"] == "dlt.common.exceptions.TerminalValueError"
+    assert traces[2]["exception_type"] == "data_load_tool.common.exceptions.TerminalValueError"
 
 
 def test_nested_dict_merge() -> None:
@@ -319,7 +319,7 @@ def test_nested_dict_merge() -> None:
     assert dict_1_deep_clone["b"] is not dict_1
 
     # make sure that that Mappings that are not dicts are atomically copied
-    from dlt.common.configuration.specs import ConnectionStringCredentials
+    from data_load_tool.common.configuration.specs import ConnectionStringCredentials
 
     dsn = ConnectionStringCredentials("postgres://loader:loader@localhost:5432/dlt_data")
     dict_1_mappings: Dict[str, Any] = {

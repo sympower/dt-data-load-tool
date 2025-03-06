@@ -1,41 +1,41 @@
 ---
 title: Custom destination
-description: Custom `dlt` destination function for reverse ETL
+description: Custom `data_load_tool` destination function for reverse ETL
 keywords: [reverse etl, sink, function, decorator, destination, custom destination]
 ---
 
 # Custom destination: Reverse ETL
 
-The `dlt` destination decorator allows you to receive all data passing through your pipeline in a simple function. This can be extremely useful for reverse ETL, where you are pushing data back to an API.
+The `data_load_tool` destination decorator allows you to receive all data passing through your pipeline in a simple function. This can be extremely useful for reverse ETL, where you are pushing data back to an API.
 
-You can also use this for sending data to a queue or a simple database destination that is not yet supported by `dlt`, although be aware that you will have to manually handle your own migrations in this case.
+You can also use this for sending data to a queue or a simple database destination that is not yet supported by `data_load_tool`, although be aware that you will have to manually handle your own migrations in this case.
 
 It will also allow you to simply get a path to the files of your normalized data. So, if you need direct access to parquet or jsonl files to copy them somewhere or push them to a database, you can do this here too.
 
-## Install `dlt` for reverse ETL
+## Install `data_load_tool` for reverse ETL
 
-To install `dlt` without additional dependencies:
+To install `data_load_tool` without additional dependencies:
 ```sh
-pip install dlt
+pip install data_load_tool
 ```
 
 ## Set up a destination function for your pipeline
 
-The custom destination decorator differs from other destinations in that you do not need to provide connection credentials, but rather you provide a function that gets called for all items loaded during a pipeline run or load operation. With the `@dlt.destination`, you can convert any function that takes two arguments into a `dlt` destination.
+The custom destination decorator differs from other destinations in that you do not need to provide connection credentials, but rather you provide a function that gets called for all items loaded during a pipeline run or load operation. With the `@data_load_tool.destination`, you can convert any function that takes two arguments into a `data_load_tool` destination.
 
-A very simple dlt pipeline that pushes a list of items into a destination function might look like this:
+A very simple data_load_tool pipeline that pushes a list of items into a destination function might look like this:
 
 ```py
-import dlt
-from dlt.common.typing import TDataItems
-from dlt.common.schema import TTableSchema
+import data_load_tool
+from data_load_tool.common.typing import TDataItems
+from data_load_tool.common.schema import TTableSchema
 
-@dlt.destination(batch_size=10)
+@data_load_tool.destination(batch_size=10)
 def my_destination(items: TDataItems, table: TTableSchema) -> None:
     print(table["name"])
     print(items)
 
-pipeline = dlt.pipeline("custom_destination_pipeline", destination=my_destination)
+pipeline = data_load_tool.pipeline("custom_destination_pipeline", destination=my_destination)
 pipeline.run([1, 2, 3], table_name="items")
 ```
 
@@ -44,12 +44,12 @@ pipeline.run([1, 2, 3], table_name="items")
 2. There are a few other ways to declare custom destination functions for your pipeline described below.
 :::
 
-### `@dlt.destination`, custom destination function, and signature
+### `@data_load_tool.destination`, custom destination function, and signature
 
 The full signature of the destination decorator plus its function is the following:
 
 ```py
-@dlt.destination(
+@data_load_tool.destination(
     batch_size=10,
     loader_file_format="jsonl",
     name="my_custom_destination",
@@ -89,12 +89,12 @@ Settings above ensure that the shape of the data you receive in the destination 
 The destination decorator supports settings and secrets variables. If you, for example, plan to connect to a service that requires an API secret or a login, you can do the following:
 
 ```py
-@dlt.destination(batch_size=10, loader_file_format="jsonl", name="my_destination")
-def my_destination(items: TDataItems, table: TTableSchema, api_key: str = dlt.secrets.value) -> None:
+@data_load_tool.destination(batch_size=10, loader_file_format="jsonl", name="my_destination")
+def my_destination(items: TDataItems, table: TTableSchema, api_key: str = data_load_tool.secrets.value) -> None:
     ...
 ```
 
-You can then set a config variable in your `.dlt/secrets.toml` like so:
+You can then set a config variable in your `.data_load_tool/secrets.toml` like so:
 
 ```toml
 [destination.my_destination]
@@ -103,42 +103,42 @@ api_key="<my-api-key>"
 
 Custom destinations follow the same configuration rules as [regular named destinations](../../general-usage/destination.md#configure-a-destination)
 
-## Use the custom destination in `dlt` pipeline
+## Use the custom destination in `data_load_tool` pipeline
 
-There are multiple ways to pass the custom destination function to the `dlt` pipeline:
+There are multiple ways to pass the custom destination function to the `data_load_tool` pipeline:
 - Directly reference the destination function
 
   ```py
-  @dlt.destination(batch_size=10)
+  @data_load_tool.destination(batch_size=10)
   def local_destination_func(items: TDataItems, table: TTableSchema) -> None:
       ...
 
   # Reference function directly
-  p = dlt.pipeline("my_pipe", destination=local_destination_func)
+  p = data_load_tool.pipeline("my_pipe", destination=local_destination_func)
   ```
 
   Like for [regular destinations](../../general-usage/destination.md#pass-explicit-credentials), you are allowed to pass configuration and credentials
   explicitly to the destination function.
   ```py
-  @dlt.destination(batch_size=10, loader_file_format="jsonl", name="my_destination")
-  def my_destination(items: TDataItems, table: TTableSchema, api_key: str = dlt.secrets.value) -> None:
+  @data_load_tool.destination(batch_size=10, loader_file_format="jsonl", name="my_destination")
+  def my_destination(items: TDataItems, table: TTableSchema, api_key: str = data_load_tool.secrets.value) -> None:
       ...
 
-  p = dlt.pipeline("my_pipe", destination=my_destination(api_key=os.getenv("API_KEY"))) # type: ignore[call-arg]
+  p = data_load_tool.pipeline("my_pipe", destination=my_destination(api_key=os.getenv("API_KEY"))) # type: ignore[call-arg]
   ```
 
 - Directly via destination reference. In this case, don't use the decorator for the destination function.
   ```py
   # File my_destination.py
 
-  from dlt.common.destination import Destination
+  from data_load_tool.common.destination import Destination
 
   # Don't use the decorator
   def local_destination_func(items: TDataItems, table: TTableSchema) -> None:
       ...
 
   # Via destination reference
-  p = dlt.pipeline(
+  p = data_load_tool.pipeline(
       "my_pipe",
       destination=Destination.from_reference(
           "destination", destination_callable=local_destination_func
@@ -149,10 +149,10 @@ There are multiple ways to pass the custom destination function to the `dlt` pip
   ```py
   # File my_pipeline.py
 
-  from dlt.common.destination import Destination
+  from data_load_tool.common.destination import Destination
 
   # Fully qualified string to function location
-  p = dlt.pipeline(
+  p = data_load_tool.pipeline(
       "my_pipe",
       destination=Destination.from_reference(
           "destination", destination_callable="my_destination.local_destination_func"
@@ -162,7 +162,7 @@ There are multiple ways to pass the custom destination function to the `dlt` pip
 
 ## Adjust batch size and retry policy for atomic loads
 The destination keeps a local record of how many `DataItems` were processed, so if you, for example, use the custom destination to push `DataItems` to a remote API, and this
-API becomes unavailable during the load resulting in a failed `dlt` pipeline run, you can repeat the run of your pipeline at a later moment and the custom destination will **restart from the whole batch that failed**. We are preventing any data from being lost, but you can still get duplicated data if you committed half of the batch, for example, to a database and then failed.
+API becomes unavailable during the load resulting in a failed `data_load_tool` pipeline run, you can repeat the run of your pipeline at a later moment and the custom destination will **restart from the whole batch that failed**. We are preventing any data from being lost, but you can still get duplicated data if you committed half of the batch, for example, to a database and then failed.
 **Keeping the batch atomicity is on you**. For this reason, it makes sense to choose a batch size that you can process in one transaction (say one API request or one database transaction) so that if this request or transaction fails repeatedly, you can repeat it at the next run without pushing duplicate data to your remote location. For systems that
 are not transactional and do not tolerate duplicated data, you can use a batch of size 1.
 
@@ -184,11 +184,11 @@ For performance reasons, we recommend keeping the multithreaded approach and mak
 
 ## Write disposition
 
-`@dlt.destination` will forward all normalized `DataItems` encountered during a pipeline run to the custom destination function, so there is no notion of "write dispositions."
+`@data_load_tool.destination` will forward all normalized `DataItems` encountered during a pipeline run to the custom destination function, so there is no notion of "write dispositions."
 
 ## Staging support
 
-`@dlt.destination` does not support staging files in remote locations before being called at this time. If you need this feature, please let us know.
+`@data_load_tool.destination` does not support staging files in remote locations before being called at this time. If you need this feature, please let us know.
 
 ## Manage pipeline state for incremental loading
 Custom destinations do not have a general mechanism to restore pipeline state. This will impact data sources that rely on the state being kept, i.e., all incremental resources.

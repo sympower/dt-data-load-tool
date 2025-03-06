@@ -1,8 +1,8 @@
 import pytest
 
-from dlt.common.configuration import resolve_configuration
-from dlt.common.schema import Schema
-from dlt.common.storages import SchemaStorageConfiguration, SchemaStorage
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.storages import SchemaStorageConfiguration, SchemaStorage
 
 
 from tests.utils import autouse_test_storage, preserve_environ

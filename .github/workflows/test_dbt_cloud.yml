@@ -76,7 +76,7 @@ jobs:
           key: venv-${{ matrix.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}-dbt-cloud
 
       - name: Install dependencies
-        # install dlt with postgres support
+        # install data_load_tool with postgres support
         run: poetry install --no-interaction
 
       - run: |

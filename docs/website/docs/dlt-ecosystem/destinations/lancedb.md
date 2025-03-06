@@ -1,13 +1,13 @@
 ---
 title: LanceDB
-description: LanceDB is an open source vector database that can be used as a destination in dlt.
-keywords: [ lancedb, vector database, destination, dlt ]
+description: LanceDB is an open source vector database that can be used as a destination in data_load_tool.
+keywords: [ lancedb, vector database, destination, data_load_tool ]
 ---
 
 # LanceDB
 
 [LanceDB](https://lancedb.com/) is an open-source, high-performance vector database. It allows you to store data objects and perform similarity searches over them.
-This destination helps you load data into LanceDB from [dlt resources](../../general-usage/resource.md).
+This destination helps you load data into LanceDB from [data_load_tool resources](../../general-usage/resource.md).
 
 ## Setup guide
 
@@ -15,21 +15,21 @@ This destination helps you load data into LanceDB from [dlt resources](../../gen
 
 First, you need to decide which embedding model provider to use. You can find all supported providers by visiting the official [LanceDB docs](https://lancedb.github.io/lancedb/embeddings/default_embedding_functions/).
 
-### Install dlt with LanceDB
+### Install data_load_tool with LanceDB
 
-To use LanceDB as a destination, make sure `dlt` is installed with the `lancedb` extra:
+To use LanceDB as a destination, make sure `data_load_tool` is installed with the `lancedb` extra:
 
 ```sh
-pip install "dlt[lancedb]"
+pip install "data_load_tool[lancedb]"
 ```
 
-The lancedb extra only installs `dlt` and `lancedb`. You will need to install your model provider's SDK.
+The lancedb extra only installs `data_load_tool` and `lancedb`. You will need to install your model provider's SDK.
 
 You can find which libraries you need by also referring to the [LanceDB docs](https://lancedb.github.io/lancedb/embeddings/default_embedding_functions/).
 
 ### Configure the destination
 
-Configure the destination in the dlt secrets file located at `~/.dlt/secrets.toml` by default. Add the following section:
+Configure the destination in the data_load_tool secrets file located at `~/.data_load_tool/secrets.toml` by default. Add the following section:
 
 ```toml
 [destination.lancedb]
@@ -81,8 +81,8 @@ Local database name and location:
 For example:
 
 ```py
-import dlt
-from dlt.destinations.adapters import lancedb_adapter
+import data_load_tool
+from data_load_tool.destinations.adapters import lancedb_adapter
 
 
 movies = [
@@ -107,7 +107,7 @@ movies = [
 ### Create a pipeline:
 
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
   pipeline_name="movies",
   destination="lancedb",
   dataset_name="MoviesDataset",
@@ -127,11 +127,11 @@ info = pipeline.run(
 
 The data is now loaded into LanceDB.
 
-To use **vector search** after loading, you **must specify which fields LanceDB should generate embeddings for**. Do this by wrapping the data (or dlt resource) with the **`lancedb_adapter`** function.
+To use **vector search** after loading, you **must specify which fields LanceDB should generate embeddings for**. Do this by wrapping the data (or data_load_tool resource) with the **`lancedb_adapter`** function.
 
 ## Using an adapter to specify columns to vectorize
 
-Out of the box, LanceDB will act as a normal database. To use LanceDB's embedding facilities, you'll need to specify which fields you'd like to embed in your dlt resource.
+Out of the box, LanceDB will act as a normal database. To use LanceDB's embedding facilities, you'll need to specify which fields you'd like to embed in your data_load_tool resource.
 
 The `lancedb_adapter` is a helper function that configures the resource for the LanceDB destination:
 
@@ -141,10 +141,10 @@ lancedb_adapter(data, embed="title")
 
 It accepts the following arguments:
 
-- `data`: a dlt resource object, or a Python data structure (e.g., a list of dictionaries).
+- `data`: a data_load_tool resource object, or a Python data structure (e.g., a list of dictionaries).
 - `embed`: a name of the field or a list of names to generate embeddings for.
 
-Returns: [dlt resource](../../general-usage/resource.md) object that you can pass to the `pipeline.run()`.
+Returns: [data_load_tool resource](../../general-usage/resource.md) object that you can pass to the `pipeline.run()`.
 
 Example:
 
@@ -160,7 +160,7 @@ When using the `lancedb_adapter`, it's important to apply it directly to resourc
 ```py
 products_tables = sql_database().with_resources("products", "customers")
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
         pipeline_name="postgres_to_lancedb_pipeline",
         destination="lancedb",
     )
@@ -197,7 +197,7 @@ The [merge](../../general-usage/incremental-loading.md) write disposition merges
 You can specify the merge disposition, primary key, and merge key either in a resource or adapter:
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
   primary_key=["doc_id", "chunk_id"],
   merge_key=["doc_id"],
   write_disposition={"disposition": "merge", "strategy": "upsert"},
@@ -261,9 +261,9 @@ This is the default disposition. It will append the data to the existing data in
 
 The LanceDB destination doesn't support dbt integration.
 
-## Syncing of `dlt` state
+## Syncing of `data_load_tool` state
 
-The LanceDB destination supports syncing of the `dlt` state.
+The LanceDB destination supports syncing of the `data_load_tool` state.
 
 ## Current limitations
 

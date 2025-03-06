@@ -5,29 +5,29 @@ from typing import List
 import pytest
 import yaml
 
-import dlt
+import data_load_tool
 
-from dlt.common import json, pendulum
-from dlt.common.configuration.container import Container
-from dlt.common.destination.utils import resolve_merge_strategy
-from dlt.common.pipeline import StateInjectableContext
-from dlt.common.schema.utils import has_table_seen_data
-from dlt.common.schema.exceptions import (
+from data_load_tool.common import json, pendulum
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.destination.utils import resolve_merge_strategy
+from data_load_tool.common.pipeline import StateInjectableContext
+from data_load_tool.common.schema.utils import has_table_seen_data
+from data_load_tool.common.schema.exceptions import (
     SchemaCorruptedException,
     UnboundColumnException,
     CannotCoerceNullException,
 )
-from dlt.common.schema.typing import TLoaderMergeStrategy
-from dlt.common.typing import StrAny
-from dlt.common.utils import digest128
-from dlt.common.destination import AnyDestination, DestinationCapabilitiesContext
-from dlt.common.destination.exceptions import DestinationCapabilitiesException
-from dlt.common.libs.pyarrow import row_tuples_to_arrow
+from data_load_tool.common.schema.typing import TLoaderMergeStrategy
+from data_load_tool.common.typing import StrAny
+from data_load_tool.common.utils import digest128
+from data_load_tool.common.destination import AnyDestination, DestinationCapabilitiesContext
+from data_load_tool.common.destination.exceptions import DestinationCapabilitiesException
+from data_load_tool.common.libs.pyarrow import row_tuples_to_arrow
 
-from dlt.extract import DltResource
-from dlt.sources.helpers.transform import skip_first, take_first
-from dlt.pipeline.exceptions import PipelineStepFailed
-from dlt.normalize.exceptions import NormalizeJobFailed
+from data_load_tool.extract import DltResource
+from data_load_tool.sources.helpers.transform import skip_first, take_first
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.normalize.exceptions import NormalizeJobFailed
 
 from tests.pipeline.utils import (
     assert_load_info,
@@ -81,16 +81,16 @@ def test_merge_on_keys_in_schema(
     skip_if_not_supported(merge_strategy, p.destination)
 
     with open("tests/common/cases/schemas/eth/ethereum_schema_v11.yml", "r", encoding="utf-8") as f:
-        schema = dlt.Schema.from_dict(yaml.safe_load(f))
+        schema = data_load_tool.Schema.from_dict(yaml.safe_load(f))
 
     # make block uncles unseen to trigger filtering loader in loader for nested tables
     if has_table_seen_data(schema.tables["blocks__uncles"]):
         del schema.tables["blocks__uncles"]["x-normalizer"]
         assert not has_table_seen_data(schema.tables["blocks__uncles"])
 
-    @dlt.source(schema=schema)
+    @data_load_tool.source(schema=schema)
     def ethereum(slice_: slice = None):
-        @dlt.resource(
+        @data_load_tool.resource(
             table_name="blocks",
             write_disposition={"disposition": "merge", "strategy": merge_strategy},
         )
@@ -103,7 +103,7 @@ def test_merge_on_keys_in_schema(
                 yield json.load(f) if slice_ is None else json.load(f)[slice_]
 
         # also modify the child tables (not nested)
-        schema_ = dlt.current.source_schema()
+        schema_ = data_load_tool.current.source_schema()
         blocks__transactions = schema_.tables["blocks__transactions"]
         blocks__transactions["write_disposition"] = "merge"
         blocks__transactions["x-merge-strategy"] = merge_strategy  # type: ignore[typeddict-unknown-key]
@@ -174,7 +174,7 @@ def test_merge_record_updates(
 
     skip_if_not_supported(merge_strategy, p.destination)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="parent",
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         primary_key="id",
@@ -288,7 +288,7 @@ def test_merge_primary_key_normalization(
 
     skip_if_not_supported(merge_strategy, p.destination)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="parent",
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         primary_key=("id", "TxId"),
@@ -409,7 +409,7 @@ def test_merge_nested_records_inserted_deleted(
 
     skip_if_not_supported(merge_strategy, p.destination)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="parent",
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         primary_key="id",
@@ -547,7 +547,7 @@ def test_bring_your_own_dlt_id(
     skip_if_not_supported(merge_strategy, p.destination)
 
     # sets _dlt_id as both primary key and row key.
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="parent",
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         primary_key="_dlt_id",
@@ -583,7 +583,7 @@ def test_bring_your_own_dlt_id(
     assert child_root_id["data_type"] == "bigint"
     assert child_root_id["root_key"] is True
 
-    # id on child is regular auto dlt id
+    # id on child is regular auto data_load_tool id
     child_dlt_id = p.default_schema.tables["parent__child"]["columns"]["_dlt_id"]
     assert child_dlt_id["data_type"] == "text"
 
@@ -591,7 +591,7 @@ def test_bring_your_own_dlt_id(
     grandchild_parent_id = p.default_schema.tables["parent__child__grandchild"]["columns"][
         "_dlt_parent_id"
     ]
-    # refers to child dlt id which is a regular one
+    # refers to child data_load_tool id which is a regular one
     assert grandchild_parent_id["data_type"] == "text"
     assert grandchild_parent_id["parent_key"] is True
 
@@ -605,7 +605,7 @@ def test_bring_your_own_dlt_id(
     table_data = load_tables_to_dicts(
         p, "parent", "parent__child", "parent__child__grandchild", exclude_system_cols=False
     )
-    # drop dlt load id
+    # drop data_load_tool load id
     del table_data["parent"][0]["_dlt_load_id"]
     # all the ids are deterministic: on parent is set by the user, on child - is derived from parent
     assert table_data == {
@@ -650,7 +650,7 @@ def test_merge_on_ad_hoc_primary_key(
     p = destination_config.setup_pipeline("github_1", dev_mode=True)
     skip_if_not_supported(merge_strategy, p.destination)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="issues",
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         primary_key="NodeId",
@@ -684,9 +684,9 @@ def test_merge_on_ad_hoc_primary_key(
     # still 100 after the reload
 
 
-@dlt.source(root_key=True)
+@data_load_tool.source(root_key=True)
 def github():
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="issues",
         write_disposition="merge",
         primary_key="id",
@@ -878,7 +878,7 @@ def test_pipeline_load_parquet(destination_config: DestinationTestConfiguration)
     assert github_1_counts["issues"] == 100
 
 
-@dlt.transformer(
+@data_load_tool.transformer(
     name="github_repo_events",
     primary_key="id",
     write_disposition="merge",
@@ -886,23 +886,23 @@ def test_pipeline_load_parquet(destination_config: DestinationTestConfiguration)
 )
 def github_repo_events(
     page: List[StrAny],
-    last_created_at=dlt.sources.incremental("created_at", "1970-01-01T00:00:00Z"),
+    last_created_at=data_load_tool.sources.incremental("created_at", "1970-01-01T00:00:00Z"),
 ):
     """A transformer taking a stream of github events and dispatching them to tables named by event type. Deduplicates be 'id'. Loads incrementally by 'created_at'"""
     yield page
 
 
-@dlt.transformer(name="github_repo_events", primary_key="id", write_disposition="merge")
+@data_load_tool.transformer(name="github_repo_events", primary_key="id", write_disposition="merge")
 def github_repo_events_table_meta(
     page: List[StrAny],
-    last_created_at=dlt.sources.incremental("created_at", "1970-01-01T00:00:00Z"),
+    last_created_at=data_load_tool.sources.incremental("created_at", "1970-01-01T00:00:00Z"),
 ):
     """A transformer taking a stream of github events and dispatching them to tables using table meta. Deduplicates be 'id'. Loads incrementally by 'created_at'"""
-    yield from [dlt.mark.with_table_name(p, p["type"]) for p in page]
+    yield from [data_load_tool.mark.with_table_name(p, p["type"]) for p in page]
 
 
-@dlt.resource
-def _get_shuffled_events(shuffle: bool = dlt.secrets.value):
+@data_load_tool.resource
+def _get_shuffled_events(shuffle: bool = data_load_tool.secrets.value):
     with open(
         "tests/normalize/cases/github.events.load_page_1_duck.json", "r", encoding="utf-8"
     ) as f:
@@ -931,7 +931,7 @@ def test_merge_with_dispatch_and_incremental(
     )
     newest_issue = newest_issues[0]
 
-    @dlt.resource
+    @data_load_tool.resource
     def _new_event(node_id):
         new_i = copy(newest_issue)
         new_i["id"] = str(random.randint(0, 2 ^ 32))
@@ -940,7 +940,7 @@ def test_merge_with_dispatch_and_incremental(
         # yield pages
         yield [new_i]
 
-    @dlt.resource
+    @data_load_tool.resource
     def _updated_event(node_id):
         new_i = copy(newest_issue)
         new_i["created_at"] = pendulum.now().isoformat()
@@ -1032,7 +1032,7 @@ def test_merge_with_dispatch_and_incremental(
 def test_deduplicate_single_load(destination_config: DestinationTestConfiguration) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(write_disposition="merge", primary_key="id")
+    @data_load_tool.resource(write_disposition="merge", primary_key="id")
     def duplicates():
         yield [
             {"id": 1, "name": "row1", "child": [1, 2, 3]},
@@ -1047,7 +1047,7 @@ def test_deduplicate_single_load(destination_config: DestinationTestConfiguratio
     qual_name = p.sql_client().make_qualified_table_name("duplicates")
     select_data(p, f"SELECT * FROM {qual_name}")[0]
 
-    @dlt.resource(write_disposition="merge", primary_key=("id", "subkey"))
+    @data_load_tool.resource(write_disposition="merge", primary_key=("id", "subkey"))
     def duplicates_no_child():
         yield [{"id": 1, "subkey": "AX", "name": "row1"}, {"id": 1, "subkey": "AX", "name": "row2"}]
 
@@ -1063,7 +1063,7 @@ def test_deduplicate_single_load(destination_config: DestinationTestConfiguratio
 def test_no_deduplicate_only_merge_key(destination_config: DestinationTestConfiguration) -> None:
     p = destination_config.setup_pipeline("abstract", dev_mode=True)
 
-    @dlt.resource(write_disposition="merge", merge_key="id")
+    @data_load_tool.resource(write_disposition="merge", merge_key="id")
     def duplicates():
         yield [
             {"id": 1, "name": "row1", "child": [1, 2, 3]},
@@ -1076,7 +1076,7 @@ def test_no_deduplicate_only_merge_key(destination_config: DestinationTestConfig
     assert counts["duplicates"] == 2
     assert counts["duplicates__child"] == 6
 
-    @dlt.resource(write_disposition="merge", merge_key=("id", "subkey"))
+    @data_load_tool.resource(write_disposition="merge", merge_key=("id", "subkey"))
     def duplicates_no_child():
         yield [{"id": 1, "subkey": "AX", "name": "row1"}, {"id": 1, "subkey": "AX", "name": "row2"}]
 
@@ -1110,7 +1110,7 @@ def test_nested_column_missing(
 
     table_name = "test_nested_column_missing"
 
-    @dlt.resource(
+    @data_load_tool.resource(
         name=table_name,
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         primary_key="id",
@@ -1159,7 +1159,7 @@ def test_hard_delete_hint(
     # can not be matched
     table_name = "test_hard_delete_hint"
 
-    @dlt.resource(
+    @data_load_tool.resource(
         name=table_name,
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         columns={"deleted": {"hard_delete": True}},
@@ -1319,7 +1319,7 @@ def test_hard_delete_hint_config(
 ) -> None:
     table_name = "test_hard_delete_hint_non_bool"
 
-    @dlt.resource(
+    @data_load_tool.resource(
         name=table_name,
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         primary_key="id",
@@ -1360,7 +1360,7 @@ def test_hard_delete_hint_config(
     assert sorted(observed, key=lambda d: d["id"]) == expected
 
     # test if exception is raised when more than one "hard_delete" column hints are provided
-    @dlt.resource(
+    @data_load_tool.resource(
         name="test_hard_delete_hint_too_many_hints",
         write_disposition="merge",
         columns={"deleted_1": {"hard_delete": True}, "deleted_2": {"hard_delete": True}},
@@ -1381,7 +1381,7 @@ def test_hard_delete_hint_config(
 def test_dedup_sort_hint(destination_config: DestinationTestConfiguration) -> None:
     table_name = "test_dedup_sort_hint"
 
-    @dlt.resource(
+    @data_load_tool.resource(
         name=table_name,
         write_disposition="merge",
         primary_key="id",  # sort hints only have effect when a primary key is provided
@@ -1520,7 +1520,7 @@ def test_dedup_sort_hint(destination_config: DestinationTestConfiguration) -> No
         assert load_table_counts(p, table_name)[table_name] == 1
 
     # test if exception is raised for invalid column schema's
-    @dlt.resource(
+    @data_load_tool.resource(
         name="test_dedup_sort_hint_too_many_hints",
         write_disposition="merge",
         columns={"dedup_sort_1": {"dedup_sort": "this_is_invalid"}},  # type: ignore[call-overload]
@@ -1544,18 +1544,18 @@ def test_merge_strategy_config() -> None:
     # merge strategy invalid
     with pytest.raises(ValueError):
 
-        @dlt.resource(write_disposition={"disposition": "merge", "strategy": "foo"})  # type: ignore[call-overload]
+        @data_load_tool.resource(write_disposition={"disposition": "merge", "strategy": "foo"})  # type: ignore[call-overload]
         def invalid_resource():
             yield {"foo": "bar"}
 
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="dummy_pipeline",
         destination="dummy",
         full_refresh=True,
     )
 
     # merge strategy not supported by destination
-    @dlt.resource(write_disposition={"disposition": "merge", "strategy": "scd2"})
+    @data_load_tool.resource(write_disposition={"disposition": "merge", "strategy": "scd2"})
     def r():
         yield {"foo": "bar"}
 
@@ -1585,7 +1585,7 @@ def test_upsert_merge_strategy_config(destination_config: DestinationTestConfigu
             " implemented for `fileystem` destination."
         )
 
-    @dlt.resource(write_disposition={"disposition": "merge", "strategy": "upsert"})
+    @data_load_tool.resource(write_disposition={"disposition": "merge", "strategy": "upsert"})
     def r():
         yield {"foo": "bar"}
 
@@ -1605,7 +1605,7 @@ def test_upsert_merge_strategy_config(destination_config: DestinationTestConfigu
 def test_missing_merge_key_column(destination_config: DestinationTestConfiguration) -> None:
     """Merge key is not present in data, error is raised"""
 
-    @dlt.resource(merge_key="not_a_column", write_disposition={"disposition": "merge"})
+    @data_load_tool.resource(merge_key="not_a_column", write_disposition={"disposition": "merge"})
     def merging_test_table():
         yield {"foo": "bar"}
 
@@ -1630,7 +1630,7 @@ def test_missing_merge_key_column(destination_config: DestinationTestConfigurati
 def test_merge_key_null_values(destination_config: DestinationTestConfiguration) -> None:
     """Merge key is present in data, but some rows have null values"""
 
-    @dlt.resource(merge_key="id", write_disposition={"disposition": "merge"})
+    @data_load_tool.resource(merge_key="id", write_disposition={"disposition": "merge"})
     def r():
         yield [{"id": 1}, {"id": None}, {"id": 2}]
 
@@ -1666,7 +1666,7 @@ def test_merge_arrow(
 
     skip_if_not_supported(merge_strategy, pipeline.destination)
 
-    @dlt.resource(
+    @data_load_tool.resource(
         write_disposition={"disposition": "merge", "strategy": merge_strategy},
         primary_key="id",
         table_format=destination_config.table_format,

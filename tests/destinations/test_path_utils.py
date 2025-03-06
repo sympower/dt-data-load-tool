@@ -1,15 +1,15 @@
 from typing import List, Tuple
 
 import pytest
-import dlt.destinations.path_utils
+import data_load_tool.destinations.path_utils
 
-from dlt.common import logger, pendulum
-from dlt.common.storages import LoadStorage
-from dlt.common.storages.load_package import ParsedLoadJobFileName
+from data_load_tool.common import logger, pendulum
+from data_load_tool.common.storages import LoadStorage
+from data_load_tool.common.storages.load_package import ParsedLoadJobFileName
 
-from dlt.destinations.path_utils import create_path, get_table_prefix_layout
+from data_load_tool.destinations.path_utils import create_path, get_table_prefix_layout
 
-from dlt.destinations.exceptions import InvalidFilesystemLayout, CantExtractTablePrefix
+from data_load_tool.destinations.exceptions import InvalidFilesystemLayout, CantExtractTablePrefix
 from tests.common.storages.utils import start_loading_file, load_storage
 
 
@@ -310,7 +310,7 @@ def test_layout_validity(
     )
 
     mocker.patch(
-        "dlt.common.storages.load_package.ParsedLoadJobFileName.parse",
+        "data_load_tool.common.storages.load_package.ParsedLoadJobFileName.parse",
         return_value=job_info,
     )
 
@@ -511,7 +511,7 @@ def test_create_path_uses_load_package_timestamp_as_current_datetime(
     now_timestamp = now
     logger_spy = mocker.spy(logger, "info")
     ensure_pendulum_datetime_spy = mocker.spy(
-        dlt.destinations.path_utils, "ensure_pendulum_datetime"
+        data_load_tool.destinations.path_utils, "ensure_pendulum_datetime"
     )
     path = create_path(
         "{schema_name}/{table_name}/{load_id}.{file_id}.{timestamp}.{ext}",
@@ -551,7 +551,7 @@ def test_create_path_resolves_extra_placeholders(test_load: TestLoad) -> None:
         "callable_1": counter.inc,
         "otter": counter.inc,
         "otters": "lab",
-        "dlt": "labs",
+        "data_load_tool": "labs",
         "dlthub": "platform",
         "x": "files",
     }

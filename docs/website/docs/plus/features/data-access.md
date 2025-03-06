@@ -10,12 +10,12 @@ import Link from '../../_plus_admonition.md';
 
 # Secure data access and sharing
 
-dlt+ makes it easy for end-users like data scientists or analysts to access high-quality production data in a secure and Python-friendly way. A [dlt+ Project](../core-concepts/project.md) exposes a standard Python API which connects to the production data using an "access" [profile](../core-concepts/profiles.md). This profile can be configured to specify how users are allowed to interact with the data, e.g., by applying restrictions on datasets that are not allowed to be modified.
+data_load_tool+ makes it easy for end-users like data scientists or analysts to access high-quality production data in a secure and Python-friendly way. A [data_load_tool+ Project](../core-concepts/project.md) exposes a standard Python API which connects to the production data using an "access" [profile](../core-concepts/profiles.md). This profile can be configured to specify how users are allowed to interact with the data, e.g., by applying restrictions on datasets that are not allowed to be modified.
 
 ## Project packaging
 
-dlt+ Projects can be distributed as Python packages, with which data end-users can easily interact within their own Pythonic workflows.
-To package an existing dlt+ Project, you need to:
+data_load_tool+ Projects can be distributed as Python packages, with which data end-users can easily interact within their own Pythonic workflows.
+To package an existing data_load_tool+ Project, you need to:
 
 1. Add an `__init__.py` file to the root of your project.
 
@@ -35,7 +35,7 @@ A demonstration package that sends GitHub events to Delta Lake, aggregates, and 
 """
 
 import os
-import dlt as dlt
+import data_load_tool as data_load_tool
 from dlt_plus.project import Catalog, EntityFactory, ProjectRunContext, Project, PipelineManager
 
 def access_profile() -> str:
@@ -88,7 +88,7 @@ description = "Description"
 requires-python = ">=3.9,<3.13"
 
 dependencies = [
-    "dlt>=1.7.0",
+    "data_load_tool>=1.7.0",
     "dlt-plus==0.7.0"
 ]
 
@@ -98,7 +98,7 @@ dlt-project = "dlt_example_project"
 </details>
 
 :::info
-cli support for packaging dlt+ Projects is currently in development and will be available in future releases.
+cli support for packaging data_load_tool+ Projects is currently in development and will be available in future releases.
 :::
 
 ## Data access and sharing
@@ -122,7 +122,7 @@ Once you've created a Python package, you can distribute it via PyPI (private or
     The datasets declared in the project create a data catalog that can be used to explore which datasets and tables are available and even discover their schema without having to actually load any data into the local machine.
 
     ```py
-    my_catalog = dlt_project.catalog() # Access the data catalog created by dlt
+    my_catalog = dlt_project.catalog() # Access the data catalog created by data_load_tool
     print(my_catalog) # Inspect datasets and available tables
     print(my_catalog.github_events_dataset) # Access the dataset github_events_dataset from the catalog
     ```
@@ -198,7 +198,7 @@ Once you've created a Python package, you can distribute it via PyPI (private or
 
 ## Security and contracts
 
-When end-users interact with data using the Python API, they do so through a profile called "access". As a data engineer, you can manage this access by setting configurations and credentials for this profile in `dlt.yml` or in the toml files. Read more about setting secrets and configurations for different profiles [here](../core-concepts/profiles.md).
+When end-users interact with data using the Python API, they do so through a profile called "access". As a data engineer, you can manage this access by setting configurations and credentials for this profile in `data_load_tool.yml` or in the toml files. Read more about setting secrets and configurations for different profiles [here](../core-concepts/profiles.md).
 
 It's possible to set granular limits on how users can write data through schema and data contracts. These can be set individually per profile per dataset.
 
@@ -229,7 +229,7 @@ then they would get the following error:
 ```sh
 PipelineStepFailed: Pipeline execution failed at stage extract when processing package 1730314603.1941314 with exception:
 
-<class 'dlt.common.schema.exceptions.DataValidationError'>
+<class 'data_load_tool.common.schema.exceptions.DataValidationError'>
 In schema: events: In Schema: events Table: aggregated_issues. Contract on tables with mode freeze is violated. Trying to add table aggregated_issues but new tables are frozen.
 ```
 
@@ -251,7 +251,7 @@ then they would get the following error:
 ```sh
 PipelineStepFailed: Pipeline execution failed at stage extract when processing package 1730314610.4309433 with exception:
 
-<class 'dlt.common.schema.exceptions.DataValidationError'>
+<class 'data_load_tool.common.schema.exceptions.DataValidationError'>
 In schema: out_source: In Schema: out_source Table: aggregated_issues Column: id. Contract on columns with mode freeze is violated. Trying to add column id to table aggregated_issues but columns are frozen.
 ```
 

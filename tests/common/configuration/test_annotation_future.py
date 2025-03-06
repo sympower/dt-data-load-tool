@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Optional
 
-from dlt.common.configuration import configspec
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.configuration.specs import BaseConfiguration
+from data_load_tool.common.configuration import configspec
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.specs import BaseConfiguration
 
 from tests.utils import preserve_environ
 from tests.common.configuration.utils import environment

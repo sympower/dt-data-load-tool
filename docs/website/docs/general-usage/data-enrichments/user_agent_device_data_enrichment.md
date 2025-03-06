@@ -35,14 +35,14 @@ Alternatively, to create a data enrichment pipeline, you can start by creating t
 
 ```text
 user_device_enrichment/
-├── .dlt/
+├── .data_load_tool/
 │   └── secrets.toml
 └── device_enrichment_pipeline.py
 ```
 
 ### 1. Creating resource
 
-`dlt` works on the principle of [sources](../source) and [resources.](../resource)
+`data_load_tool` works on the principle of [sources](../source) and [resources.](../resource)
 
 This data resource yields data typical of what many web analytics and tracking tools can collect. However, the specifics of what data is collected and how it's used can vary significantly among different tracking services.
 
@@ -57,15 +57,15 @@ Let's examine a synthetic dataset created for this article. It includes:
 Here's the resource that yields the sample data as discussed above:
 
 ```py
-import dlt
+import data_load_tool
 
-@dlt.resource(write_disposition="append")
+@data_load_tool.resource(write_disposition="append")
 def tracked_data():
     """
     A generator function that yields a series of dictionaries, each representing
     user tracking data.
 
-    This function is decorated with `dlt.resource` to integrate into the DLT (Data
+    This function is decorated with `data_load_tool.resource` to integrate into the DLT (Data
     Loading Tool) pipeline. The `write_disposition` parameter is set to "append" to
     ensure that data from this generator is appended to the existing data in the
     destination table.
@@ -96,11 +96,11 @@ def tracked_data():
 
 ### 2. Create `fetch_average_price` function
 
-This particular function retrieves the average price of a device by utilizing SerpAPI and Google shopping listings. To filter the data, the function uses dlt state, and only fetches prices from SerpAPI for devices that have not been updated in the most recent run or for those that were loaded more than 180 days in the past.
+This particular function retrieves the average price of a device by utilizing SerpAPI and Google shopping listings. To filter the data, the function uses data_load_tool state, and only fetches prices from SerpAPI for devices that have not been updated in the most recent run or for those that were loaded more than 180 days in the past.
 
 The first step is to register on [SerpAPI](https://serpapi.com/) and obtain the API token key.
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive information securely, like access tokens. Keep this file safe. Here's its format for service account authentication:
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive information securely, like access tokens. Keep this file safe. Here's its format for service account authentication:
 
    ```toml
    [sources]
@@ -116,7 +116,7 @@ The first step is to register on [SerpAPI](https://serpapi.com/) and obtain the 
    # Uncomment transformer function if it is to be used as a transformer,
    # otherwise, it is being used with the `add_map` functionality.
 
-   # @dlt.transformer(data_from=tracked_data)
+   # @data_load_tool.transformer(data_from=tracked_data)
    def fetch_average_price(user_tracked_data):
        """
        Fetches the average price of a device from an external API and
@@ -136,11 +136,11 @@ The first step is to register on [SerpAPI](https://serpapi.com/) and obtain the 
            updated timestamp.
        """
 
-       # Retrieve the API key from dlt secrets
-       api_key: str = dlt.secrets.get("sources.api_key")
+       # Retrieve the API key from data_load_tool secrets
+       api_key: str = data_load_tool.secrets.get("sources.api_key")
 
        # Get the current resource state for device information
-       device_info = dlt.current.resource_state().setdefault("devices", {})
+       device_info = data_load_tool.current.resource_state().setdefault("devices", {})
 
        # Current timestamp for checking the last update
        current_timestamp = datetime.datetime.now()
@@ -212,11 +212,11 @@ The first step is to register on [SerpAPI](https://serpapi.com/) and obtain the 
    - Add map function
    - Transformer function
 
-   The `dlt` library's `transformer` and `add_map` functions serve distinct purposes in data
+   The `data_load_tool` library's `transformer` and `add_map` functions serve distinct purposes in data
    processing.
 
    `Transformers` are used to process a resource and are ideal for post-load data transformations in a
-   pipeline, compatible with tools like `dbt`, the `dlt SQL client`, or Pandas for intricate data
+   pipeline, compatible with tools like `dbt`, the `data_load_tool SQL client`, or Pandas for intricate data
    manipulation. To read more:
    [Click here.](../../general-usage/resource#process-resources-with-dlttransformer)
 
@@ -231,7 +231,7 @@ The first step is to register on [SerpAPI](https://serpapi.com/) and obtain the 
 
    ```py
    # Create the pipeline
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="data_enrichment_one",
        destination="duckdb",
        dataset_name="user_device_enrichment",
@@ -266,7 +266,7 @@ The first step is to register on [SerpAPI](https://serpapi.com/) and obtain the 
    [destination](../../dlt-ecosystem/destinations/), for example, duckdb:
 
    ```sh
-   pip install "dlt[duckdb]"
+   pip install "data_load_tool[duckdb]"
    ```
 
 1. Run the pipeline with the following command:
@@ -278,7 +278,7 @@ The first step is to register on [SerpAPI](https://serpapi.com/) and obtain the 
 1. To ensure that everything loads as expected, use the command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the "pipeline_name" for the above pipeline example is `data_enrichment_one`; you can use

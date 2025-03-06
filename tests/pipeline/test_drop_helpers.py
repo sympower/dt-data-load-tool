@@ -1,18 +1,18 @@
 import pytest
 from copy import deepcopy
 
-import dlt
-from dlt.common.schema.typing import LOADS_TABLE_NAME, PIPELINE_STATE_TABLE_NAME, VERSION_TABLE_NAME
-from dlt.common.versioned_state import decompress_state
-from dlt.pipeline.drop import drop_resources
-from dlt.pipeline.helpers import DropCommand, refresh_source
+import data_load_tool
+from data_load_tool.common.schema.typing import LOADS_TABLE_NAME, PIPELINE_STATE_TABLE_NAME, VERSION_TABLE_NAME
+from data_load_tool.common.versioned_state import decompress_state
+from data_load_tool.pipeline.drop import drop_resources
+from data_load_tool.pipeline.helpers import DropCommand, refresh_source
 
 from tests.pipeline.utils import airtable_emojis, assert_load_info
 
 
 @pytest.mark.parametrize("seen_data", [True, False], ids=["seen_data", "no_data"])
 def test_drop_helper_utils(seen_data: bool) -> None:
-    pipeline = dlt.pipeline("test_drop_helpers_no_table_drop", destination="duckdb")
+    pipeline = data_load_tool.pipeline("test_drop_helpers_no_table_drop", destination="duckdb")
     # extract first which should produce tables that didn't seen data
     source = airtable_emojis().with_resources(
         "📆 Schedule", "🦚Peacock", "🦚WidePeacock", "💰Budget"
@@ -45,7 +45,7 @@ def test_drop_helper_utils(seen_data: bool) -> None:
     assert set(drop_info.info["tables_with_data"]) == tables_to_drop
     # all tables got dropped
     assert drop_info.schema.data_tables(include_incomplete=True) == []
-    # dlt tables still there
+    # data_load_tool tables still there
     assert set(drop_info.schema.dlt_table_names()) == {
         VERSION_TABLE_NAME,
         LOADS_TABLE_NAME,
@@ -133,7 +133,7 @@ def test_drop_helper_utils(seen_data: bool) -> None:
 
 
 def test_drop_unknown_resource() -> None:
-    pipeline = dlt.pipeline("test_drop_unknown_resource", destination="duckdb")
+    pipeline = data_load_tool.pipeline("test_drop_unknown_resource", destination="duckdb")
     # extract first which should produce tables that didn't seen data
     source = airtable_emojis().with_resources(
         "📆 Schedule", "🦚Peacock", "🦚WidePeacock", "💰Budget"
@@ -155,7 +155,7 @@ def test_drop_unknown_resource() -> None:
 
 
 def test_modified_state_in_package() -> None:
-    pipeline = dlt.pipeline("test_modified_state_in_package", destination="duckdb")
+    pipeline = data_load_tool.pipeline("test_modified_state_in_package", destination="duckdb")
     # extract first which should produce tables that didn't seen data
     source = airtable_emojis().with_resources(
         "📆 Schedule", "🦚Peacock", "🦚WidePeacock", "💰Budget"
@@ -185,7 +185,7 @@ def test_modified_state_in_package() -> None:
 
 def test_drop_tables_force_extract_state() -> None:
     # if any tables will be dropped, state must be extracted even if it is not changed
-    pipeline = dlt.pipeline("test_drop_tables_force_extract_state", destination="duckdb")
+    pipeline = data_load_tool.pipeline("test_drop_tables_force_extract_state", destination="duckdb")
     source = airtable_emojis().with_resources(
         "📆 Schedule", "🦚Peacock", "🦚WidePeacock", "💰Budget"
     )

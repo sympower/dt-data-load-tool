@@ -8,24 +8,24 @@ from importlib.metadata import version as pkg_version
 from packaging.version import Version
 
 # patch which providers to enable
-from dlt.common.configuration.providers import (
+from data_load_tool.common.configuration.providers import (
     ConfigProvider,
     EnvironProvider,
     SecretsTomlProvider,
     ConfigTomlProvider,
 )
-from dlt.common.configuration.specs.config_providers_context import (
+from data_load_tool.common.configuration.specs.config_providers_context import (
     ConfigProvidersConfiguration,
 )
-from dlt.common.runtime.run_context import RunContext
+from data_load_tool.common.runtime.run_context import RunContext
 
 
 def initial_providers(self) -> List[ConfigProvider]:
     # do not read the global config
     return [
         EnvironProvider(),
-        SecretsTomlProvider(settings_dir="tests/.dlt"),
-        ConfigTomlProvider(settings_dir="tests/.dlt"),
+        SecretsTomlProvider(settings_dir="tests/.data_load_tool"),
+        ConfigTomlProvider(settings_dir="tests/.data_load_tool"),
     ]
 
 
@@ -40,8 +40,8 @@ def pytest_configure(config):
     # the dataclass implementation will use those patched values when creating instances (the values present
     # in the declaration are not frozen allowing patching)
 
-    from dlt.common.configuration.specs import runtime_configuration
-    from dlt.common.storages import configuration as storage_configuration
+    from data_load_tool.common.configuration.specs import runtime_configuration
+    from data_load_tool.common.storages import configuration as storage_configuration
 
     test_storage_root = "_storage"
     runtime_configuration.RuntimeConfiguration.config_files_storage_path = os.path.join(
@@ -90,8 +90,8 @@ def pytest_configure(config):
     )
 
     # path pipeline instance id up to millisecond
-    from dlt.common import pendulum
-    from dlt.pipeline.pipeline import Pipeline
+    from data_load_tool.common import pendulum
+    from data_load_tool.pipeline.pipeline import Pipeline
 
     def _create_pipeline_instance_id(self) -> str:
         return pendulum.now().format("_YYYYMMDDhhmmssSSSS")

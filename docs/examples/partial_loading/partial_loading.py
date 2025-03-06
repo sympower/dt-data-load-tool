@@ -2,7 +2,7 @@
 ---
 title: Backfill to Filesystem with partial replace
 description: Load chess game data from Chess.com into a filesystem destination, while deleting old backfill files.
-keywords: [incremental loading, REST API, dlt, chess.com, data pipeline, backfill management, filesystem]
+keywords: [incremental loading, REST API, data_load_tool, chess.com, data pipeline, backfill management, filesystem]
 ---
 
 This script interacts with the Chess.com REST API to extract game data for a specific user on a monthly basis.
@@ -12,24 +12,24 @@ it automatically handles de-duplication by deleting any previously loaded files 
 We'll learn:
 
 - How to configure a [REST API source](../dlt-ecosystem/verified-sources/rest_api/basic.md) using
- the `dlt` library.
+ the `data_load_tool` library.
 - How to manage and delete old backfill files for de-duplication.
 - How to use [Filesystem](../dlt-ecosystem/destinations/filesystem.md) as a destination for storing extracted data.
 """
 
 import os
 import re
-from dlt.common import pendulum as p
+from data_load_tool.common import pendulum as p
 from typing import Dict, List, Iterator
 
-import dlt
-from dlt.sources import DltResource
-from dlt.common.pipeline import LoadInfo
-from dlt.destinations.impl.filesystem.filesystem import FilesystemClient
-from dlt.sources.rest_api import RESTAPIConfig, rest_api_resources
+import data_load_tool
+from data_load_tool.sources import DltResource
+from data_load_tool.common.pipeline import LoadInfo
+from data_load_tool.destinations.impl.filesystem.filesystem import FilesystemClient
+from data_load_tool.sources.rest_api import RESTAPIConfig, rest_api_resources
 
 
-@dlt.source
+@data_load_tool.source
 def chess_com_source(username: str, months: List[Dict[str, str]]) -> Iterator[DltResource]:
     """
     Configures and yields resources to fetch chess game data for a given user across specified months.
@@ -39,7 +39,7 @@ def chess_com_source(username: str, months: List[Dict[str, str]]) -> Iterator[Dl
         months (List[Dict[str, str]]): List of dictionaries containing 'year' and 'month' keys.
 
     Yields:
-        dlt.Resource: Resource objects containing fetched game data.
+        data_load_tool.Resource: Resource objects containing fetched game data.
     """
     for month in months:
         year = month["year"]
@@ -93,13 +93,13 @@ def generate_months(
             current_date = current_date.replace(month=current_date.month + 1)
 
 
-def delete_old_backfills(load_info: LoadInfo, p: dlt.Pipeline, table_name: str) -> None:
+def delete_old_backfills(load_info: LoadInfo, p: data_load_tool.Pipeline, table_name: str) -> None:
     """
     Deletes old backfill files that do not match the current load ID to maintain data integrity.
 
     Args:
         load_info (LoadInfo): Information about the current load.
-        p (dlt.Pipeline): The dlt pipeline instance.
+        p (data_load_tool.Pipeline): The data_load_tool pipeline instance.
         table_name (str): Name of the table to clean up backfills for.
     """
     # Fetch current load id
@@ -133,11 +133,11 @@ def delete_old_backfills(load_info: LoadInfo, p: dlt.Pipeline, table_name: str) 
 
 def load_chess_data():
     """
-    Sets up and runs the dlt pipeline to load chess game data, then manages backfills.
+    Sets up and runs the data_load_tool pipeline to load chess game data, then manages backfills.
     """
-    # Initialize the dlt pipeline with filesystem destination, here we use local storage
-    dest_ = dlt.destinations.filesystem("_storage")
-    pipeline = dlt.pipeline(
+    # Initialize the data_load_tool pipeline with filesystem destination, here we use local storage
+    dest_ = data_load_tool.destinations.filesystem("_storage")
+    pipeline = data_load_tool.pipeline(
         pipeline_name="chess_com_data", destination=dest_, dataset_name="chess_games"
     )
 

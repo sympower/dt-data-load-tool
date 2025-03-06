@@ -4,10 +4,10 @@ from typing import Any, List
 import humanize
 import pytest
 
-import dlt
-from dlt.sources import DltResource
-from dlt.sources.credentials import ConnectionStringCredentials
-from dlt.common.exceptions import MissingDependencyException
+import data_load_tool
+from data_load_tool.sources import DltResource
+from data_load_tool.sources.credentials import ConnectionStringCredentials
+from data_load_tool.common.exceptions import MissingDependencyException
 
 from tests.load.utils import (
     DestinationTestConfiguration,
@@ -19,7 +19,7 @@ from tests.pipeline.utils import (
 )
 
 try:
-    from dlt.sources.sql_database import TableBackend, sql_database, sql_table
+    from data_load_tool.sources.sql_database import TableBackend, sql_database, sql_table
     from tests.load.sources.sql_database.test_helpers import mock_json_column, mock_array_column
     from tests.load.sources.sql_database.test_sql_database_source import (
         assert_row_counts,
@@ -27,7 +27,7 @@ try:
         default_test_callback,
     )
     from tests.load.sources.sql_database.sql_source import SQLAlchemySourceDB
-    from dlt.common.libs.sql_alchemy import IS_SQL_ALCHEMY_20
+    from data_load_tool.common.libs.sql_alchemy import IS_SQL_ALCHEMY_20
 except MissingDependencyException:
     pytest.skip("Tests require sql alchemy", allow_module_level=True)
 
@@ -259,7 +259,7 @@ def test_load_sql_table_resource_loads_data(
     backend: TableBackend,
     request: Any,
 ) -> None:
-    @dlt.source
+    @data_load_tool.source
     def sql_table_source() -> List[DltResource]:
         return [
             sql_table(
@@ -293,14 +293,14 @@ def test_load_sql_table_resource_incremental(
     if not IS_SQL_ALCHEMY_20 and backend == "connectorx":
         pytest.skip("Test will not run on sqlalchemy 1.4 with connectorx")
 
-    @dlt.source
+    @data_load_tool.source
     def sql_table_source() -> List[DltResource]:
         return [
             sql_table(
                 credentials=sql_source_db.credentials,
                 schema=sql_source_db.schema,
                 table="chat_message",
-                incremental=dlt.sources.incremental("updated_at"),
+                incremental=data_load_tool.sources.incremental("updated_at"),
                 reflection_level="minimal",
                 backend=backend,
             )
@@ -331,14 +331,14 @@ def test_load_sql_table_resource_incremental_initial_value(
     if not IS_SQL_ALCHEMY_20 and backend == "connectorx":
         pytest.skip("Test will not run on sqlalchemy 1.4 with connectorx")
 
-    @dlt.source
+    @data_load_tool.source
     def sql_table_source() -> List[DltResource]:
         return [
             sql_table(
                 credentials=sql_source_db.credentials,
                 schema=sql_source_db.schema,
                 table="chat_message",
-                incremental=dlt.sources.incremental(
+                incremental=data_load_tool.sources.incremental(
                     "updated_at",
                     sql_source_db.table_infos["chat_message"]["created_at"].start_value,
                 ),

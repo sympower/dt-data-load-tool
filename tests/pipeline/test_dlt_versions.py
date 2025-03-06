@@ -6,25 +6,25 @@ import shutil
 from unittest.mock import patch
 from importlib.metadata import version as pkg_version
 
-import dlt
-from dlt.common import json, pendulum
-from dlt.common.known_env import DLT_DATA_DIR
-from dlt.common.json import custom_pua_decode
-from dlt.common.runners import Venv
-from dlt.common.storages.exceptions import StorageMigrationError
-from dlt.common.utils import custom_environ, set_working_dir
-from dlt.common.storages import FileStorage
-from dlt.common.schema.typing import (
+import data_load_tool
+from data_load_tool.common import json, pendulum
+from data_load_tool.common.known_env import DLT_DATA_DIR
+from data_load_tool.common.json import custom_pua_decode
+from data_load_tool.common.runners import Venv
+from data_load_tool.common.storages.exceptions import StorageMigrationError
+from data_load_tool.common.utils import custom_environ, set_working_dir
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.schema.typing import (
     LOADS_TABLE_NAME,
     PIPELINE_STATE_TABLE_NAME,
     SCHEMA_ENGINE_VERSION,
     VERSION_TABLE_NAME,
     TStoredSchema,
 )
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.destinations import duckdb, filesystem
-from dlt.destinations.impl.duckdb.configuration import DuckDbClientConfiguration
-from dlt.destinations.impl.duckdb.sql_client import DuckDbSqlClient
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.destinations import duckdb, filesystem
+from data_load_tool.destinations.impl.duckdb.configuration import DuckDbClientConfiguration
+from data_load_tool.destinations.impl.duckdb.sql_client import DuckDbSqlClient
 
 from tests.pipeline.utils import airtable_emojis, load_table_counts
 from tests.utils import TEST_STORAGE_ROOT
@@ -32,7 +32,7 @@ from tests.utils import TEST_STORAGE_ROOT
 
 def test_simulate_default_naming_convention_change() -> None:
     # checks that (future) change in the naming convention won't affect existing pipelines
-    pipeline = dlt.pipeline("simulated_snake_case", destination="duckdb")
+    pipeline = data_load_tool.pipeline("simulated_snake_case", destination="duckdb")
     assert pipeline.naming.name() == "snake_case"
     pipeline.run(airtable_emojis().with_resources("📆 Schedule", "🦚Peacock", "🦚WidePeacock"))
     # normalized names
@@ -40,10 +40,10 @@ def test_simulate_default_naming_convention_change() -> None:
     assert "_schedule" in pipeline.default_schema.tables
 
     # mock the mod
-    # from dlt.common.normalizers import utils
+    # from data_load_tool.common.normalizers import utils
 
-    with patch("dlt.common.schema.normalizers.DEFAULT_NAMING_MODULE", "duck_case"):
-        duck_pipeline = dlt.pipeline("simulated_duck_case", destination="duckdb")
+    with patch("data_load_tool.common.schema.normalizers.DEFAULT_NAMING_MODULE", "duck_case"):
+        duck_pipeline = data_load_tool.pipeline("simulated_duck_case", destination="duckdb")
         assert duck_pipeline.naming.name() == "duck_case"
         print(airtable_emojis().schema.naming.name())
 
@@ -75,17 +75,17 @@ def test_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
 
     # execute in test storage
     with set_working_dir(TEST_STORAGE_ROOT):
-        # store dlt data in test storage (like patch_home_dir)
-        with custom_environ({DLT_DATA_DIR: dlt.current.run_context().data_dir}):
+        # store data_load_tool data in test storage (like patch_home_dir)
+        with custom_environ({DLT_DATA_DIR: data_load_tool.current.run_context().data_dir}):
             # save database outside of pipeline dir
             with custom_environ(
                 {"DESTINATION__DUCKDB__CREDENTIALS": "duckdb:///test_github_3.duckdb"}
             ):
                 # create virtual env with (0.3.0) before the current schema upgrade
                 with Venv.create(
-                    tempfile.mkdtemp(), ["dlt[duckdb]==0.3.0", "json-logging==1.4.1rc0"]
+                    tempfile.mkdtemp(), ["data_load_tool[duckdb]==0.3.0", "json-logging==1.4.1rc0"]
                 ) as venv:
-                    # NOTE: we force a newer duckdb into the 0.3.0 dlt version to get compatible duckdb storage
+                    # NOTE: we force a newer duckdb into the 0.3.0 data_load_tool version to get compatible duckdb storage
                     venv._install_deps(venv.context, ["duckdb" + "==" + pkg_version("duckdb")])
                     # load 20 issues
                     print(
@@ -98,7 +98,7 @@ def test_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
                     # load schema and check _dlt_loads definition
                     github_schema: TStoredSchema = json.loads(
                         test_storage.load(
-                            f".dlt/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
+                            f".data_load_tool/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
                         )
                     )
                     assert github_schema["engine_version"] == 5
@@ -106,7 +106,7 @@ def test_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
                         "schema_version_hash"
                         not in github_schema["tables"][LOADS_TABLE_NAME]["columns"]
                     )
-                    # check the dlt state table
+                    # check the data_load_tool state table
                     assert {
                         "version_hash"
                         not in github_schema["tables"][PIPELINE_STATE_TABLE_NAME]["columns"]
@@ -133,11 +133,11 @@ def test_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
                         rows = client.execute_sql("SELECT * FROM issues")
                         assert len(rows) == 20
                         rows = client.execute_sql(f"SELECT * FROM {PIPELINE_STATE_TABLE_NAME}")
-                        # only 5 columns + 2 dlt columns
+                        # only 5 columns + 2 data_load_tool columns
                         assert len(rows[0]) == 5 + 2
                     # inspect old state
                     state_dict = json.loads(
-                        test_storage.load(f".dlt/pipelines/{GITHUB_PIPELINE_NAME}/state.json")
+                        test_storage.load(f".data_load_tool/pipelines/{GITHUB_PIPELINE_NAME}/state.json")
                     )
                     assert "_version_hash" not in state_dict
                     # also we expect correctly decoded pendulum here
@@ -165,7 +165,7 @@ def test_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
                 # hash hash in schema
                 github_schema = json.loads(
                     test_storage.load(
-                        f".dlt/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
+                        f".data_load_tool/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
                     )
                 )
                 assert github_schema["engine_version"] == SCHEMA_ENGINE_VERSION
@@ -176,11 +176,11 @@ def test_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
                 # print(github_schema["tables"][PIPELINE_STATE_TABLE_NAME])
                 # load state
                 state_dict = json.loads(
-                    test_storage.load(f".dlt/pipelines/{GITHUB_PIPELINE_NAME}/state.json")
+                    test_storage.load(f".data_load_tool/pipelines/{GITHUB_PIPELINE_NAME}/state.json")
                 )
                 assert "_version_hash" in state_dict
                 assert state_dict["_state_engine_version"] == 4
-                assert state_dict["destination_type"] == "dlt.destinations.duckdb"
+                assert state_dict["destination_type"] == "data_load_tool.destinations.duckdb"
                 assert state_dict["destination_name"] is None
 
                 with DuckDbSqlClient(
@@ -214,7 +214,7 @@ def test_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
                     assert rows[1][7] == state_dict["_version_hash"]
 
                 # attach to existing pipeline
-                pipeline = dlt.attach(
+                pipeline = data_load_tool.attach(
                     GITHUB_PIPELINE_NAME, destination=duckdb(credentials=duckdb_cfg.credentials)
                 )
                 assert_github_pipeline_end_state(pipeline, github_schema, 2)
@@ -225,10 +225,10 @@ def test_filesystem_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
 
     # execute in test storage
     with set_working_dir(TEST_STORAGE_ROOT):
-        # store dlt data in test storage (like patch_home_dir)
-        with custom_environ({DLT_DATA_DIR: dlt.current.run_context().data_dir}):
+        # store data_load_tool data in test storage (like patch_home_dir)
+        with custom_environ({DLT_DATA_DIR: data_load_tool.current.run_context().data_dir}):
             # create virtual env with (0.4.9) where filesystem started to store state
-            with Venv.create(tempfile.mkdtemp(), ["dlt==0.4.9"]) as venv:
+            with Venv.create(tempfile.mkdtemp(), ["data_load_tool==0.4.9"]) as venv:
                 try:
                     print(venv.run_script("github_pipeline.py", "filesystem", "20"))
                 except CalledProcessError as cpe:
@@ -246,11 +246,11 @@ def test_filesystem_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
             # hash hash in schema
             github_schema = json.loads(
                 test_storage.load(
-                    f".dlt/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
+                    f".data_load_tool/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
                 )
             )
             # attach to existing pipeline
-            pipeline = dlt.attach(GITHUB_PIPELINE_NAME, destination=filesystem("_storage/data"))
+            pipeline = data_load_tool.attach(GITHUB_PIPELINE_NAME, destination=filesystem("_storage/data"))
             # assert end state
             pipeline = assert_github_pipeline_end_state(pipeline, github_schema, 2)
             # load new state
@@ -265,8 +265,8 @@ def test_filesystem_pipeline_with_dlt_update(test_storage: FileStorage) -> None:
 
 
 def assert_github_pipeline_end_state(
-    pipeline: dlt.Pipeline, orig_schema: TStoredSchema, schema_updates: int
-) -> dlt.Pipeline:
+    pipeline: data_load_tool.Pipeline, orig_schema: TStoredSchema, schema_updates: int
+) -> data_load_tool.Pipeline:
     # get tables counts
     table_counts = load_table_counts(pipeline, *pipeline.default_schema.data_table_names())
     assert table_counts == {"issues": 100, "issues__assignees": 31, "issues__labels": 34}
@@ -299,15 +299,15 @@ def test_load_package_with_dlt_update(test_storage: FileStorage) -> None:
 
     # execute in test storage
     with set_working_dir(TEST_STORAGE_ROOT):
-        # store dlt data in test storage (like patch_home_dir)
-        with custom_environ({DLT_DATA_DIR: dlt.current.run_context().data_dir}):
+        # store data_load_tool data in test storage (like patch_home_dir)
+        with custom_environ({DLT_DATA_DIR: data_load_tool.current.run_context().data_dir}):
             # save database outside of pipeline dir
             with custom_environ(
                 {"DESTINATION__DUCKDB__CREDENTIALS": "duckdb:///test_github_3.duckdb"}
             ):
                 # create virtual env with (0.3.0) before the current schema upgrade
                 with Venv.create(
-                    tempfile.mkdtemp(), ["dlt[duckdb]==0.3.0", "json-logging==1.4.1rc0"]
+                    tempfile.mkdtemp(), ["data_load_tool[duckdb]==0.3.0", "json-logging==1.4.1rc0"]
                 ) as venv:
                     venv._install_deps(venv.context, ["duckdb" + "==" + pkg_version("duckdb")])
                     # extract and normalize on old version but DO NOT LOAD
@@ -335,23 +335,23 @@ def test_load_package_with_dlt_update(test_storage: FileStorage) -> None:
                     assert len(rows) == 70
                 github_schema = json.loads(
                     test_storage.load(
-                        f".dlt/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
+                        f".data_load_tool/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
                     )
                 )
                 # attach to existing pipeline
-                pipeline = dlt.attach(
+                pipeline = data_load_tool.attach(
                     GITHUB_PIPELINE_NAME, destination=duckdb(credentials=duckdb_cfg.credentials)
                 )
                 # get the schema from schema storage before we sync
                 github_schema = json.loads(
                     test_storage.load(
-                        f".dlt/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
+                        f".data_load_tool/pipelines/{GITHUB_PIPELINE_NAME}/schemas/github.schema.json"
                     )
                 )
                 pipeline = pipeline.drop()
                 pipeline.sync_destination()
                 assert pipeline.default_schema.ENGINE_VERSION == SCHEMA_ENGINE_VERSION
-                # schema version does not match `dlt.attach` does not update to the right schema by itself
+                # schema version does not match `data_load_tool.attach` does not update to the right schema by itself
                 assert pipeline.default_schema.stored_version_hash != github_schema["version_hash"]
                 # state has hash
                 assert pipeline.state["_version_hash"] is not None
@@ -376,15 +376,15 @@ def test_normalize_package_with_dlt_update(test_storage: FileStorage) -> None:
 
     # execute in test storage
     with set_working_dir(TEST_STORAGE_ROOT):
-        # store dlt data in test storage (like patch_home_dir)
-        with custom_environ({DLT_DATA_DIR: dlt.current.run_context().data_dir}):
+        # store data_load_tool data in test storage (like patch_home_dir)
+        with custom_environ({DLT_DATA_DIR: data_load_tool.current.run_context().data_dir}):
             # save database outside of pipeline dir
             with custom_environ(
                 {"DESTINATION__DUCKDB__CREDENTIALS": "duckdb:///test_github_3.duckdb"}
             ):
                 # create virtual env with (0.3.0) before the current schema upgrade
                 with Venv.create(
-                    tempfile.mkdtemp(), ["dlt[duckdb]==0.3.0", "json-logging==1.4.1rc0"]
+                    tempfile.mkdtemp(), ["data_load_tool[duckdb]==0.3.0", "json-logging==1.4.1rc0"]
                 ) as venv:
                     venv._install_deps(venv.context, ["duckdb" + "==" + pkg_version("duckdb")])
                     # extract only
@@ -395,7 +395,7 @@ def test_normalize_package_with_dlt_update(test_storage: FileStorage) -> None:
                     )
                 # switch to current version and normalize existing extract package
                 # here we test possible switch in package format between storages
-                pipeline = dlt.attach(GITHUB_PIPELINE_NAME)
+                pipeline = data_load_tool.attach(GITHUB_PIPELINE_NAME)
                 with pytest.raises(StorageMigrationError) as mig_ex:
                     pipeline.normalize()
                 assert mig_ex.value.from_version == "1.0.0"
@@ -413,8 +413,8 @@ def test_scd2_pipeline_update(test_storage: FileStorage) -> None:
 
     # execute in test storage
     with set_working_dir(TEST_STORAGE_ROOT):
-        # store dlt data in test storage (like patch_home_dir)
-        with custom_environ({DLT_DATA_DIR: dlt.current.run_context().data_dir}):
+        # store data_load_tool data in test storage (like patch_home_dir)
+        with custom_environ({DLT_DATA_DIR: data_load_tool.current.run_context().data_dir}):
             # save database outside of pipeline dir
             with custom_environ(
                 {"DESTINATION__DUCKDB__CREDENTIALS": "duckdb:///test_github_3.duckdb"}
@@ -422,7 +422,7 @@ def test_scd2_pipeline_update(test_storage: FileStorage) -> None:
                 # run scd2 pipeline on 0.4.10
                 venv_dir = tempfile.mkdtemp()
                 # venv_dir == "tmp/dlt0410"
-                with Venv.create(venv_dir, ["dlt[duckdb]==0.4.10"]) as venv:
+                with Venv.create(venv_dir, ["data_load_tool[duckdb]==0.4.10"]) as venv:
                     venv._install_deps(venv.context, ["duckdb" + "==" + pkg_version("duckdb")])
 
                     print(venv.run_script("../tests/pipeline/cases/github_pipeline/github_scd2.py"))
@@ -450,7 +450,7 @@ def test_scd2_pipeline_update(test_storage: FileStorage) -> None:
                 venv = Venv.restore_current()
                 # load same data again
                 print(venv.run_script("../tests/pipeline/cases/github_pipeline/github_scd2.py"))
-                pipeline = dlt.attach(GITHUB_PIPELINE_NAME)
+                pipeline = data_load_tool.attach(GITHUB_PIPELINE_NAME)
                 # unique on row_key got swapped from True to False
                 assert (
                     pipeline.default_schema.tables["issues"]["columns"]["_dlt_id"]["unique"]
@@ -503,8 +503,8 @@ def test_normalize_path_separator_legacy_behavior(test_storage: FileStorage) -> 
 
     # execute in test storage
     with set_working_dir(TEST_STORAGE_ROOT):
-        # store dlt data in test storage (like patch_home_dir)
-        with custom_environ({DLT_DATA_DIR: dlt.current.run_context().data_dir}):
+        # store data_load_tool data in test storage (like patch_home_dir)
+        with custom_environ({DLT_DATA_DIR: data_load_tool.current.run_context().data_dir}):
             # save database outside of pipeline dir
             with custom_environ(
                 {"DESTINATION__DUCKDB__CREDENTIALS": "duckdb:///test_github_3.duckdb"}
@@ -512,7 +512,7 @@ def test_normalize_path_separator_legacy_behavior(test_storage: FileStorage) -> 
                 venv_dir = tempfile.mkdtemp()
                 # create virtual env with (0.3.0) before the current schema upgrade
                 with Venv.create(
-                    venv_dir, ["dlt[duckdb]==0.3.0", "json-logging==1.4.1rc0"]
+                    venv_dir, ["data_load_tool[duckdb]==0.3.0", "json-logging==1.4.1rc0"]
                 ) as venv:
                     venv._install_deps(venv.context, ["duckdb" + "==" + pkg_version("duckdb")])
                     try:
@@ -532,7 +532,7 @@ def test_normalize_path_separator_legacy_behavior(test_storage: FileStorage) -> 
                     print(f"script stdout: {cpe.stdout}")
                     print(f"script stderr: {cpe.stderr}")
                     raise
-                pipeline = dlt.attach(GITHUB_PIPELINE_NAME)
+                pipeline = data_load_tool.attach(GITHUB_PIPELINE_NAME)
                 print(pipeline.default_schema.to_pretty_yaml())
                 # migration set the backward compat flag
                 assert (

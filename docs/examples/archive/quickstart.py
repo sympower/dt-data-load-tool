@@ -1,7 +1,7 @@
 import base64
 from typing import Any
 
-import dlt
+import data_load_tool
 
 """
 This is example of ad-hoc pipeline where the data is directly passed to `run` function, schema hints are explicit and credentials are passed directly
@@ -42,7 +42,7 @@ else:
 export_schema_path = "docs/examples/schemas/"
 
 # 2. Create a pipeline
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name,
     destination=destination_name,
     dataset_name=dataset_name,

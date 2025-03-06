@@ -4,30 +4,30 @@ description: Learn how to efficiently dispatch a stream of GitHub events, catego
 keywords: [dispatch, stream, events, tables, event type]
 ---
 
-This is a practical example of how to process [GitHub events](https://docs.github.com/en/rest/activity/events?apiVersion=2022-11-28) from the [dlt](https://github.com/dlt-hub/dlt) repository, such as issues or pull request creation, comments addition, etc.
+This is a practical example of how to process [GitHub events](https://docs.github.com/en/rest/activity/events?apiVersion=2022-11-28) from the [data_load_tool](https://github.com/dlt-hub/data_load_tool) repository, such as issues or pull request creation, comments addition, etc.
 We'll use the [GitHub API](https://docs.github.com/en/rest) to fetch the events and [duckdb](https://duckdb.org/) as a destination. Each event type will be sent to a separate table in DuckDB.
 
 # Setup
 
-1. Install dlt with duckdb support:
+1. Install data_load_tool with duckdb support:
 
 ```sh
-pip install "dlt[duckdb]"
+pip install "data_load_tool[duckdb]"
 ```
 
 2. Create a new file `github_events_dispatch.py` and paste the following code:
 
 ```py
-import dlt
-from dlt.sources.helpers import requests
+import data_load_tool
+from data_load_tool.sources.helpers import requests
 
-@dlt.resource(
+@data_load_tool.resource(
     primary_key="id",
     table_name=lambda i: i["type"],
     write_disposition="append",
 )
-def repo_events(last_created_at=dlt.sources.incremental("created_at")):
-    url = "https://api.github.com/repos/dlt-hub/dlt/events?per_page=100"
+def repo_events(last_created_at=data_load_tool.sources.incremental("created_at")):
+    url = "https://api.github.com/repos/dlt-hub/data_load_tool/events?per_page=100"
 
     while True:
         response = requests.get(url)
@@ -47,7 +47,7 @@ def repo_events(last_created_at=dlt.sources.incremental("created_at")):
         url = response.links["next"]["url"]
 
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="github_events",
     destination="duckdb",
     dataset_name="github_events_data",
@@ -75,14 +75,14 @@ python github_events_dispatch.py
 4. Peek at the created tables:
 
 ```sh
-dlt pipeline -v github_events info
-dlt pipeline github_events trace
+data_load_tool pipeline -v github_events info
+data_load_tool pipeline github_events trace
 ```
 
 5. And preview the data:
 
 ```sh
-dlt pipeline -v github_events show
+data_load_tool pipeline -v github_events show
 ```
 
 :::tip

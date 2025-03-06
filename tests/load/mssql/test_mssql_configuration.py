@@ -2,12 +2,12 @@ import os
 import pyodbc
 import pytest
 
-from dlt.common.configuration import resolve_configuration, ConfigFieldMissingException
-from dlt.common.exceptions import SystemConfigurationException
-from dlt.common.schema import Schema
+from data_load_tool.common.configuration import resolve_configuration, ConfigFieldMissingException
+from data_load_tool.common.exceptions import SystemConfigurationException
+from data_load_tool.common.schema import Schema
 
-from dlt.destinations import mssql
-from dlt.destinations.impl.mssql.configuration import MsSqlCredentials, MsSqlClientConfiguration
+from data_load_tool.destinations import mssql
+from data_load_tool.destinations.impl.mssql.configuration import MsSqlCredentials, MsSqlClientConfiguration
 
 # mark all tests as essential, do not remove
 pytestmark = pytest.mark.essential

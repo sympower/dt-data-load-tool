@@ -1,9 +1,9 @@
-import dlt
+import data_load_tool
 
 
-@dlt.source
+@data_load_tool.source
 def github():
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="issues__2",
         primary_key="id",
     )

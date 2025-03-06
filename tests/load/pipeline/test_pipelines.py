@@ -5,25 +5,25 @@ from typing import Any, Iterator, List, cast, Tuple, Callable
 import pytest
 from unittest import mock
 
-import dlt
-from dlt.common import json, sleep
-from dlt.common.pipeline import SupportsPipeline
-from dlt.common.destination import Destination
-from dlt.common.destination.client import WithStagingDataset
-from dlt.common.schema.schema import Schema
-from dlt.common.schema.typing import VERSION_TABLE_NAME
-from dlt.common.schema.utils import new_table
-from dlt.common.typing import TDataItem
-from dlt.common.utils import uniq_id
-from dlt.common.exceptions import TerminalValueError
+import data_load_tool
+from data_load_tool.common import json, sleep
+from data_load_tool.common.pipeline import SupportsPipeline
+from data_load_tool.common.destination import Destination
+from data_load_tool.common.destination.client import WithStagingDataset
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.schema.typing import VERSION_TABLE_NAME
+from data_load_tool.common.schema.utils import new_table
+from data_load_tool.common.typing import TDataItem
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.exceptions import TerminalValueError
 
-from dlt.destinations.exceptions import DatabaseUndefinedRelation
-from dlt.destinations import filesystem, redshift
-from dlt.destinations.job_client_impl import SqlJobClientBase
-from dlt.extract.exceptions import ResourceNameMissing
-from dlt.extract.source import DltSource
-from dlt.load.exceptions import LoadClientJobFailed
-from dlt.pipeline.exceptions import (
+from data_load_tool.destinations.exceptions import DatabaseUndefinedRelation
+from data_load_tool.destinations import filesystem, redshift
+from data_load_tool.destinations.job_client_impl import SqlJobClientBase
+from data_load_tool.extract.exceptions import ResourceNameMissing
+from data_load_tool.extract.source import DltSource
+from data_load_tool.load.exceptions import LoadClientJobFailed
+from data_load_tool.pipeline.exceptions import (
     CannotRestorePipelineException,
     PipelineConfigMissing,
     PipelineStepFailed,
@@ -63,13 +63,13 @@ def test_default_pipeline_names(
     use_single_dataset: bool, destination_config: DestinationTestConfiguration
 ) -> None:
     destination_config.setup()
-    p = dlt.pipeline()
+    p = data_load_tool.pipeline()
     p.config.use_single_dataset = use_single_dataset
     # this is a name of executing test harness or blank pipeline on windows
     possible_names = ["dlt_pytest", "dlt_pipeline"]
     possible_dataset_names = ["dlt_pytest_dataset", "dlt_pipeline_dataset"]
     assert p.pipeline_name in possible_names
-    assert p.pipelines_dir == os.path.abspath(os.path.join(TEST_STORAGE_ROOT, ".dlt", "pipelines"))
+    assert p.pipelines_dir == os.path.abspath(os.path.join(TEST_STORAGE_ROOT, ".data_load_tool", "pipelines"))
     assert p.dataset_name is None
     assert p.destination is None
     assert p.default_schema_name is None
@@ -86,11 +86,11 @@ def test_default_pipeline_names(
     # this will create default schema
     p.extract(data_fun, table_format=destination_config.table_format)
     # _pipeline suffix removed when creating default schema name
-    assert p.default_schema_name in ["dlt_pytest", "dlt", "dlt_jb_pytest_runner"]
+    assert p.default_schema_name in ["dlt_pytest", "data_load_tool", "dlt_jb_pytest_runner"]
 
     # this will create additional schema
-    p.extract(data_fun(), schema=dlt.Schema("names"), table_format=destination_config.table_format)
-    assert p.default_schema_name in ["dlt_pytest", "dlt", "dlt_jb_pytest_runner"]
+    p.extract(data_fun(), schema=data_load_tool.Schema("names"), table_format=destination_config.table_format)
+    assert p.default_schema_name in ["dlt_pytest", "data_load_tool", "dlt_jb_pytest_runner"]
     assert "names" in p.schemas.keys()
 
     with pytest.raises(PipelineConfigMissing):
@@ -185,12 +185,12 @@ def test_default_schema_name(
     print(info)
 
     # try to restore pipeline
-    r_p = dlt.attach("test_default_schema_name", TEST_STORAGE_ROOT)
+    r_p = data_load_tool.attach("test_default_schema_name", TEST_STORAGE_ROOT)
     schema = r_p.default_schema
     assert schema.name == "default"
 
-    # check if dlt ables have exactly the required schemas
-    # TODO: uncomment to check dlt tables schemas
+    # check if data_load_tool ables have exactly the required schemas
+    # TODO: uncomment to check data_load_tool tables schemas
     # assert (
     #     r_p.default_schema.tables[PIPELINE_STATE_TABLE_NAME]["columns"]
     #     == pipeline_state_table()["columns"]
@@ -208,13 +208,13 @@ def test_attach_pipeline(destination_config: DestinationTestConfiguration) -> No
     # load data and then restore the pipeline and see if data is still there
     data = ["a", "b", "c"]
 
-    @dlt.resource(name="data_table")
+    @data_load_tool.resource(name="data_table")
     def _data():
         for d in data:
             yield d
 
     destination_config.setup()
-    info = dlt.run(
+    info = data_load_tool.run(
         _data(),
         destination=destination_config.destination_factory(),
         staging=destination_config.staging,
@@ -223,10 +223,10 @@ def test_attach_pipeline(destination_config: DestinationTestConfiguration) -> No
     )
 
     with pytest.raises(CannotRestorePipelineException):
-        dlt.attach("unknown")
+        data_load_tool.attach("unknown")
 
     # restore default pipeline
-    p = dlt.attach()
+    p = data_load_tool.attach()
     # other instance
     assert info.pipeline is not p
     # same pipe
@@ -250,7 +250,7 @@ def test_skip_sync_schema_for_tables_without_columns(
     # load data and then restore the pipeline and see if data is still there
     data = ["a", "b", "c"]
 
-    @dlt.resource(name="data_table")
+    @data_load_tool.resource(name="data_table")
     def _data():
         for d in data:
             yield d
@@ -285,11 +285,11 @@ def test_run_dev_mode(destination_config: DestinationTestConfiguration) -> None:
     def d():
         yield data
 
-    @dlt.source(name="nested")
+    @data_load_tool.source(name="nested")
     def _data():
-        return dlt.resource(d(), name="lists", write_disposition="replace")
+        return data_load_tool.resource(d(), name="lists", write_disposition="replace")
 
-    p = dlt.pipeline(dev_mode=True)
+    p = data_load_tool.pipeline(dev_mode=True)
     info = p.run(
         _data(),
         destination=destination_config.destination_factory(),
@@ -303,7 +303,7 @@ def test_run_dev_mode(destination_config: DestinationTestConfiguration) -> None:
     # print(info)
 
     # restore the pipeline
-    p = dlt.attach()
+    p = data_load_tool.attach()
     # restored pipeline should be never put in full refresh
     assert p.dev_mode is False
     # assert parent table (easy), None First (db order)
@@ -323,9 +323,9 @@ def test_evolve_schema(destination_config: DestinationTestConfiguration) -> None
         "f": [{"id": "level1", "l": ["a", "b", "c"], "v": 120, "o": [{"a": 1}, {"a": 2}]}],
     }
 
-    @dlt.source(name="parallel")
+    @data_load_tool.source(name="parallel")
     def source(top_elements: int):
-        @dlt.defer
+        @data_load_tool.defer
         def get_item(no: int) -> TDataItem:
             # the test will not last 10 seconds but 2 (there are 5 working threads by default)
             sleep(1)
@@ -333,7 +333,7 @@ def test_evolve_schema(destination_config: DestinationTestConfiguration) -> None
             data["id"] = "level" + str(no)
             return data
 
-        @dlt.resource(
+        @data_load_tool.resource(
             columns={
                 "id": {
                     "name": "id",
@@ -349,7 +349,7 @@ def test_evolve_schema(destination_config: DestinationTestConfiguration) -> None
                 # yield deferred items resolved in threads
                 yield get_item(no)
 
-        @dlt.resource(
+        @data_load_tool.resource(
             table_name="simple_rows",
             columns={"new_column": {"nullable": True, "data_type": "decimal"}},
         )
@@ -358,7 +358,7 @@ def test_evolve_schema(destination_config: DestinationTestConfiguration) -> None
                 # yield deferred items resolved in threads
                 yield get_item(no + 100)
 
-        return simple_rows(), extended_rows(), dlt.resource(["a", "b", "c"], name="simple")
+        return simple_rows(), extended_rows(), data_load_tool.resource(["a", "b", "c"], name="simple")
 
     import_schema_path = os.path.join(TEST_STORAGE_ROOT, "schemas", "import")
     export_schema_path = os.path.join(TEST_STORAGE_ROOT, "schemas", "export")
@@ -400,7 +400,7 @@ def test_evolve_schema(destination_config: DestinationTestConfiguration) -> None
     # update schema
     # - new column in "simple_rows" table
     # - new "simple" table
-    info_ext = dlt.run(
+    info_ext = data_load_tool.run(
         source(10).with_resources("extended_rows", "simple"), **destination_config.run_kwargs
     )
     print(info_ext)
@@ -443,7 +443,7 @@ def test_pipeline_data_writer_compression(
     destination_config.disable_compression = disable_compression
 
     p = destination_config.setup_pipeline("compression_test", dataset_name=dataset_name)
-    p.extract(dlt.resource(data, name="data"), table_format=destination_config.table_format)
+    p.extract(data_load_tool.resource(data, name="data"), table_format=destination_config.table_format)
     s = p._get_normalize_storage()
     # check that files are not compressed if compression is disabled
     for name in s.list_files_to_normalize_sorted():
@@ -472,11 +472,11 @@ def test_source_max_nesting(destination_config: DestinationTestConfiguration) ->
 
     nested_part = {"l": [1, 2, 3], "c": {"a": 1, "b": 12.3}}
 
-    @dlt.source(name="nested", max_table_nesting=0)
+    @data_load_tool.source(name="nested", max_table_nesting=0)
     def nested_data():
-        return dlt.resource([{"idx": 1, "cn": nested_part}], name="nested_cn")
+        return data_load_tool.resource([{"idx": 1, "cn": nested_part}], name="nested_cn")
 
-    info = dlt.run(
+    info = data_load_tool.run(
         nested_data(),
         destination=destination_config.destination_factory(),
         staging=destination_config.staging,
@@ -484,9 +484,9 @@ def test_source_max_nesting(destination_config: DestinationTestConfiguration) ->
         **destination_config.run_kwargs,
     )
     print(info)
-    with dlt.pipeline().sql_client() as client:
+    with data_load_tool.pipeline().sql_client() as client:
         nested_cn_table = client.make_qualified_table_name("nested_cn")
-    rows = select_data(dlt.pipeline(), f"SELECT cn FROM {nested_cn_table}")
+    rows = select_data(data_load_tool.pipeline(), f"SELECT cn FROM {nested_cn_table}")
     assert len(rows) == 1
     cn_val = rows[0][0]
     if isinstance(cn_val, str):
@@ -509,11 +509,11 @@ def test_parquet_loading(destination_config: DestinationTestConfiguration) -> No
         "parquet_test_" + uniq_id(), dataset_name="parquet_test_" + uniq_id()
     )
 
-    @dlt.resource(primary_key="id")
+    @data_load_tool.resource(primary_key="id")
     def some_data():
         yield [{"id": 1}, {"id": 2}, {"id": 3}]
 
-    @dlt.resource(write_disposition="replace")
+    @data_load_tool.resource(write_disposition="replace")
     def other_data():
         yield [1, 2, 3, 4, 5]
 
@@ -553,12 +553,12 @@ def test_parquet_loading(destination_config: DestinationTestConfiguration) -> No
         column_schemas.pop("col7_precision")
 
     # apply the exact columns definitions so we process nested and wei types correctly!
-    @dlt.resource(table_name="data_types", write_disposition="merge", columns=column_schemas)
+    @data_load_tool.resource(table_name="data_types", write_disposition="merge", columns=column_schemas)
     def my_resource():
         nonlocal data_types
         yield [data_types] * 10
 
-    @dlt.source(max_table_nesting=0)
+    @data_load_tool.source(max_table_nesting=0)
     def some_source():
         return [some_data(), other_data(), my_resource()]
 
@@ -666,23 +666,23 @@ def test_pipeline_upfront_tables_two_loads(
         dev_mode=True,
     )
 
-    @dlt.source
+    @data_load_tool.source
     def two_tables():
-        @dlt.resource(
+        @data_load_tool.resource(
             columns=[{"name": "id", "data_type": "bigint", "nullable": True}],
             write_disposition="merge",
         )
         def table_1():
             yield {"id": 1}
 
-        @dlt.resource(
+        @data_load_tool.resource(
             columns=[{"name": "id", "data_type": "bigint", "nullable": True, "unique": True}],
             write_disposition="merge",
         )
         def table_2():
             yield data_to_item_format("arrow-table", [{"id": 2}])
 
-        @dlt.resource(
+        @data_load_tool.resource(
             columns=[{"name": "id", "data_type": "bigint", "nullable": True}],
             write_disposition="replace",
         )
@@ -733,7 +733,7 @@ def test_pipeline_upfront_tables_two_loads(
     # print(v4)
 
     # now load the second one. for arrow format the schema will not update because
-    # in that case normalizer does not add dlt specific fields, changes are not detected
+    # in that case normalizer does not add data_load_tool specific fields, changes are not detected
     # and schema is not updated because the hash didn't change
     # also we make the replace resource to load its 1 record
     load_info_3 = pipeline.run(
@@ -804,7 +804,7 @@ def test_query_all_info_tables_fallback(destination_config: DestinationTestConfi
 #     start_dt = datetime.now()
 
 #     # columns=[{"name": "Hour", "data_type": "bool"}]
-#     @dlt.resource(standalone=True, primary_key="Hour")
+#     @data_load_tool.resource(standalone=True, primary_key="Hour")
 #     def some_data(
 #         max_hours: int = 2,
 #     ):
@@ -836,17 +836,17 @@ def test_query_all_info_tables_fallback(destination_config: DestinationTestConfi
 
 def simple_nested_pipeline(
     destination_config: DestinationTestConfiguration, dataset_name: str, dev_mode: bool
-) -> Tuple[dlt.Pipeline, Callable[[], DltSource]]:
+) -> Tuple[data_load_tool.Pipeline, Callable[[], DltSource]]:
     data = ["a", ["a", "b", "c"], ["a", "b", "c"]]
 
     def d():
         yield data
 
-    @dlt.source(name="nested")
+    @data_load_tool.source(name="nested")
     def _data():
-        return dlt.resource(d(), name="lists", write_disposition="append")
+        return data_load_tool.resource(d(), name="lists", write_disposition="append")
 
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name=f"pipeline_{dataset_name}",
         dev_mode=dev_mode,
         destination=destination_config.destination_factory(),
@@ -866,7 +866,7 @@ def test_dest_column_invalid_timestamp_precision(
 ) -> None:
     invalid_precision = 10
 
-    @dlt.resource(
+    @data_load_tool.resource(
         columns={
             "event_tstamp": {
                 "data_type": "timestamp",
@@ -969,7 +969,7 @@ def test_dest_column_hint_timezone(destination_config: DestinationTestConfigurat
     }
 
     # table: events_timezone_off
-    @dlt.resource(
+    @data_load_tool.resource(
         columns={"event_tstamp": {"data_type": "timestamp", "timezone": False}},
         primary_key="event_id",
     )
@@ -977,7 +977,7 @@ def test_dest_column_hint_timezone(destination_config: DestinationTestConfigurat
         yield input_data
 
     # table: events_timezone_on
-    @dlt.resource(
+    @data_load_tool.resource(
         columns={"event_tstamp": {"data_type": "timestamp", "timezone": True}},
         primary_key="event_id",
     )
@@ -985,7 +985,7 @@ def test_dest_column_hint_timezone(destination_config: DestinationTestConfigurat
         yield input_data
 
     # table: events_timezone_unset
-    @dlt.resource(
+    @data_load_tool.resource(
         primary_key="event_id",
     )
     def events_timezone_unset():

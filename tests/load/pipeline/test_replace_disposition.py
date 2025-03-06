@@ -1,7 +1,7 @@
 from typing import Dict
 import yaml
-import dlt, os, pytest
-from dlt.common.utils import uniq_id
+import data_load_tool, os, pytest
+from data_load_tool.common.utils import uniq_id
 
 from tests.pipeline.utils import assert_load_info, load_table_counts, load_tables_to_dicts
 from tests.load.utils import (
@@ -54,7 +54,7 @@ def test_replace_disposition(
     offset = 1000
 
     # keep merge key with unknown column to test replace SQL generator
-    @dlt.resource(name="items", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="items", write_disposition="replace", primary_key="id")
     def load_items():
         # will produce 3 jobs for the main table with 40 items each
         # 6 jobs for the sub_items
@@ -80,7 +80,7 @@ def test_replace_disposition(
             }
 
     # append resource to see if we do not drop any tables
-    @dlt.resource(write_disposition="append")
+    @data_load_tool.resource(write_disposition="append")
     def append_items():
         nonlocal offset
         for _, index in enumerate(range(offset, offset + 12), 1):
@@ -139,7 +139,7 @@ def test_replace_disposition(
     }
 
     # we need to test that destination tables including child tables are cleared if we do not yield anything
-    @dlt.resource(name="items", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="items", write_disposition="replace", primary_key="id")
     def load_items_none():
         # do not yield even once
         if False:
@@ -247,23 +247,23 @@ def test_replace_table_clearing(
         "test_replace_table_clearing", dataset_name="test_replace_table_clearing", dev_mode=True
     )
 
-    @dlt.resource(name="main_resource", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="main_resource", write_disposition="replace", primary_key="id")
     def items_with_subitems():
         data = {
             "id": 1,
             "name": "item",
             "sub_items": [{"id": 101, "name": "sub item 101"}, {"id": 101, "name": "sub item 102"}],
         }
-        yield dlt.mark.with_table_name(data, "items")
-        yield dlt.mark.with_table_name(data, "other_items")
+        yield data_load_tool.mark.with_table_name(data, "items")
+        yield data_load_tool.mark.with_table_name(data, "other_items")
 
-    @dlt.resource(name="main_resource", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="main_resource", write_disposition="replace", primary_key="id")
     def items_without_subitems():
         data = [{"id": 1, "name": "item", "sub_items": []}]
-        yield dlt.mark.with_table_name(data, "items")
-        yield dlt.mark.with_table_name(data, "other_items")
+        yield data_load_tool.mark.with_table_name(data, "items")
+        yield data_load_tool.mark.with_table_name(data, "other_items")
 
-    @dlt.resource(name="main_resource", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="main_resource", write_disposition="replace", primary_key="id")
     def items_with_subitems_yield_none():
         yield None
         yield None
@@ -277,12 +277,12 @@ def test_replace_table_clearing(
                 ],
             }
         ]
-        yield dlt.mark.with_table_name(data, "items")
-        yield dlt.mark.with_table_name(data, "other_items")
+        yield data_load_tool.mark.with_table_name(data, "items")
+        yield data_load_tool.mark.with_table_name(data, "other_items")
         yield None
 
     # this resource only gets loaded once, and should remain populated regardless of the loads to the other tables
-    @dlt.resource(name="static_items", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="static_items", write_disposition="replace", primary_key="id")
     def static_items():
         yield {
             "id": 1,
@@ -290,17 +290,17 @@ def test_replace_table_clearing(
             "sub_items": [{"id": 101, "name": "sub item 101"}, {"id": 101, "name": "sub item 102"}],
         }
 
-    @dlt.resource(name="main_resource", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="main_resource", write_disposition="replace", primary_key="id")
     def yield_none():
         yield
 
-    @dlt.resource(name="main_resource", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="main_resource", write_disposition="replace", primary_key="id")
     def no_yield():
         # this will not yield even once
         if False:
             yield
 
-    @dlt.resource(name="main_resource", write_disposition="replace", primary_key="id")
+    @data_load_tool.resource(name="main_resource", write_disposition="replace", primary_key="id")
     def yield_empty_list():
         yield []
 

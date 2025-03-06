@@ -2,9 +2,9 @@
 
 A webhook is a way for one application to send automated messages or data to another application in real time. Unlike traditional APIs, which require constant polling for updates, webhooks allow applications to push information instantly as soon as an event occurs. This event-driven architecture enables faster and more responsive interactions between systems, saving valuable resources and improving overall system performance.
 
-With this `dlt` Google Cloud event ingestion webhook, you can ingest the data and load it to the destination in real time as soon as a post request is triggered by the webhook. You can use this cloud function as an event ingestion webhook on various platforms such as Slack, Discord, Stripe, PayPal, and any other as per your requirement.
+With this `data_load_tool` Google Cloud event ingestion webhook, you can ingest the data and load it to the destination in real time as soon as a post request is triggered by the webhook. You can use this cloud function as an event ingestion webhook on various platforms such as Slack, Discord, Stripe, PayPal, and any other as per your requirement.
 
-You can set up a GCP cloud function webhook using `dlt` as follows:
+You can set up a GCP cloud function webhook using `data_load_tool` as follows:
 
 ## 1. **Initialize deployment**
 
@@ -16,10 +16,10 @@ You can set up a GCP cloud function webhook using `dlt` as follows:
 6. Use the code provided to set up the cloud function for event ingestion:
 
     ```py
-    import dlt
+    import data_load_tool
     import time
     from google.cloud import bigquery
-    from dlt.common import json
+    from data_load_tool.common import json
 
     def your_webhook(request):
         # Extract relevant data from the request payload
@@ -27,7 +27,7 @@ You can set up a GCP cloud function webhook using `dlt` as follows:
 
         Event = [data]
 
-        pipeline = dlt.pipeline(
+        pipeline = data_load_tool.pipeline(
             pipeline_name='platform_to_bigquery',
             destination='bigquery',
             dataset_name='webhooks',
@@ -43,8 +43,8 @@ You can set up a GCP cloud function webhook using `dlt` as follows:
     ```text
     # Function dependencies, for example:
     # package>=version
-    dlt
-    dlt[bigquery]
+    data_load_tool
+    data_load_tool[bigquery]
     ```
 
 9. Click on "Deploy" to complete the setup.

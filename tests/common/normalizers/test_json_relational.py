@@ -1,17 +1,17 @@
 import pytest
 
-from dlt.common.typing import StrAny, DictStrAny
-from dlt.common.normalizers.naming import NamingConvention
-from dlt.common.schema.typing import TColumnName, TSimpleRegex
-from dlt.common.utils import digest128, uniq_id
-from dlt.common.schema import Schema
-from dlt.common.schema.utils import new_table
-from dlt.common.normalizers.utils import DLT_ID_LENGTH_BYTES
-from dlt.common.normalizers.json.relational import (
+from data_load_tool.common.typing import StrAny, DictStrAny
+from data_load_tool.common.normalizers.naming import NamingConvention
+from data_load_tool.common.schema.typing import TColumnName, TSimpleRegex
+from data_load_tool.common.utils import digest128, uniq_id
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.schema.utils import new_table
+from data_load_tool.common.normalizers.utils import DLT_ID_LENGTH_BYTES
+from data_load_tool.common.normalizers.json.relational import (
     RelationalNormalizerConfigPropagation,
     DataItemNormalizer as RelationalNormalizer,
 )
-from dlt.common.normalizers.json import helpers as normalize_helpers
+from data_load_tool.common.normalizers.json import helpers as normalize_helpers
 
 from tests.utils import create_schema_with_name
 
@@ -145,7 +145,7 @@ def test_skip_nested_link_when_no_parent(norm: RelationalNormalizer) -> None:
     rows = list(norm._normalize_row(row, {}, ("table",), _r_lvl=1000, is_root=True))
     root = next(t for t in rows if t[0][0] == "table")[1]
     # record hash is random for primary keys, not based on their content
-    # this is a change introduced in dlt 0.2.0a30
+    # this is a change introduced in data_load_tool 0.2.0a30
     assert root["_dlt_id"] != digest128("level0", DLT_ID_LENGTH_BYTES)
 
     # table at "f"

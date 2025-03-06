@@ -1,11 +1,11 @@
 import pytest
 from typing import Dict
 
-from dlt.common.configuration.specs.base_configuration import CredentialsConfiguration
-from dlt.common.utils import digest128
-from dlt.common.configuration import resolve_configuration
-from dlt.common.configuration.specs.aws_credentials import AwsCredentials
-from dlt.common.configuration.specs.exceptions import InvalidBoto3Session
+from data_load_tool.common.configuration.specs.base_configuration import CredentialsConfiguration
+from data_load_tool.common.utils import digest128
+from data_load_tool.common.configuration import resolve_configuration
+from data_load_tool.common.configuration.specs.aws_credentials import AwsCredentials
+from data_load_tool.common.configuration.specs.exceptions import InvalidBoto3Session
 
 from tests.common.configuration.utils import environment
 from tests.load.utils import ALL_FILESYSTEM_DRIVERS
@@ -142,11 +142,11 @@ def test_aws_credentials_with_endpoint_url(environment: Dict[str, str]) -> None:
 
 
 def test_explicit_filesystem_credentials() -> None:
-    import dlt
-    from dlt.destinations import filesystem
+    import data_load_tool
+    from data_load_tool.destinations import filesystem
 
     # try filesystem which uses union of credentials that requires bucket_url to resolve
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name="postgres_pipeline",
         destination=filesystem(
             bucket_url="s3://test",

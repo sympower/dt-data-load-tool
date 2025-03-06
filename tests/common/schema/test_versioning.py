@@ -1,10 +1,10 @@
 import pytest
 import yaml
 
-from dlt.common import json
-from dlt.common.schema import utils
-from dlt.common.schema.schema import Schema
-from dlt.common.schema.typing import TStoredSchema
+from data_load_tool.common import json
+from data_load_tool.common.schema import utils
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.schema.typing import TStoredSchema
 
 from tests.common.utils import load_json_case, load_yml_case
 

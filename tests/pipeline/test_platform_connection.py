@@ -2,7 +2,7 @@ import os
 import pytest
 import requests_mock
 
-import dlt
+import data_load_tool
 
 from tests.utils import start_test_telemetry, stop_telemetry
 
@@ -20,23 +20,23 @@ def test_platform_connection() -> None:
     state_url = mock_platform_url + STATE_URL_SUFFIX
 
     # simple pipeline
-    @dlt.source(name="first_source")
+    @data_load_tool.source(name="first_source")
     def my_source():
-        @dlt.resource(name="test_resource")
+        @data_load_tool.resource(name="test_resource")
         def data():
             yield [1, 2, 3]
 
         return data()
 
-    @dlt.source(name="second_source")
+    @data_load_tool.source(name="second_source")
     def my_source_2():
-        @dlt.resource(name="test_resource")
+        @data_load_tool.resource(name="test_resource")
         def data():
             yield [1, 2, 3]
 
         return data()
 
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         destination="duckdb",
         pipeline_name="platform_test_pipeline",
         dataset_name="platform_test_dataset",
@@ -67,7 +67,7 @@ def test_platform_connection() -> None:
         assert trace_result["pipeline_name"] == "platform_test_pipeline"
         # just extract, normalize and load steps. run step is not serialized to trace (it was just a copy of load)
         assert len(trace_result["steps"]) == 3
-        assert trace_result["execution_context"]["library"]["name"] == "dlt"
+        assert trace_result["execution_context"]["library"]["name"] == "data_load_tool"
 
         # basic check of state result
         assert state_result, "no state update"

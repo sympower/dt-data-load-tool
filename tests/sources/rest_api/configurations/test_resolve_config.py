@@ -4,30 +4,30 @@ from copy import deepcopy
 import pytest
 from graphlib import CycleError
 
-from dlt.sources.rest_api import (
+from data_load_tool.sources.rest_api import (
     rest_api_resources,
     rest_api_source,
 )
-from dlt.sources.rest_api.config_setup import (
+from data_load_tool.sources.rest_api.config_setup import (
     _bind_path_params,
     process_parent_data_item,
 )
-from dlt.sources.rest_api.typing import (
+from data_load_tool.sources.rest_api.typing import (
     EndpointResource,
     ResolvedParam,
     RESTAPIConfig,
 )
 
 try:
-    from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+    from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 except ImportError:
-    from dlt.sources.helpers.rest_client.paginators import (
+    from data_load_tool.sources.helpers.rest_client.paginators import (
         JSONResponsePaginator as JSONLinkPaginator,
     )
 
 
 try:
-    from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+    from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 except ImportError:
     pass
 
@@ -39,7 +39,7 @@ def test_bind_path_param() -> None:
             "path": "{org}/{repo}/issues/{id}/comments",
             "params": {
                 "org": "dlt-hub",
-                "repo": "dlt",
+                "repo": "data_load_tool",
                 "id": {
                     "type": "resolve",
                     "field": "id",
@@ -52,7 +52,7 @@ def test_bind_path_param() -> None:
     _bind_path_params(tp_1)
 
     # do not replace resolved params
-    assert tp_1["endpoint"]["path"] == "dlt-hub/dlt/issues/{id}/comments"  # type: ignore[index]
+    assert tp_1["endpoint"]["path"] == "dlt-hub/data_load_tool/issues/{id}/comments"  # type: ignore[index]
     # bound params popped
     assert len(tp_1["endpoint"]["params"]) == 1  # type: ignore[index]
     assert "id" in tp_1["endpoint"]["params"]  # type: ignore[index]
@@ -60,7 +60,7 @@ def test_bind_path_param() -> None:
     tp_2 = deepcopy(three_params)
     tp_2["endpoint"]["params"]["id"] = 12345  # type: ignore[index]
     _bind_path_params(tp_2)
-    assert tp_2["endpoint"]["path"] == "dlt-hub/dlt/issues/12345/comments"  # type: ignore[index]
+    assert tp_2["endpoint"]["path"] == "dlt-hub/data_load_tool/issues/12345/comments"  # type: ignore[index]
     assert len(tp_2["endpoint"]["params"]) == 0  # type: ignore[index]
 
     # param missing
@@ -93,17 +93,17 @@ def test_process_parent_data_item() -> None:
     ]
 
     bound_path, expanded_params, request_json, parent_record = process_parent_data_item(
-        path="dlt-hub/dlt/issues/{id}/comments",
+        path="dlt-hub/data_load_tool/issues/{id}/comments",
         item={"obj_id": 12345},
         resolved_params=resolved_params,
         include_from_parent=None,
     )
-    assert bound_path == "dlt-hub/dlt/issues/12345/comments"
+    assert bound_path == "dlt-hub/data_load_tool/issues/12345/comments"
     assert expanded_params == {}
     assert parent_record == {}
 
     bound_path, expanded_params, request_json, parent_record = process_parent_data_item(
-        path="dlt-hub/dlt/issues/{id}/comments",
+        path="dlt-hub/data_load_tool/issues/{id}/comments",
         item={"obj_id": 12345},
         resolved_params=resolved_params,
         include_from_parent=["obj_id"],
@@ -111,7 +111,7 @@ def test_process_parent_data_item() -> None:
     assert parent_record == {"_issues_obj_id": 12345}
 
     bound_path, expanded_params, request_json, parent_record = process_parent_data_item(
-        path="dlt-hub/dlt/issues/{id}/comments",
+        path="dlt-hub/data_load_tool/issues/{id}/comments",
         item={"obj_id": 12345, "obj_node": "node_1"},
         resolved_params=resolved_params,
         include_from_parent=["obj_id", "obj_node"],
@@ -125,22 +125,22 @@ def test_process_parent_data_item() -> None:
         )
     ]
     bound_path, expanded_params, request_json, parent_record = process_parent_data_item(
-        path="dlt-hub/dlt/issues/{resources.issues.obj_id}/comments",
+        path="dlt-hub/data_load_tool/issues/{resources.issues.obj_id}/comments",
         item={"obj_id": 12345, "obj_node": "node_1"},
         resolved_params=resolved_params_reference,
         include_from_parent=["obj_id", "obj_node"],
     )
-    assert bound_path == "dlt-hub/dlt/issues/12345/comments"
+    assert bound_path == "dlt-hub/data_load_tool/issues/12345/comments"
 
     # Test resource field reference in params
     bound_path, expanded_params, request_json, parent_record = process_parent_data_item(
-        path="dlt-hub/dlt/issues/comments",
+        path="dlt-hub/data_load_tool/issues/comments",
         item={"obj_id": 12345, "obj_node": "node_1"},
         params={"id": "{resources.issues.obj_id}"},
         resolved_params=resolved_params_reference,
         include_from_parent=["obj_id", "obj_node"],
     )
-    assert bound_path == "dlt-hub/dlt/issues/comments"
+    assert bound_path == "dlt-hub/data_load_tool/issues/comments"
     assert expanded_params == {"id": "12345"}
 
     # Test nested data
@@ -151,18 +151,18 @@ def test_process_parent_data_item() -> None:
     ]
     item = {"some_results": {"obj_id": 12345}}
     bound_path, expanded_params, request_json, parent_record = process_parent_data_item(
-        path="dlt-hub/dlt/issues/{id}/comments",
+        path="dlt-hub/data_load_tool/issues/{id}/comments",
         item=item,
         params={},
         resolved_params=resolved_param_nested,
         include_from_parent=None,
     )
-    assert bound_path == "dlt-hub/dlt/issues/12345/comments"
+    assert bound_path == "dlt-hub/data_load_tool/issues/12345/comments"
 
     # Param path not found
     with pytest.raises(ValueError) as val_ex:
         process_parent_data_item(
-            path="dlt-hub/dlt/issues/{id}/comments",
+            path="dlt-hub/data_load_tool/issues/{id}/comments",
             item={"_id": 12345},
             params={},
             resolved_params=resolved_params,
@@ -173,7 +173,7 @@ def test_process_parent_data_item() -> None:
     # Included path not found
     with pytest.raises(ValueError) as val_ex:
         process_parent_data_item(
-            path="dlt-hub/dlt/issues/{id}/comments",
+            path="dlt-hub/data_load_tool/issues/{id}/comments",
             item={"_id": 12345, "obj_node": "node_1"},
             params={},
             resolved_params=resolved_params,
@@ -192,19 +192,19 @@ def test_process_parent_data_item() -> None:
     ]
 
     bound_path, expanded_params, request_json, parent_record = process_parent_data_item(
-        path="dlt-hub/dlt/issues/{issue_id}/comments/{id}",
+        path="dlt-hub/data_load_tool/issues/{issue_id}/comments/{id}",
         item={"issue": 12345, "id": 56789},
         params={},
         resolved_params=multi_resolve_params,
         include_from_parent=None,
     )
-    assert bound_path == "dlt-hub/dlt/issues/12345/comments/56789"
+    assert bound_path == "dlt-hub/data_load_tool/issues/12345/comments/56789"
     assert parent_record == {}
 
     # Param path not found with multiple parameters
     with pytest.raises(ValueError) as val_ex:
         process_parent_data_item(
-            path="dlt-hub/dlt/issues/{issue_id}/comments/{id}",
+            path="dlt-hub/data_load_tool/issues/{issue_id}/comments/{id}",
             item={"_issue": 12345, "id": 56789},
             params={},
             resolved_params=multi_resolve_params,

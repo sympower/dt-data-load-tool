@@ -1,6 +1,6 @@
 ---
 title: Stripe
-description: dlt verified source for Stripe API
+description: data_load_tool verified source for Stripe API
 keywords: [stripe api, stripe verified source, stripe]
 ---
 import Header from './_source-info-header.md';
@@ -11,7 +11,7 @@ import Header from './_source-info-header.md';
 
 [Stripe](https://stripe.com) is an online payment platform that allows businesses to securely process and manage customer transactions over the Internet.
 
-This Stripe `dlt` verified source and
+This Stripe `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/stripe_pipeline.py)
 loads data using the Stripe API to the destination of your choice.
 
@@ -53,7 +53,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init stripe_analytics duckdb
+   data_load_tool init stripe_analytics duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -72,7 +72,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -104,7 +104,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the `pipeline_name` for the above pipeline example is `stripe_analytics`. You may also use any custom name instead.
@@ -113,7 +113,7 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and [resources](../../general-usage/resource).
 
 ### Default endpoints
 You can write your own pipelines to load data to a destination using this verified source. However, it is important to note how the `ENDPOINTS` and `INCREMENTAL_ENDPOINTS` tuples are defined in `stripe_analytics/settings.py`.
@@ -132,10 +132,10 @@ INCREMENTAL_ENDPOINTS = ("Event", "Invoice", "BalanceTransaction")
 This function retrieves data from the Stripe API for the specified endpoint:
 
 ```py
-@dlt.source
+@data_load_tool.source
 def stripe_source(
     endpoints: Tuple[str, ...] = STRIPE_ENDPOINTS,
-    stripe_secret_key: str = dlt.secrets.value,
+    stripe_secret_key: str = data_load_tool.secrets.value,
     start_date: Optional[DateTime] = None,
     end_date: Optional[DateTime] = None,
 ) -> Iterable[DltResource]:
@@ -152,10 +152,10 @@ def stripe_source(
 This source loads data in 'append' mode from incremental endpoints.
 
 ```py
-@dlt.source
+@data_load_tool.source
 def incremental_stripe_source(
     endpoints: Tuple[str, ...] = INCREMENTAL_ENDPOINTS,
-    stripe_secret_key: str = dlt.secrets.value,
+    stripe_secret_key: str = data_load_tool.secrets.value,
     initial_start_date: Optional[DateTime] = None,
     end_date: Optional[DateTime] = None,
 ) -> Iterable[DltResource]:
@@ -180,7 +180,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
        pipeline_name="stripe_pipeline",  # Use a custom name if desired
        destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
        dataset_name="stripe_dataset"  # Use a custom name if desired
@@ -211,7 +211,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
     load_info = pipeline.run(source_incremental)
     print(load_info)
     ```
-    > For subsequent runs, the dlt module sets the previous "end_date" as "initial_start_date", ensuring incremental data retrieval.
+    > For subsequent runs, the data_load_tool module sets the previous "end_date" as "initial_start_date", ensuring incremental data retrieval.
 
 1. To load data created after December 31, 2022, adjust the data range for stripe_source to prevent redundant loading. For `incremental_stripe_source`, the `initial_start_date` will auto-update to the last loaded date from the previous run.
 

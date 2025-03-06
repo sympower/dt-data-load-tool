@@ -6,8 +6,8 @@ keywords: [connector x, pyarrow, zero copy]
 ---
 
 The example script below takes genome data from public **mysql** instance and then loads it into **duckdb**. Mind that your destination
-must support loading of parquet files as this is the format that `dlt` uses to save arrow tables. [Connector X](https://github.com/sfu-db/connector-x) allows to
-get data from several popular databases and creates in memory Arrow table which `dlt` then saves to load package and loads to the destination.
+must support loading of parquet files as this is the format that `data_load_tool` uses to save arrow tables. [Connector X](https://github.com/sfu-db/connector-x) allows to
+get data from several popular databases and creates in memory Arrow table which `data_load_tool` then saves to load package and loads to the destination.
 :::tip
 You can yield several tables if your data is large and you need to partition your load.
 :::
@@ -23,13 +23,13 @@ We'll learn:
 
 import connectorx as cx
 
-import dlt
-from dlt.sources.credentials import ConnectionStringCredentials
+import data_load_tool
+from data_load_tool.sources.credentials import ConnectionStringCredentials
 
 
 def read_sql_x(
-    conn_str: ConnectionStringCredentials = dlt.secrets.value,
-    query: str = dlt.config.value,
+    conn_str: ConnectionStringCredentials = data_load_tool.secrets.value,
+    query: str = data_load_tool.config.value,
 ):
     yield cx.read_sql(
         conn_str.to_native_representation(),
@@ -41,7 +41,7 @@ def read_sql_x(
 
 def genome_resource():
     # create genome resource with merge on `upid` primary key
-    genome = dlt.resource(
+    genome = data_load_tool.resource(
         name="genome",
         write_disposition="merge",
         primary_key="upid",
@@ -51,12 +51,12 @@ def genome_resource():
         "SELECT * FROM genome ORDER BY created LIMIT 1000",
     )
     # add incremental on created at
-    genome.apply_hints(incremental=dlt.sources.incremental("created"))
+    genome.apply_hints(incremental=data_load_tool.sources.incremental("created"))
     return genome
 
 
 if __name__ == "__main__":
-    pipeline = dlt.pipeline(destination="duckdb")
+    pipeline = data_load_tool.pipeline(destination="duckdb")
     genome = genome_resource()
 
     load_info = pipeline.run(genome)

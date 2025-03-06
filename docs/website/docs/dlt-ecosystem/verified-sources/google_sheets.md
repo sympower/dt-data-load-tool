@@ -1,6 +1,6 @@
 ---
 title: Google Sheets
-description: dlt verified source for Google Sheets API
+description: data_load_tool verified source for Google Sheets API
 keywords: [google sheets api, google sheets verified source, google sheets]
 ---
 import Header from './_source-info-header.md';
@@ -12,7 +12,7 @@ import Header from './_source-info-header.md';
 [Google Sheets](https://www.google.com/sheets/about/) is a cloud-based spreadsheet application
 offered by Google as part of its Google Workspace suite.
 
-This Google Sheets `dlt` verified source and
+This Google Sheets `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/google_sheets_pipeline.py)
 loads data using the “Google Sheets API” to the destination of your choice.
 
@@ -100,7 +100,7 @@ follow these steps:
    ```
 
    Once you have executed the script and completed the authentication, you will receive a "refresh
-   token" that can be used to set up the ".dlt/secrets.toml".
+   token" that can be used to set up the ".data_load_tool/secrets.toml".
 
 ### Prepare your data
 
@@ -158,7 +158,7 @@ The first row of any extracted range should contain headers. Please make sure:
 1. If there are any problems with reading headers (i.e., the header is not a string or is empty or not
    unique): the headers row will be extracted as data and automatic header names will be used.
 1. Empty rows are ignored.
-1. `dlt` will normalize range names and headers into table and column names - so they may be
+1. `data_load_tool` will normalize range names and headers into table and column names - so they may be
    different in the database than in Google Sheets. Prefer small cap names without special
    characters.
 
@@ -212,7 +212,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init google_sheets duckdb
+   data_load_tool init google_sheets duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -230,7 +230,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -260,7 +260,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 1. Finally, enter credentials for your chosen destination as per the [docs](../destinations/).
 
-1. Next, you need to configure ".dlt/config.toml", which looks like:
+1. Next, you need to configure ".data_load_tool/config.toml", which looks like:
 
    ```toml
    [sources.google_sheets]
@@ -284,7 +284,7 @@ For more information, read the guide on [how to add a verified source](../../wal
    ```
 
 > Note: You have the option to pass "range_names" and "spreadsheet_identifier" directly to the
-> google_spreadsheet function or in ".dlt/config.toml"
+> google_spreadsheet function or in ".data_load_tool/config.toml"
 
 For more information, read the [General Usage: Credentials.](../../general-usage/credentials)
 
@@ -307,7 +307,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the `pipeline_name` for the above pipeline example is `google_sheets_pipeline`, you
@@ -317,10 +317,10 @@ For more information, read the guide on [how to run a pipeline](../../walkthroug
 
 ## Data types
 
-The `dlt` normalizer uses the first row of data to infer types and attempts to coerce subsequent rows, creating variant columns if unsuccessful. This is standard behavior.
-If `dlt` did not correctly determine the data type in the column, or you want to change the data type for other reasons,
+The `data_load_tool` normalizer uses the first row of data to infer types and attempts to coerce subsequent rows, creating variant columns if unsuccessful. This is standard behavior.
+If `data_load_tool` did not correctly determine the data type in the column, or you want to change the data type for other reasons,
 then you can provide a type hint for the affected column in the resource.
-Also, since recently, `dlt` no longer recognizes date and time types, so you have to designate it yourself as `timestamp`.
+Also, since recently, `data_load_tool` no longer recognizes date and time types, so you have to designate it yourself as `timestamp`.
 
 Use the `apply_hints` method on the resource to achieve this.
 Here's how you can do it:
@@ -352,7 +352,7 @@ print(source.resources.keys())
 To read more about tables, columns, and datatypes, please refer to [our documentation here.](../../general-usage/schema#tables-and-columns)
 
 :::caution
-`dlt` will **not modify** tables after they are created.
+`data_load_tool` will **not modify** tables after they are created.
 So if you changed data types with hints,
 then you need to **delete the dataset**
 or set `dev_mode=True`.
@@ -360,7 +360,7 @@ or set `dev_mode=True`.
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `google_spreadsheet`
@@ -369,13 +369,13 @@ This function loads data from a Google Spreadsheet. It retrieves data from all s
 whether explicitly defined or named, and obtains metadata for the first two rows within each range.
 
 ```py
-@dlt.source()
+@data_load_tool.source()
 def google_spreadsheet(
-      spreadsheet_url_or_id: str = dlt.config.value,
-      range_names: Sequence[str] = dlt.config.value,
+      spreadsheet_url_or_id: str = data_load_tool.config.value,
+      range_names: Sequence[str] = data_load_tool.config.value,
       credentials: Union[
           GcpOAuthCredentials, GcpServiceAccountCredentials
-      ] = dlt.secrets.value,
+      ] = data_load_tool.secrets.value,
       get_sheets: bool = False,
       get_named_ranges: bool = True,
 ) -> Iterable[DltResource]:
@@ -399,7 +399,7 @@ This function processes each range name provided by the source function, loading
 separate tables in the destination.
 
 ```py
-dlt.resource(
+data_load_tool.resource(
      process_range(data, headers=headers, data_types=data_types),
      name=name,
      write_disposition="replace",
@@ -416,7 +416,7 @@ headers, and data types as arguments.
 > Please note:
 >
 > 1. Empty rows are ignored.
-> 1. Empty cells are converted to None (and then to NULL by dlt).
+> 1. Empty cells are converted to None (and then to NULL by data_load_tool).
 > 1. Data in columns without headers will be dropped.
 
 ### Resource `spreadsheet_info`
@@ -429,7 +429,7 @@ This table refreshes after each load, storing information on loaded ranges:
 - String and parsed representation of the loaded range.
 
 ```py
-dlt.resource(
+data_load_tool.resource(
      metadata_table,
      write_disposition="merge",
      name="spreadsheet_info",
@@ -457,7 +457,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
         pipeline_name="google_sheets",  # Use a custom name if desired
         destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dataset_name="google_spreadsheet_data"  # Use a custom name if desired
@@ -477,7 +477,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    print(load_info)
    ```
 
-   > Note: You can pass the URL or spreadsheet ID and range names explicitly or in ".dlt/config.toml".
+   > Note: You can pass the URL or spreadsheet ID and range names explicitly or in ".data_load_tool/config.toml".
 
 1. To load all the range_names from the spreadsheet:
 
@@ -491,7 +491,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    print(load_info)
    ```
 
-   > Pass an empty list to range_names in ".dlt/config.toml" to retrieve all range names.
+   > Pass an empty list to range_names in ".data_load_tool/config.toml" to retrieve all range names.
 
 1. To load all the sheets from the spreadsheet:
 
@@ -505,7 +505,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    print(load_info)
    ```
 
-   > Pass an empty list to range_names in ".dlt/config.toml" to retrieve all sheets.
+   > Pass an empty list to range_names in ".data_load_tool/config.toml" to retrieve all sheets.
 
 1. To load all the sheets and range_names:
 
@@ -519,7 +519,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
    print(load_info)
    ```
 
-   > Pass an empty list to range_names in ".dlt/config.toml" to retrieve all sheets and range names.
+   > Pass an empty list to range_names in ".data_load_tool/config.toml" to retrieve all sheets and range names.
 
 1. To load data from multiple spreadsheets:
 
@@ -581,7 +581,7 @@ Below is the correct way to set up an Airflow DAG for this purpose:
 - When adding the Google Spreadsheet task to the pipeline, avoid decomposing it; run it as a single task for efficiency.
 
 ```py
-from dlt.helpers.airflow_helper import PipelineTasksGroup
+from data_load_tool.helpers.airflow_helper import PipelineTasksGroup
 
 @dag(
     schedule_interval='@daily',
@@ -596,7 +596,7 @@ def get_named_ranges():
     # Import your source from pipeline script
     from google_sheets import google_spreadsheet
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="get_named_ranges",
         dataset_name="named_ranges_data",
         destination='bigquery',

@@ -4,10 +4,10 @@ from typing import Any, List, NamedTuple
 from dataclasses import dataclass
 import pytest
 
-from dlt.common import json, Decimal, pendulum
-from dlt.common.arithmetics import numeric_default_context
-from dlt.common import known_env
-from dlt.common.json import (
+from data_load_tool.common import json, Decimal, pendulum
+from data_load_tool.common.arithmetics import numeric_default_context
+from data_load_tool.common import known_env
+from data_load_tool.common.json import (
     _DECIMAL,
     _WEI,
     PUA_START,
@@ -334,7 +334,7 @@ def test_change_pua_start() -> None:
 
     try:
         reload(inspect.getmodule(SupportsJson))
-        from dlt.common.json import PUA_START as MOD_PUA_START
+        from data_load_tool.common.json import PUA_START as MOD_PUA_START
 
         assert MOD_PUA_START == int("0x0FA179", 16)
     finally:
@@ -343,7 +343,7 @@ def test_change_pua_start() -> None:
         from importlib import reload
 
         reload(inspect.getmodule(SupportsJson))
-        from dlt.common.json import PUA_START as MOD_PUA_START
+        from data_load_tool.common.json import PUA_START as MOD_PUA_START
 
         assert MOD_PUA_START == PUA_START
 

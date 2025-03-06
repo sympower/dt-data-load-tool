@@ -1,18 +1,18 @@
 import inspect
 from typing import Any, Callable, Optional
 
-import dlt
-from dlt.common import Decimal
-from dlt.common.typing import TSecretValue, is_optional_type
-from dlt.common.configuration.inject import get_fun_spec, with_config
-from dlt.common.configuration.specs import (
+import data_load_tool
+from data_load_tool.common import Decimal
+from data_load_tool.common.typing import TSecretValue, is_optional_type
+from data_load_tool.common.configuration.inject import get_fun_spec, with_config
+from data_load_tool.common.configuration.specs import (
     configspec,
     BaseConfiguration,
     RuntimeConfiguration,
     ConnectionStringCredentials,
 )
-from dlt.common.reflection.spec import spec_from_signature, get_spec_name_from_f
-from dlt.common.reflection.utils import get_func_def_node, get_literal_defaults
+from data_load_tool.common.reflection.spec import spec_from_signature, get_spec_name_from_f
+from data_load_tool.common.reflection.utils import get_func_def_node, get_literal_defaults
 
 
 _DECIMAL_DEFAULT = Decimal("0.01")
@@ -31,7 +31,7 @@ def test_synthesize_spec_from_sig() -> None:
         p2: Decimal = None,
         p3: Any = None,
         p4: Optional[RuntimeConfiguration] = None,
-        p5: TSecretValue = dlt.secrets.value,
+        p5: TSecretValue = data_load_tool.secrets.value,
     ) -> None:
         pass
 
@@ -81,7 +81,7 @@ def test_synthesize_spec_from_sig() -> None:
 
     # spec from untyped signature
 
-    def f_untyped(untyped_p1=None, untyped_p2=dlt.config.value) -> None:
+    def f_untyped(untyped_p1=None, untyped_p2=data_load_tool.config.value) -> None:
         pass
 
     SPEC, _ = spec_from_signature(f_untyped, inspect.signature(f_untyped))
@@ -117,7 +117,7 @@ def test_synthesize_spec_from_sig() -> None:
     # spec from signatures containing positional only and keywords only args
 
     def f_pos_kw_only(
-        pos_only_1=dlt.config.value,
+        pos_only_1=data_load_tool.config.value,
         pos_only_2: str = "default",
         /,
         *,
@@ -195,11 +195,11 @@ def test_spec_when_no_fields() -> None:
 def f_top_kw_defaults_args(
     arg1,
     arg2="top",
-    arg3=dlt.config.value,
+    arg3=data_load_tool.config.value,
     *args,
     kw1,
     kw_lit="12131",
-    kw_secret_val=dlt.secrets.value,
+    kw_secret_val=data_load_tool.secrets.value,
     **kwargs,
 ):
     pass
@@ -208,22 +208,22 @@ def f_top_kw_defaults_args(
 def test_argument_have_dlt_config_defaults() -> None:
     def f_defaults(
         req_val,
-        config_val=dlt.config.value,
-        secret_val=dlt.secrets.value,
+        config_val=data_load_tool.config.value,
+        secret_val=data_load_tool.secrets.value,
         /,
         pos_cf=None,
-        pos_cf_val=dlt.config.value,
-        pos_secret_val=dlt.secrets.value,
+        pos_cf_val=data_load_tool.config.value,
+        pos_secret_val=data_load_tool.secrets.value,
         *,
         kw_val=None,
-        kw_cf_val=dlt.config.value,
-        kw_secret_val=dlt.secrets.value,
+        kw_cf_val=data_load_tool.config.value,
+        kw_secret_val=data_load_tool.secrets.value,
     ):
         pass
 
     @with_config
     def f_kw_defaults(
-        *, kw1=dlt.config.value, kw_lit="12131", kw_secret_val=dlt.secrets.value, **kwargs
+        *, kw1=data_load_tool.config.value, kw_lit="12131", kw_secret_val=data_load_tool.secrets.value, **kwargs
     ):
         pass
 
@@ -236,11 +236,11 @@ def test_argument_have_dlt_config_defaults() -> None:
     def f_kw_defaults_args(
         arg1,
         arg2=2,
-        arg3=dlt.config.value,
+        arg3=data_load_tool.config.value,
         *args,
         kw1,
         kw_lit="12131",
-        kw_secret_val=dlt.secrets.value,
+        kw_secret_val=data_load_tool.secrets.value,
         **kwargs,
     ):
         pass
@@ -249,18 +249,18 @@ def test_argument_have_dlt_config_defaults() -> None:
     assert node.name == "f_defaults"
     literal_defaults = get_literal_defaults(node)
     assert literal_defaults == {
-        "kw_secret_val": "dlt.secrets.value",
-        "kw_cf_val": "dlt.config.value",
+        "kw_secret_val": "data_load_tool.secrets.value",
+        "kw_cf_val": "data_load_tool.config.value",
         "kw_val": "None",
-        "pos_secret_val": "dlt.secrets.value",
-        "pos_cf_val": "dlt.config.value",
+        "pos_secret_val": "data_load_tool.secrets.value",
+        "pos_cf_val": "data_load_tool.config.value",
         "pos_cf": "None",
-        "secret_val": "dlt.secrets.value",
-        "config_val": "dlt.config.value",
+        "secret_val": "data_load_tool.secrets.value",
+        "config_val": "data_load_tool.config.value",
     }
     SPEC, _ = spec_from_signature(f_defaults, inspect.signature(f_defaults))
     fields = SPEC.get_resolvable_fields()
-    # fields market with dlt config are not optional, same for required fields
+    # fields market with data_load_tool config are not optional, same for required fields
     for arg in [
         "config_val",
         "secret_val",
@@ -279,9 +279,9 @@ def test_argument_have_dlt_config_defaults() -> None:
     assert node.name == "f_kw_defaults"
     literal_defaults = get_literal_defaults(node)
     assert literal_defaults == {
-        "kw_secret_val": "dlt.secrets.value",
+        "kw_secret_val": "data_load_tool.secrets.value",
         "kw_lit": "'12131'",
-        "kw1": "dlt.config.value",
+        "kw1": "data_load_tool.config.value",
     }
     SPEC, _ = spec_from_signature(f_kw_defaults, inspect.signature(f_kw_defaults))
     fields = SPEC.get_resolvable_fields()
@@ -294,9 +294,9 @@ def test_argument_have_dlt_config_defaults() -> None:
     literal_defaults = get_literal_defaults(node)
     # print(literal_defaults)
     assert literal_defaults == {
-        "kw_secret_val": "dlt.secrets.value",
+        "kw_secret_val": "data_load_tool.secrets.value",
         "kw_lit": "'12131'",
-        "arg3": "dlt.config.value",
+        "arg3": "data_load_tool.config.value",
         "arg2": "2",
     }
 
@@ -304,9 +304,9 @@ def test_argument_have_dlt_config_defaults() -> None:
     assert node.name == "f_top_kw_defaults_args"
     literal_defaults = get_literal_defaults(node)
     assert literal_defaults == {
-        "kw_secret_val": "dlt.secrets.value",
+        "kw_secret_val": "data_load_tool.secrets.value",
         "kw_lit": "'12131'",
-        "arg3": "dlt.config.value",
+        "arg3": "data_load_tool.config.value",
         "arg2": "'top'",
     }
 
@@ -316,7 +316,7 @@ def test_reflect_custom_base() -> None:
     class BaseParams(BaseConfiguration):
         str_str: str = None
 
-    def _f_1(str_str=dlt.config.value, p_def: bool = True):
+    def _f_1(str_str=data_load_tool.config.value, p_def: bool = True):
         pass
 
     SPEC, fields = spec_from_signature(_f_1, inspect.signature(_f_1), base=BaseParams)
@@ -339,7 +339,7 @@ def test_reflect_custom_base() -> None:
     assert len(fields) == 0
     assert SPEC.get_resolvable_fields() == BaseParams().get_resolvable_fields()
 
-    def _f_3(str_str: int = dlt.config.value, p_def: bool = True):
+    def _f_3(str_str: int = data_load_tool.config.value, p_def: bool = True):
         pass
 
     SPEC, fields = spec_from_signature(_f_3, inspect.signature(_f_3), base=BaseParams)
@@ -361,14 +361,14 @@ def test_reflect_custom_base() -> None:
 
 
 def test_reflect_async_function() -> None:
-    async def _f_1_as(str_str: str = dlt.config.value, blah: bool = dlt.config.value):
+    async def _f_1_as(str_str: str = data_load_tool.config.value, blah: bool = data_load_tool.config.value):
         import asyncio
 
         await asyncio.sleep(1)
 
     SPEC_AS, fields_as = spec_from_signature(_f_1_as, inspect.signature(_f_1_as), False)
 
-    def _f_1(str_str: str = dlt.config.value, blah: bool = dlt.config.value):
+    def _f_1(str_str: str = data_load_tool.config.value, blah: bool = data_load_tool.config.value):
         pass
 
     SPEC, fields = spec_from_signature(_f_1, inspect.signature(_f_1), False)

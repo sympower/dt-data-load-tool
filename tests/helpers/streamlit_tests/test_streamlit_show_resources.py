@@ -3,7 +3,7 @@ Create a pipeline with multiple resources for streamlit to show.
 
 Run streamlit showing this pipeline like this:
 
-    dlt pipeline test_resources_pipeline show
+    data_load_tool pipeline test_resources_pipeline show
 """
 import os
 import sys
@@ -11,25 +11,25 @@ from pathlib import Path
 
 import pytest
 
-import dlt
+import data_load_tool
 
 from streamlit.testing.v1 import AppTest  # type: ignore[import-not-found, unused-ignore]
 
-from dlt.helpers.streamlit_app.utils import render_with_pipeline
-from dlt.pipeline.exceptions import CannotRestorePipelineException
+from data_load_tool.helpers.streamlit_app.utils import render_with_pipeline
+from data_load_tool.pipeline.exceptions import CannotRestorePipelineException
 
 here = Path(__file__).parent
 dlt_root = here.parent.parent.parent.absolute()
-streamlit_app_path = dlt_root / "dlt/helpers/streamlit_app"
+streamlit_app_path = dlt_root / "data_load_tool/helpers/streamlit_app"
 
 
-@dlt.source
+@data_load_tool.source
 def source1(nr):
     def get_resource(nr):
         for i in range(nr):
             yield {"id": i, "column_1": f"abc_{i}"}
 
-    resource = dlt.resource(
+    resource = data_load_tool.resource(
         get_resource(nr),
         name="One",
         write_disposition="merge",
@@ -39,13 +39,13 @@ def source1(nr):
     yield resource
 
 
-@dlt.source()
+@data_load_tool.source()
 def source2(nr):
     def get_resource2(nr):
         for i in range(nr):
             yield {"id": i, "column_2": f"xyz_{i}"}
 
-    @dlt.resource(
+    @data_load_tool.resource(
         name="Three",
         write_disposition="merge",
         primary_key=["column_3", "column_4"],
@@ -53,7 +53,7 @@ def source2(nr):
     )
     def get_resource3(
         nr,
-        id_inc: dlt.sources.incremental[int] = dlt.sources.incremental(
+        id_inc: data_load_tool.sources.incremental[int] = data_load_tool.sources.incremental(
             "id",
             initial_value=0,
         ),
@@ -61,7 +61,7 @@ def source2(nr):
         for i in range(nr):
             yield {"id": i, "column_3": f"pqr_{i}", "column_4": f"pqrr_{i}"}
 
-    yield dlt.resource(
+    yield data_load_tool.resource(
         get_resource2(nr),
         name="Two",
         write_disposition="merge",
@@ -72,7 +72,7 @@ def source2(nr):
 
 
 def test_multiple_resources_pipeline():
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_resources_pipeline",
         destination="duckdb",
         dataset_name="rows_data2",
@@ -117,7 +117,7 @@ def test_multiple_resources_pipeline():
 
 
 def test_multiple_resources_pipeline_with_dummy_destination():
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_resources_pipeline_dummy_destination",
         destination="dummy",
         dataset_name="rows_data2",
@@ -127,7 +127,7 @@ def test_multiple_resources_pipeline_with_dummy_destination():
     os.environ["DLT_TEST_PIPELINE_NAME"] = "test_resources_pipeline_dummy_destination"
     streamlit_app = AppTest.from_file(
         str(streamlit_app_path / "index.py"),
-        # bigger timeout because dlt might be slow at
+        # bigger timeout because data_load_tool might be slow at
         # loading stage for dummy destination and timeout
         default_timeout=8,
     )
@@ -141,7 +141,7 @@ def test_multiple_resources_pipeline_with_dummy_destination():
 
 
 def test_render_with_pipeline_with_different_pipeline_dirs():
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_resources_pipeline_dummy_destination",
         destination="dummy",
     )
@@ -149,16 +149,16 @@ def test_render_with_pipeline_with_different_pipeline_dirs():
     os.environ["DLT_TEST_PIPELINE_NAME"] = "test_resources_pipeline_dummy_destination"
     base_args = ["dlt-show", "pipeline_name", "--pipelines-dir"]
 
-    def dummy_render(pipeline: dlt.Pipeline) -> None:
+    def dummy_render(pipeline: data_load_tool.Pipeline) -> None:
         pass
 
     old_args = sys.argv[:]
     with pytest.raises(CannotRestorePipelineException):
-        sys.argv = [*base_args, "/run/dlt"]
+        sys.argv = [*base_args, "/run/data_load_tool"]
         render_with_pipeline(dummy_render)
 
     with pytest.raises(CannotRestorePipelineException):
-        sys.argv = [*base_args, "/tmp/dlt"]
+        sys.argv = [*base_args, "/tmp/data_load_tool"]
         render_with_pipeline(dummy_render)
 
     sys.argv = old_args

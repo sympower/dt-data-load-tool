@@ -11,12 +11,12 @@ keywords: [renaming, columns, special characters]
 In the example below, we create a dummy source with special characters in the name. We then write a function that we intend to apply to the resource to modify its output (i.e., replacing the German umlaut): `replace_umlauts_in_dict_keys`.
 
 ```py
-import dlt
+import data_load_tool
 
 # create a dummy source with umlauts (special characters) in key names (um)
-@dlt.source
+@data_load_tool.source
 def dummy_source(prefix: str = None):
-    @dlt.resource
+    @data_load_tool.resource
     def dummy_data():
         for _ in range(100):
             yield {f'Objekt_{_}': {'Größe': _, 'Äquivalenzprüfung': True}}

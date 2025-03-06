@@ -4,16 +4,16 @@ import sqlfluff
 from copy import deepcopy
 from sqlfluff.api.simple import APIParsingError
 
-from dlt.common.utils import uniq_id
-from dlt.common.schema import Schema, TColumnHint
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.schema import Schema, TColumnHint
 
-from dlt.destinations import synapse
-from dlt.destinations.impl.synapse.synapse import (
+from data_load_tool.destinations import synapse
+from data_load_tool.destinations.impl.synapse.synapse import (
     SynapseClient,
     HINT_TO_SYNAPSE_ATTR,
     TABLE_INDEX_TYPE_TO_SYNAPSE_ATTR,
 )
-from dlt.destinations.impl.synapse.configuration import (
+from data_load_tool.destinations.impl.synapse.configuration import (
     SynapseClientConfiguration,
     SynapseCredentials,
 )

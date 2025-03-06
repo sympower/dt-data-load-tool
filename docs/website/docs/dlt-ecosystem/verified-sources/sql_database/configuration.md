@@ -12,9 +12,9 @@ import Header from '../_source-info-header.md';
 
 ## Configuring the SQL database source
 
-`dlt` sources are Python scripts made up of source and resource functions that can be easily customized. The SQL Database verified source has the following built-in source and resource:
-1. `sql_database`: a `dlt` source that can be used to load multiple tables and views from a SQL database.
-2. `sql_table`: a `dlt` resource that loads a single table from the SQL database.
+`data_load_tool` sources are Python scripts made up of source and resource functions that can be easily customized. The SQL Database verified source has the following built-in source and resource:
+1. `sql_database`: a `data_load_tool` source that can be used to load multiple tables and views from a SQL database.
+2. `sql_table`: a `data_load_tool` resource that loads a single table from the SQL database.
 
 Read more about sources and resources here: [General usage: source](../../../general-usage/source.md) and [General usage: resource](../../../general-usage/resource.md).
 
@@ -29,12 +29,12 @@ We intend our sources to be fully hackable. Feel free to change the source code 
     Calling `sql_database()` loads all tables from the database.
 
     ```py
-    import dlt
-    from dlt.sources.sql_database import sql_database
+    import data_load_tool
+    from data_load_tool.sources.sql_database import sql_database
 
     def load_entire_database() -> None:
         # Define the pipeline
-        pipeline = dlt.pipeline(
+        pipeline = data_load_tool.pipeline(
             pipeline_name="rfam",
             destination='synapse',
             dataset_name="rfam_data"
@@ -55,12 +55,12 @@ We intend our sources to be fully hackable. Feel free to change the source code 
     Calling `sql_database(table_names=["family", "clan"])` or `sql_database().with_resources("family", "clan")` loads only the tables `"family"` and `"clan"` from the database.
 
     ```py
-    import dlt
-    from dlt.sources.sql_database import sql_database
+    import data_load_tool
+    from data_load_tool.sources.sql_database import sql_database
 
     def load_select_tables_from_database() -> None:
         # Define the pipeline
-        pipeline = dlt.pipeline(
+        pipeline = data_load_tool.pipeline(
             pipeline_name="rfam",
             destination="postgres",
             dataset_name="rfam_data"
@@ -88,12 +88,12 @@ We intend our sources to be fully hackable. Feel free to change the source code 
     Calling `sql_table(table="family")` fetches only the table `"family"`
 
     ```py
-    import dlt
-    from dlt.sources.sql_database import sql_table
+    import data_load_tool
+    from data_load_tool.sources.sql_database import sql_table
 
     def load_select_tables_from_database() -> None:
         # Define the pipeline
-        pipeline = dlt.pipeline(
+        pipeline = data_load_tool.pipeline(
             pipeline_name="rfam",
             destination="duckdb",
             dataset_name="rfam_data"
@@ -157,21 +157,21 @@ Database-specific drivers can be passed into the connection string using query p
 "mssql+pyodbc://username:password@server/database?driver=ODBC+Driver+17+for+SQL+Server"
 ```
 
-### Passing connection credentials to the `dlt` pipeline
+### Passing connection credentials to the `data_load_tool` pipeline
 
-There are several options for adding your connection credentials into your `dlt` pipeline:
+There are several options for adding your connection credentials into your `data_load_tool` pipeline:
 
 #### 1. Setting them in `secrets.toml` or as environment variables (recommended)
 
-You can set up credentials using [any method](../../../general-usage/credentials/setup#available-config-providers) supported by `dlt`. We recommend using `.dlt/secrets.toml` or the environment variables. See Step 2 of the [setup](./setup) for how to set credentials inside `secrets.toml`. For more information on passing credentials, read [here](../../../general-usage/credentials/setup).
+You can set up credentials using [any method](../../../general-usage/credentials/setup#available-config-providers) supported by `data_load_tool`. We recommend using `.data_load_tool/secrets.toml` or the environment variables. See Step 2 of the [setup](./setup) for how to set credentials inside `secrets.toml`. For more information on passing credentials, read [here](../../../general-usage/credentials/setup).
 
 #### 2. Passing them directly in the script
 
 It is also possible to explicitly pass credentials inside the source. Example:
 
 ```py
-from dlt.sources.credentials import ConnectionStringCredentials
-from dlt.sources.sql_database import sql_database
+from data_load_tool.sources.credentials import ConnectionStringCredentials
+from data_load_tool.sources.sql_database import sql_database
 
 credentials = ConnectionStringCredentials(
     "mysql+pymysql://rfamro@mysql-rfam-public.ebi.ac.uk:4497/Rfam"
@@ -181,7 +181,7 @@ source = sql_database(credentials).with_resources("family")
 ```
 
 :::note
-It is recommended to configure credentials in `.dlt/secrets.toml` and to not include any sensitive information in the pipeline code.
+It is recommended to configure credentials in `.data_load_tool/secrets.toml` and to not include any sensitive information in the pipeline code.
 :::
 
 ### Other connection options
@@ -191,35 +191,35 @@ It is recommended to configure credentials in `.dlt/secrets.toml` and to not inc
 You are able to pass an instance of SqlAlchemy Engine instead of credentials:
 
 ```py
-from dlt.sources.sql_database import sql_table
+from data_load_tool.sources.sql_database import sql_table
 from sqlalchemy import create_engine
 
 engine = create_engine("mysql+pymysql://rfamro@mysql-rfam-public.ebi.ac.uk:4497/Rfam")
 table = sql_table(engine, table="chat_message", schema="data")
 ```
 
-This engine is used by `dlt` to open database connections and can work across multiple threads, so it is compatible with the `parallelize` setting of dlt sources and resources.
+This engine is used by `data_load_tool` to open database connections and can work across multiple threads, so it is compatible with the `parallelize` setting of data_load_tool sources and resources.
 
 ## Configuring the backend
 
-Table backends convert streams of rows from database tables into batches in various formats. The default backend, `SQLAlchemy`, follows standard `dlt` behavior of extracting and normalizing Python dictionaries. We recommend this for smaller tables, initial development work, and when minimal dependencies or a pure Python environment is required. This backend is also the slowest. Other backends make use of the structured data format of the tables and provide significant improvement in speeds. For example, the `PyArrow` backend converts rows into `Arrow` tables, which results in good performance and preserves exact data types. We recommend using this backend for larger tables.
+Table backends convert streams of rows from database tables into batches in various formats. The default backend, `SQLAlchemy`, follows standard `data_load_tool` behavior of extracting and normalizing Python dictionaries. We recommend this for smaller tables, initial development work, and when minimal dependencies or a pure Python environment is required. This backend is also the slowest. Other backends make use of the structured data format of the tables and provide significant improvement in speeds. For example, the `PyArrow` backend converts rows into `Arrow` tables, which results in good performance and preserves exact data types. We recommend using this backend for larger tables.
 
 ### SQLAlchemy
 
-The `SQLAlchemy` backend (the default) yields table data as a list of Python dictionaries. This data goes through the regular extract and normalize steps and does not require additional dependencies to be installed. It is the most robust (works with any destination, correctly represents data types) but also the slowest. You can set `reflection_level="full_with precision"` to pass exact data types to the `dlt` schema.
+The `SQLAlchemy` backend (the default) yields table data as a list of Python dictionaries. This data goes through the regular extract and normalize steps and does not require additional dependencies to be installed. It is the most robust (works with any destination, correctly represents data types) but also the slowest. You can set `reflection_level="full_with precision"` to pass exact data types to the `data_load_tool` schema.
 
 ### PyArrow
 
-The `PyArrow` backend yields data as `Arrow` tables. It uses `SQLAlchemy` to read rows in batches but then immediately converts them into `ndarray`, transposes it, and sets it as columns in an `Arrow` table. This backend always fully reflects the database table and preserves original types (i.e., **decimal** / **numeric** data will be extracted without loss of precision). If the destination loads parquet files, this backend will skip the `dlt` normalizer, and you can gain two orders of magnitude (20x - 30x) speed increase.
+The `PyArrow` backend yields data as `Arrow` tables. It uses `SQLAlchemy` to read rows in batches but then immediately converts them into `ndarray`, transposes it, and sets it as columns in an `Arrow` table. This backend always fully reflects the database table and preserves original types (i.e., **decimal** / **numeric** data will be extracted without loss of precision). If the destination loads parquet files, this backend will skip the `data_load_tool` normalizer, and you can gain two orders of magnitude (20x - 30x) speed increase.
 
 Note that if `pandas` is installed, we'll use it to convert `SQLAlchemy` tuples into `ndarray` as it seems to be 20-30% faster than using `numpy` directly.
 
 ```py
-import dlt
+import data_load_tool
 import sqlalchemy as sa
-from dlt.sources.sql_database import sql_database
+from data_load_tool.sources.sql_database import sql_database
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="rfam_cx", destination="postgres", dataset_name="rfam_data_arrow"
 )
 
@@ -245,7 +245,7 @@ For more information on the `tz` parameter within `backend_kwargs` supported by 
 
 ### Pandas
 
-The `pandas` backend yields data as DataFrames using the `pandas.io.sql` module. `dlt` uses `PyArrow` dtypes by default as they generate more stable typing.
+The `pandas` backend yields data as DataFrames using the `pandas.io.sql` module. `data_load_tool` uses `PyArrow` dtypes by default as they generate more stable typing.
 
 With the default settings, several data types will be coerced to dtypes in the yielded data frame:
 * **decimal** is mapped to double, so it is possible to lose precision
@@ -253,17 +253,17 @@ With the default settings, several data types will be coerced to dtypes in the y
 * all types are nullable
 
 :::note
-`dlt` will still use the data types reflected from the source database when creating destination tables. How the type differences resulting from the `pandas` backend are reconciled/parsed is up to the destination. Most of the destinations will be able to parse date/time strings and convert doubles into decimals (Please note that you'll still lose precision on decimals with default settings.). **However, we strongly suggest not to use the** `pandas` **backend if your source tables contain date, time, or decimal columns.**
+`data_load_tool` will still use the data types reflected from the source database when creating destination tables. How the type differences resulting from the `pandas` backend are reconciled/parsed is up to the destination. Most of the destinations will be able to parse date/time strings and convert doubles into decimals (Please note that you'll still lose precision on decimals with default settings.). **However, we strongly suggest not to use the** `pandas` **backend if your source tables contain date, time, or decimal columns.**
 :::
 
-Internally, `dlt` uses `pandas.io.sql._wrap_result` to generate `pandas` frames. To adjust [pandas-specific settings,](https://pandas.pydata.org/docs/reference/api/pandas.read_sql_table.html) pass it in the `backend_kwargs` parameter. For example, below we set `coerce_float` to `False`:
+Internally, `data_load_tool` uses `pandas.io.sql._wrap_result` to generate `pandas` frames. To adjust [pandas-specific settings,](https://pandas.pydata.org/docs/reference/api/pandas.read_sql_table.html) pass it in the `backend_kwargs` parameter. For example, below we set `coerce_float` to `False`:
 
 ```py
-import dlt
+import data_load_tool
 import sqlalchemy as sa
-from dlt.sources.sql_database import sql_database
+from data_load_tool.sources.sql_database import sql_database
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="rfam_cx", destination="postgres", dataset_name="rfam_data_pandas_2"
 )
 
@@ -300,19 +300,19 @@ There are certain limitations when using this backend:
 * JSON fields (at least those coming from PostgreSQL) are double-wrapped in strings. To unwrap this, you can pass the in-built transformation function `unwrap_json_connector_x` (for example, with `add_map`):
 
     ```py
-    from dlt.sources.sql_database.helpers import unwrap_json_connector_x
+    from data_load_tool.sources.sql_database.helpers import unwrap_json_connector_x
     ```
 
 :::note
-`dlt` will still use the data types reflected from the source database when creating destination tables. It is up to the destination to reconcile/parse type differences. Please note that you'll still lose precision on decimals with default settings.
+`data_load_tool` will still use the data types reflected from the source database when creating destination tables. It is up to the destination to reconcile/parse type differences. Please note that you'll still lose precision on decimals with default settings.
 :::
 
 ```py
 """This example is taken from the benchmarking tests for ConnectorX performed on the UNSW_Flow dataset (~2mln rows, 25+ columns). Full code here: https://github.com/dlt-hub/sql_database_benchmarking"""
 import os
-import dlt
-from dlt.destinations import filesystem
-from dlt.sources.sql_database import sql_table
+import data_load_tool
+from data_load_tool.destinations import filesystem
+from data_load_tool.sources.sql_database import sql_table
 
 unsw_table = sql_table(
     "postgresql://loader:loader@localhost:5432/dlt_data",
@@ -327,7 +327,7 @@ unsw_table = sql_table(
     backend_kwargs={"conn": "postgresql://loader:loader@localhost:5432/dlt_data"}
 )
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="unsw_download",
     destination=filesystem(os.path.abspath("../_storage/unsw")),
     progress="log",

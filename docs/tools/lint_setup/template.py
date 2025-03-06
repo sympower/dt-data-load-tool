@@ -29,11 +29,11 @@ import pendulum  # noqa: I251
 from airflow.decorators import dag
 
 #
-# various dlt imports used by snippets
+# various data_load_tool imports used by snippets
 #
-import dlt
-from dlt.common import json, pendulum
-from dlt.common.typing import (
+import data_load_tool
+from data_load_tool.common import json, pendulum
+from data_load_tool.common.typing import (
     TimedeltaSeconds,
     TAnyDateTime,
     TDataItem,
@@ -41,9 +41,9 @@ from dlt.common.typing import (
     StrStr,
     DictStrAny,
 )
-from dlt.common.schema.typing import TTableSchema, TTableSchemaColumns, TColumnSchema
-from dlt.common.pipeline import LoadInfo
-from dlt.common.configuration.specs import (
+from data_load_tool.common.schema.typing import TTableSchema, TTableSchemaColumns, TColumnSchema
+from data_load_tool.common.pipeline import LoadInfo
+from data_load_tool.common.configuration.specs import (
     GcpServiceAccountCredentials,
     ConnectionStringCredentials,
     OAuth2Credentials,
@@ -52,22 +52,22 @@ from dlt.common.configuration.specs import (
     GcpOAuthCredentials,
     GcpServiceAccountCredentials,
 )
-from dlt.common.libs.pyarrow import Table as ArrowTable
-from dlt.common.data_writers import TDataItemFormat
+from data_load_tool.common.libs.pyarrow import Table as ArrowTable
+from data_load_tool.common.data_writers import TDataItemFormat
 
-from dlt.extract.reference import SourceFactory
-from dlt.extract.items import DataItemWithMeta
-from dlt.extract import DltResource, DltSource
-from dlt.common.storages.configuration import FileSystemCredentials
-from dlt.pipeline.exceptions import PipelineStepFailed
-from dlt.common.schema import DataValidationError
+from data_load_tool.extract.reference import SourceFactory
+from data_load_tool.extract.items import DataItemWithMeta
+from data_load_tool.extract import DltResource, DltSource
+from data_load_tool.common.storages.configuration import FileSystemCredentials
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.common.schema import DataValidationError
 
 #
-# dlt core sources
+# data_load_tool core sources
 #
-from dlt.sources.sql_database import sql_database, sql_table, Table
-from dlt.sources.rest_api import RESTAPIConfig, rest_api_resources
-from dlt.sources.helpers.rest_client.paginators import (
+from data_load_tool.sources.sql_database import sql_database, sql_table, Table
+from data_load_tool.sources.rest_api import RESTAPIConfig, rest_api_resources
+from data_load_tool.sources.helpers.rest_client.paginators import (
     BasePaginator,
     SinglePagePaginator,
     HeaderLinkPaginator,
@@ -75,15 +75,15 @@ from dlt.sources.helpers.rest_client.paginators import (
     OffsetPaginator,
     PageNumberPaginator,
 )
-from dlt.sources.helpers.rest_client.auth import BearerTokenAuth, AuthConfigBase
-from dlt.sources.helpers import requests
+from data_load_tool.sources.helpers.rest_client.auth import BearerTokenAuth, AuthConfigBase
+from data_load_tool.sources.helpers import requests
 
 #
 # some universal variables used by snippets
 # NOTE: these are only used for typechecking, setting to None is ok
 #
-pipeline: dlt.Pipeline = None  # type: ignore[assignment]
-p: dlt.Pipeline = None  # type: ignore[assignment]
+pipeline: data_load_tool.Pipeline = None  # type: ignore[assignment]
+p: data_load_tool.Pipeline = None  # type: ignore[assignment]
 ex: Exception = None  # type: ignore[assignment]
 load_info: LoadInfo = None  # type: ignore[assignment]
 url: str = None  # type: ignore[assignment]

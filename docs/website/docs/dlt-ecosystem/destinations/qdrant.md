@@ -1,23 +1,23 @@
 ---
 title: Qdrant
-description: Qdrant is a high-performance vector search engine/database that can be used as a destination in dlt.
-keywords: [qdrant, vector database, destination, dlt]
+description: Qdrant is a high-performance vector search engine/database that can be used as a destination in data_load_tool.
+keywords: [qdrant, vector database, destination, data_load_tool]
 ---
 
 # Qdrant
 
 [Qdrant](https://qdrant.tech/) is an open-source, high-performance vector search engine/database. It deploys as an API service, providing a search for the nearest high-dimensional vectors.
-This destination helps you load data into Qdrant from [dlt resources](../../general-usage/resource.md).
+This destination helps you load data into Qdrant from [data_load_tool resources](../../general-usage/resource.md).
 
 ## Setup guide
 
-1. To use Qdrant as a destination, make sure `dlt` is installed with the `qdrant` extra:
+1. To use Qdrant as a destination, make sure `data_load_tool` is installed with the `qdrant` extra:
 
 ```sh
-pip install "dlt[qdrant]"
+pip install "data_load_tool[qdrant]"
 ```
 
-2. Next, configure the destination in the dlt secrets file. The file is located at `~/.dlt/secrets.toml` by default. Add the following section to the secrets file:
+2. Next, configure the destination in the data_load_tool secrets file. The file is located at `~/.data_load_tool/secrets.toml` by default. Add the following section to the secrets file:
 
 ```toml
 [destination.qdrant]
@@ -41,8 +41,8 @@ Data will be stored in `db.qdrant` file placed in current working directory.
 3. Define the source of the data. For starters, let's load some data from a simple data structure:
 
 ```py
-import dlt
-from dlt.destinations.adapters import qdrant_adapter
+import data_load_tool
+from data_load_tool.destinations.adapters import qdrant_adapter
 
 movies = [
     {
@@ -63,7 +63,7 @@ movies = [
 4. Define the pipeline:
 
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="movies",
     destination="qdrant",
     dataset_name="MoviesDataset",
@@ -89,7 +89,7 @@ print(info)
 
 The data is now loaded into Qdrant.
 
-To use vector search after the data has been loaded, you must specify which fields Qdrant needs to generate embeddings for. You do that by wrapping the data (or dlt resource) with the `qdrant_adapter` function.
+To use vector search after the data has been loaded, you must specify which fields Qdrant needs to generate embeddings for. You do that by wrapping the data (or data_load_tool resource) with the `qdrant_adapter` function.
 
 ## qdrant_adapter
 
@@ -101,10 +101,10 @@ qdrant_adapter(data, embed="title")
 
 It accepts the following arguments:
 
-- `data`: a dlt resource object or a Python data structure (e.g., a list of dictionaries).
+- `data`: a data_load_tool resource object or a Python data structure (e.g., a list of dictionaries).
 - `embed`: a name of the field or a list of names to generate embeddings for.
 
-Returns: [dlt resource](../../general-usage/resource.md) object that you can pass to the `pipeline.run()`.
+Returns: [data_load_tool resource](../../general-usage/resource.md) object that you can pass to the `pipeline.run()`.
 
 Example:
 
@@ -120,7 +120,7 @@ When using the `qdrant_adapter`, it's important to apply it directly to resource
 ```py
 products_tables = sql_database().with_resources("products", "customers")
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
         pipeline_name="postgres_to_qdrant_pipeline",
         destination="qdrant",
     )
@@ -133,7 +133,7 @@ info = pipeline.run(products_tables)
 ```
 
 :::tip
-A more comprehensive pipeline would load data from some API or use one of dlt's [verified sources](../verified-sources/).
+A more comprehensive pipeline would load data from some API or use one of data_load_tool's [verified sources](../verified-sources/).
 :::
 
 ## Write disposition
@@ -172,7 +172,7 @@ info = pipeline.run(
 )
 ```
 
-Internally, dlt will use the `primary_key` (`document_id` in the example above) to generate a unique identifier (UUID) for each point in Qdrant. If the object with the same UUID already exists in Qdrant, it will be updated with the new data. Otherwise, a new point will be created.
+Internally, data_load_tool will use the `primary_key` (`document_id` in the example above) to generate a unique identifier (UUID) for each point in Qdrant. If the object with the same UUID already exists in Qdrant, it will be updated with the new data. Otherwise, a new point will be created.
 
 :::caution
 
@@ -186,7 +186,7 @@ This is the default disposition. It will append the data to the existing data in
 
 ## Dataset name
 
-Qdrant uses collections to categorize and identify data. To avoid potential naming conflicts, especially when dealing with multiple datasets that might have overlapping table names, dlt includes the dataset name in the Qdrant collection name. This ensures a unique identifier for every collection.
+Qdrant uses collections to categorize and identify data. To avoid potential naming conflicts, especially when dealing with multiple datasets that might have overlapping table names, data_load_tool includes the dataset name in the Qdrant collection name. This ensures a unique identifier for every collection.
 
 For example, if you have a dataset named `movies_dataset` and a table named `actors`, the Qdrant collection name would be `movies_dataset_actors` (the default separator is an underscore).
 
@@ -195,7 +195,7 @@ However, if you prefer to have class names without the dataset prefix, skip the 
 For example:
 
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="movies",
     destination="qdrant",
 )
@@ -241,9 +241,9 @@ The `QdrantClientOptions` class provides options for configuring the Qdrant clie
 
 You can find the setup instructions to run Qdrant [here](https://qdrant.tech/documentation/quick-start/#download-and-run).
 
-### Syncing of `dlt` state
+### Syncing of `data_load_tool` state
 
-Qdrant destination supports syncing of the `dlt` state.
+Qdrant destination supports syncing of the `data_load_tool` state.
 
 <!--@@@DLT_TUBA qdrant-->
 

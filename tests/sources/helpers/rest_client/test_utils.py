@@ -1,5 +1,5 @@
 import pytest
-from dlt.sources.helpers.rest_client.utils import join_url
+from data_load_tool.sources.helpers.rest_client.utils import join_url
 
 
 @pytest.mark.parametrize(

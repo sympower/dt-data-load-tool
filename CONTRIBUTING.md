@@ -1,6 +1,6 @@
-# Contributing to dlt
+# Contributing to data_load_tool
 
-Thank you for considering contributing to **dlt**! We appreciate your help in making dlt better. This document will guide you through the process of contributing to the project.
+Thank you for considering contributing to **data_load_tool**! We appreciate your help in making data_load_tool better. This document will guide you through the process of contributing to the project.
 
 ## Table of Contents
 
@@ -15,18 +15,18 @@ Thank you for considering contributing to **dlt**! We appreciate your help in ma
 
 ## Before You Begin
 
-- **Proposing significant changes or enhancements**: If you're thinking about making significant changes, make sure to [submit an issue](https://github.com/dlt-hub/dlt/issues/new/choose) first. This ensures your efforts align with the project's direction and that you don't invest time on a feature that may not be merged.
+- **Proposing significant changes or enhancements**: If you're thinking about making significant changes, make sure to [submit an issue](https://github.com/dlt-hub/data_load_tool/issues/new/choose) first. This ensures your efforts align with the project's direction and that you don't invest time on a feature that may not be merged.
 
 - **Fixing bugs**:
-  - **Check existing issues**: search [open issues](https://github.com/dlt-hub/dlt/issues) to see if the bug you've found is already reported.
-    - If **not reported**, [create a new issue](https://github.com/dlt-hub/dlt/issues/new/choose). You're more than welcome to fix it and submit a pull request with your solution. Thank you!
+  - **Check existing issues**: search [open issues](https://github.com/dlt-hub/data_load_tool/issues) to see if the bug you've found is already reported.
+    - If **not reported**, [create a new issue](https://github.com/dlt-hub/data_load_tool/issues/new/choose). You're more than welcome to fix it and submit a pull request with your solution. Thank you!
     - If the bug is **already reported**, please leave a comment on that issue stating you're working on fixing it. This helps keep everyone updated and avoids duplicate efforts.
 
 ## Getting Started
 
 To get started, follow these steps:
 
-1. Fork the `dlt` repository and clone it to your local machine.
+1. Fork the `data_load_tool` repository and clone it to your local machine.
 2. Install `poetry` with `make install-poetry` (or follow the [official instructions](https://python-poetry.org/docs/#installation)).
 3. Run `make dev` to install all dependencies including dev ones.
 4. Start working in the `poetry` shell by executing `poetry shell`.
@@ -46,11 +46,11 @@ When you're ready to contribute, follow these steps:
 
 ### Active branches
 
-We use **devel** (which is our default Github branch) to prepare a next release of `dlt`. We accept all regular contributions there (including most of the bugfixes).
+We use **devel** (which is our default Github branch) to prepare a next release of `data_load_tool`. We accept all regular contributions there (including most of the bugfixes).
 
 We use **master** branch for hot fixes (including documentation) that needs to be released out of the normal schedule.
 
-On the release day, **devel** branch is merged into **master**. All releases of `dlt` happen only from the **master**.
+On the release day, **devel** branch is merged into **master**. All releases of `data_load_tool` happen only from the **master**.
 
 ### Branch naming rules
 
@@ -76,7 +76,7 @@ feat/4922-add-avro-support
 We encourage you to attach your branches to a ticket, if none exists, create one and explain what you are doing. For `feat` and `fix` branches, tickets are mandatory, for `exp` and `test` branches encouraged and for `docs` branches optional.
 
 ### Submitting a hotfix
-We'll fix critical bugs and release `dlt` out of the schedule. Follow the regular procedure, but make your PR against **master** branch. Please ping us on Slack if you do it.
+We'll fix critical bugs and release `data_load_tool` out of the schedule. Follow the regular procedure, but make your PR against **master** branch. Please ping us on Slack if you do it.
 
 ### Testing with Github Actions
 We enable our CI to run tests for contributions from forks. All the tests are run, but not all destinations are available due to credentials. Currently
@@ -84,12 +84,12 @@ only the `duckdb` and `postgres` are available to forks.
 
 ## Submitting Changes Requiring Full CI Credentials.
 
-In case you submit a new destination or make changes to a destination that require credentials (so Bigquery, Snowflake, buckets etc.) you **should contact us so we can add you as contributor**. Then you should make a PR directly to the `dlt` repo.
+In case you submit a new destination or make changes to a destination that require credentials (so Bigquery, Snowflake, buckets etc.) you **should contact us so we can add you as contributor**. Then you should make a PR directly to the `data_load_tool` repo.
 
 ## Adding or updating core dependencies
 
-Our objective is to maintain stability and compatibility of dlt across all environments.
-By following these guidelines, we can make sure that dlt stays secure, reliable and compatible.
+Our objective is to maintain stability and compatibility of data_load_tool across all environments.
+By following these guidelines, we can make sure that data_load_tool stays secure, reliable and compatible.
 Please consider the following points carefully when proposing updates to dependencies.
 
 ### Updating guidelines
@@ -108,11 +108,11 @@ versions will not be resolvable.
 
 ## Linting
 
-`dlt` uses `mypy` and `flake8` with several plugins for linting.
+`data_load_tool` uses `mypy` and `flake8` with several plugins for linting.
 
 ## Testing
 
-dlt uses `pytest` for testing.
+data_load_tool uses `pytest` for testing.
 
 ### Common Components
 
@@ -135,12 +135,12 @@ cd tests/load/postgres/
 docker-compose up --build -d
 ```
 
-See `tests/.example.env` for the expected environment variables and command line example to run the tests. Then create `tests/.env` from it. You configure the tests as you would configure the dlt pipeline.
+See `tests/.example.env` for the expected environment variables and command line example to run the tests. Then create `tests/.env` from it. You configure the tests as you would configure the data_load_tool pipeline.
 We'll provide you with access to the resources above if you wish to test locally.
 
 ## Local Development
 
-Use Python 3.8 for development, as it's the lowest supported version for `dlt`. You'll need `distutils` and `venv`. You may also use `pyenv`, as suggested by [poetry](https://python-poetry.org/docs/managing-environments/).
+Use Python 3.8 for development, as it's the lowest supported version for `data_load_tool`. You'll need `distutils` and `venv`. You may also use `pyenv`, as suggested by [poetry](https://python-poetry.org/docs/managing-environments/).
 
 ## Publishing (Maintainers Only)
 
@@ -185,8 +185,8 @@ Once the version has been bumped, follow these steps to publish the new release 
 
 ## Resources
 
-- [dlt Docs](https://dlthub.com/docs)
+- [data_load_tool Docs](https://dlthub.com/docs)
 - [Poetry Documentation](https://python-poetry.org/docs/)
 
-If you have any questions or need help, don't hesitate to reach out to us. We're here to help you succeed in contributing to `dlt`. Happy coding!
+If you have any questions or need help, don't hesitate to reach out to us. We're here to help you succeed in contributing to `data_load_tool`. Happy coding!
 ****

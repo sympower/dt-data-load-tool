@@ -1,6 +1,6 @@
 ---
 title: Personio
-description: dlt verified source for Personio API
+description: data_load_tool verified source for Personio API
 keywords: [personio api, personio verified source, personio]
 ---
 import Header from './_source-info-header.md';
@@ -55,7 +55,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init personio duckdb
+   data_load_tool init personio duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -73,7 +73,7 @@ For more information, read [Add a verified source.](../../walkthroughs/add-a-ver
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe. Here's its format for service
    account authentication:
 
@@ -109,7 +109,7 @@ For more information, read [Credentials](../../general-usage/credentials).
 1. Once the pipeline has finished running, you can verify that everything loaded correctly by using
    the following command:
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
    For example, the `pipeline_name` for the above pipeline example is `personio`, you may also use
    any custom name instead.
@@ -118,17 +118,17 @@ For more information, read [Run a pipeline.](../../walkthroughs/run-a-pipeline)
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `personio_source`
 
-This `dlt` source returns data resources like `employees`, `absences`, `absence_types`, etc.
+This `data_load_tool` source returns data resources like `employees`, `absences`, `absence_types`, etc.
 ```py
-@dlt.source(name="personio")
+@data_load_tool.source(name="personio")
 def personio_source(
-    client_id: str = dlt.secrets.value,
-    client_secret: str = dlt.secrets.value,
+    client_id: str = data_load_tool.secrets.value,
+    client_secret: str = data_load_tool.secrets.value,
     items_per_page: int = ITEMS_PER_PAGE,
 ) -> Iterable[DltResource]:
     ...
@@ -156,11 +156,11 @@ def personio_source(
 This resource retrieves data on all the employees in a company.
 
 ```py
-@dlt.resource(primary_key="id", write_disposition="merge")
+@data_load_tool.resource(primary_key="id", write_disposition="merge")
 def employees(
-    updated_at: dlt.sources.incremental[
+    updated_at: data_load_tool.sources.incremental[
         pendulum.DateTime
-    ] = dlt.sources.incremental(
+    ] = data_load_tool.sources.incremental(
         "last_modified_at", initial_value=None, allow_external_schedulers=True
     ),
     items_per_page: int = ITEMS_PER_PAGE,
@@ -182,7 +182,7 @@ data incrementally from the Personio API to your preferred destination.
 
 Simple resource, which retrieves a list of various types of employee absences.
 ```py
-@dlt.resource(primary_key="id", write_disposition="replace")
+@data_load_tool.resource(primary_key="id", write_disposition="replace")
 def absence_types(items_per_page: int = ITEMS_PER_PAGE) -> Iterable[TDataItem]:
    ...
 ...
@@ -207,18 +207,18 @@ The transformer function `employees_absences_balance` processes data from the `e
 It fetches and returns a list of the absence balances for each employee.
 
 ```py
-@dlt.transformer(
+@data_load_tool.transformer(
     data_from=employees,
     write_disposition="merge",
     primary_key=["employee_id", "id"],
 )
-@dlt.defer
+@data_load_tool.defer
 def employees_absences_balance(employees_item: TDataItem) -> Iterable[TDataItem]:
     ...
 ```
 `employees_item`: The data item from the 'employees' resource.
 
-It uses the `@dlt.defer` decorator to enable parallel run in thread pool.
+It uses the `@data_load_tool.defer` decorator to enable parallel run in thread pool.
 
 ## Customization
 
@@ -230,7 +230,7 @@ verified source.
 1. Configure the [pipeline](../../general-usage/pipeline) by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
       pipeline_name="personio",  # Use a custom name if desired
       destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
       dataset_name="personio_data"  # Use a custom name if desired

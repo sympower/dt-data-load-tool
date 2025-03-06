@@ -1,6 +1,6 @@
 ---
 title: Slack
-description: dlt verified source for Slack API
+description: data_load_tool verified source for Slack API
 keywords: [slack api, slack verified source, slack]
 ---
 import Header from './_source-info-header.md';
@@ -11,7 +11,7 @@ import Header from './_source-info-header.md';
 
 [Slack](https://slack.com/) is a popular messaging and collaboration platform for teams and organizations.
 
-This Slack `dlt` verified source and
+This Slack `data_load_tool` verified source and
 [pipeline example](https://github.com/dlt-hub/verified-sources/blob/master/sources/slack_pipeline.py)
 load data using the “Slack API” to the destination of your choice.
 
@@ -65,7 +65,7 @@ To get started with your data pipeline, follow these steps:
 1. Enter the following command:
 
    ```sh
-   dlt init slack duckdb
+   data_load_tool init slack duckdb
    ```
 
    [This command](../../reference/command-line-interface) will initialize
@@ -83,7 +83,7 @@ For more information, read the guide on [how to add a verified source](../../wal
 
 ### Add credentials
 
-1. In the `.dlt` folder, there's a file called `secrets.toml`. It's where you store sensitive
+1. In the `.data_load_tool` folder, there's a file called `secrets.toml`. It's where you store sensitive
    information securely, like access tokens. Keep this file safe.
 
    Here's its format for service account authentication:
@@ -118,7 +118,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
    the following command:
 
    ```sh
-   dlt pipeline <pipeline_name> show
+   data_load_tool pipeline <pipeline_name> show
    ```
 
    For example, the `pipeline_name` for the above pipeline example is `slack`, you
@@ -128,7 +128,7 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 
 ## Sources and resources
 
-`dlt` works on the principle of [sources](../../general-usage/source) and
+`data_load_tool` works on the principle of [sources](../../general-usage/source) and
 [resources](../../general-usage/resource).
 
 ### Source `slack`
@@ -136,13 +136,13 @@ For more information, read the [General Usage: Credentials.](../../general-usage
 It retrieves data from Slack's API and fetches the Slack data such as channels, messages for selected channels, users, logs.
 
 ```py
-@dlt.source(name="slack", max_table_nesting=2)
+@data_load_tool.source(name="slack", max_table_nesting=2)
 def slack_source(
     page_size: int = MAX_PAGE_SIZE,
-    access_token: str = dlt.secrets.value,
+    access_token: str = data_load_tool.secrets.value,
     start_date: Optional[TAnyDateTime] = START_DATE,
     end_date: Optional[TAnyDateTime] = None,
-    selected_channels: Optional[List[str]] = dlt.config.value,
+    selected_channels: Optional[List[str]] = data_load_tool.config.value,
 ) -> Iterable[DltResource]:
    ...
 ```
@@ -159,20 +159,20 @@ def slack_source(
 
 ### Resource `channels`
 
-This function yields all the channels data as a `dlt` resource.
+This function yields all the channels data as a `data_load_tool` resource.
 
 ```py
-@dlt.resource(name="channels", primary_key="id", write_disposition="replace")
+@data_load_tool.resource(name="channels", primary_key="id", write_disposition="replace")
 def channels_resource() -> Iterable[TDataItem]:
    ...
 ```
 
 ### Resource `users`
 
-This function yields all the users data as a `dlt` resource.
+This function yields all the users data as a `data_load_tool` resource.
 
 ```py
-@dlt.resource(name="users", primary_key="id", write_disposition="replace")
+@data_load_tool.resource(name="users", primary_key="id", write_disposition="replace")
 def users_resource() -> Iterable[TDataItem]:
    ...
 ```
@@ -184,7 +184,7 @@ This method fetches messages for a specified channel from the Slack API. It crea
 ```py
 def get_messages_resource(
     channel_data: Dict[str, Any],
-    created_at: dlt.sources.incremental[DateTime] = dlt.sources.incremental(
+    created_at: data_load_tool.sources.incremental[DateTime] = data_load_tool.sources.incremental(
         "ts",
         initial_value=START_DATE,
         end_value=END_DATE,
@@ -196,7 +196,7 @@ def get_messages_resource(
 
 `channel_data`: A dictionary detailing a specific channel to determine where messages are fetched from.
 
-`created_at`: An optional parameter leveraging dlt.sources.incremental to define the timestamp range for message retrieval. Sub-arguments include:
+`created_at`: An optional parameter leveraging data_load_tool.sources.incremental to define the timestamp range for message retrieval. Sub-arguments include:
 
    - `ts`: Timestamp from the Slack API response.
 
@@ -211,7 +211,7 @@ def get_messages_resource(
 This method retrieves access logs from the Slack API.
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     name="access_logs",
     selected=False,
     primary_key="user_id",
@@ -237,7 +237,7 @@ If you wish to create your own pipelines, you can leverage source and resource m
 1. Configure the pipeline by specifying the pipeline name, destination, and dataset as follows:
 
    ```py
-   pipeline = dlt.pipeline(
+   pipeline = data_load_tool.pipeline(
         pipeline_name="slack",  # Use a custom name if desired
         destination="duckdb",  # Choose the appropriate destination (e.g., duckdb, redshift, post)
         dataset_name="slack_data"  # Use a custom name if desired

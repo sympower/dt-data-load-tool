@@ -7,10 +7,10 @@ from lancedb.table import Table  # type: ignore
 from pandas import DataFrame
 from pandas.testing import assert_frame_equal
 
-import dlt
-from dlt.common.typing import DictStrAny, DictStrStr
-from dlt.common.utils import uniq_id
-from dlt.destinations.impl.lancedb.lancedb_adapter import (
+import data_load_tool
+from data_load_tool.common.typing import DictStrAny, DictStrStr
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations.impl.lancedb.lancedb_adapter import (
     lancedb_adapter,
 )
 from tests.load.lancedb.utils import chunk_document
@@ -34,14 +34,14 @@ def drop_lancedb_data() -> Iterator[None]:
 
 
 def test_lancedb_remove_nested_orphaned_records() -> None:
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_lancedb_remove_orphaned_records",
         destination="lancedb",
         dataset_name=f"test_lancedb_remove_orphaned_records_{uniq_id()}",
         dev_mode=True,
     )
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="parent",
         write_disposition={"disposition": "merge", "strategy": "upsert"},
         primary_key="id",
@@ -141,14 +141,14 @@ def test_lancedb_remove_nested_orphaned_records() -> None:
 
 
 def test_lancedb_remove_orphaned_records_root_table() -> None:
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_lancedb_remove_orphaned_records_root_table",
         destination="lancedb",
         dataset_name=f"test_lancedb_remove_orphaned_records_root_table_{uniq_id()}",
         dev_mode=True,
     )
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="root",
         write_disposition={"disposition": "merge", "strategy": "upsert"},
         primary_key=["doc_id", "chunk_hash"],
@@ -205,14 +205,14 @@ def test_lancedb_remove_orphaned_records_root_table() -> None:
 
 
 def test_lancedb_remove_orphaned_records_root_table_string_doc_id() -> None:
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_lancedb_remove_orphaned_records_root_table",
         destination="lancedb",
         dataset_name=f"test_lancedb_remove_orphaned_records_root_table_{uniq_id()}",
         dev_mode=True,
     )
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="root",
         write_disposition={"disposition": "merge", "strategy": "upsert"},
         primary_key=["doc_id", "chunk_hash"],
@@ -269,7 +269,7 @@ def test_lancedb_remove_orphaned_records_root_table_string_doc_id() -> None:
 
 
 def test_lancedb_root_table_remove_orphaned_records_with_real_embeddings() -> None:
-    @dlt.resource(
+    @data_load_tool.resource(
         write_disposition={"disposition": "merge", "strategy": "upsert"},
         table_name="document",
         primary_key=["doc_id", "chunk"],
@@ -281,7 +281,7 @@ def test_lancedb_root_table_remove_orphaned_records_with_real_embeddings() -> No
             for chunk in chunk_document(doc["text"]):
                 yield {"doc_id": doc_id, "doc_text": doc["text"], "chunk": chunk}
 
-    @dlt.source()
+    @data_load_tool.source()
     def documents_source(
         docs: List[DictStrAny],
     ) -> Any:
@@ -292,7 +292,7 @@ def test_lancedb_root_table_remove_orphaned_records_with_real_embeddings() -> No
         embed=["chunk"],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_lancedb_remove_orphaned_records_with_embeddings",
         destination="lancedb",
         dataset_name=f"test_lancedb_remove_orphaned_records_{uniq_id()}",
@@ -344,14 +344,14 @@ def test_lancedb_root_table_remove_orphaned_records_with_real_embeddings() -> No
 
 
 def test_lancedb_compound_merge_key_root_table() -> None:
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_lancedb_compound_merge_key",
         destination="lancedb",
         dataset_name=f"test_lancedb_remove_orphaned_records_root_table_{uniq_id()}",
         dev_mode=True,
     )
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="root",
         write_disposition={"disposition": "merge", "strategy": "upsert"},
         primary_key=["doc_id", "chunk_hash"],
@@ -407,11 +407,11 @@ def test_must_provide_at_least_primary_key_on_merge_disposition() -> None:
     Specify a merge key for custom orphan identification."""
     generator_instance1 = sequence_generator()
 
-    @dlt.resource(write_disposition={"disposition": "merge", "strategy": "upsert"})
+    @data_load_tool.resource(write_disposition={"disposition": "merge", "strategy": "upsert"})
     def some_data() -> Generator[DictStrStr, Any, None]:
         yield from next(generator_instance1)
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="test_must_provide_both_primary_and_merge_key_on_merge_disposition",
         destination="lancedb",
         dataset_name=(

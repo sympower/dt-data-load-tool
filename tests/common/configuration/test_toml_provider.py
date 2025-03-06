@@ -6,15 +6,15 @@ from typing import Any, Dict, Type
 import datetime  # noqa: I251
 from unittest.mock import Mock
 
-import dlt
-from dlt.common import pendulum, json
-from dlt.common.configuration import configspec, ConfigFieldMissingException, resolve
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.inject import with_config
-from dlt.common.configuration.exceptions import LookupTrace
-from dlt.common.configuration.specs.pluggable_run_context import PluggableRunContext
-from dlt.common.known_env import DLT_DATA_DIR, DLT_PROJECT_DIR
-from dlt.common.configuration.providers.toml import (
+import data_load_tool
+from data_load_tool.common import pendulum, json
+from data_load_tool.common.configuration import configspec, ConfigFieldMissingException, resolve
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.inject import with_config
+from data_load_tool.common.configuration.exceptions import LookupTrace
+from data_load_tool.common.configuration.specs.pluggable_run_context import PluggableRunContext
+from data_load_tool.common.known_env import DLT_DATA_DIR, DLT_PROJECT_DIR
+from data_load_tool.common.configuration.providers.toml import (
     SECRETS_TOML,
     CONFIG_TOML,
     BaseDocProvider,
@@ -25,14 +25,14 @@ from dlt.common.configuration.providers.toml import (
     StringTomlProvider,
     TomlProviderReadException,
 )
-from dlt.common.configuration.specs.config_providers_context import ConfigProvidersContainer
-from dlt.common.configuration.specs import (
+from data_load_tool.common.configuration.specs.config_providers_context import ConfigProvidersContainer
+from data_load_tool.common.configuration.specs import (
     BaseConfiguration,
     GcpServiceAccountCredentialsWithoutDefaults,
     ConnectionStringCredentials,
 )
-from dlt.common.runners.configuration import PoolRunnerConfiguration
-from dlt.common.typing import TSecretValue
+from data_load_tool.common.runners.configuration import PoolRunnerConfiguration
+from data_load_tool.common.typing import TSecretValue
 
 from tests.utils import preserve_environ, unload_modules
 from tests.common.configuration.utils import (
@@ -96,7 +96,7 @@ def test_config_provider_order(toml_providers: ConfigProvidersContainer, environ
         return port
 
     # secrets have api.port=1023 and this will be used
-    assert single_val(dlt.secrets.value) == 1023
+    assert single_val(data_load_tool.secrets.value) == 1023
 
     # env will make it string, also section is optional
     environment["PORT"] = "UNKNOWN"
@@ -111,13 +111,13 @@ def test_toml_mixed_config_inject(toml_providers: ConfigProvidersContainer) -> N
 
     @with_config
     def mixed_val(
-        api_type=dlt.config.value,
-        secret_value: TSecretValue = dlt.secrets.value,
-        typecheck: Any = dlt.config.value,
+        api_type=data_load_tool.config.value,
+        secret_value: TSecretValue = data_load_tool.secrets.value,
+        typecheck: Any = data_load_tool.config.value,
     ):
         return api_type, secret_value, typecheck
 
-    _tup = mixed_val(dlt.config.value, dlt.secrets.value, dlt.config.value)
+    _tup = mixed_val(data_load_tool.config.value, data_load_tool.secrets.value, data_load_tool.config.value)
     assert _tup[0] == "REST"
     assert _tup[1] == "2137"
     assert isinstance(_tup[2], dict)
@@ -250,7 +250,7 @@ def test_toml_get_key_as_section(toml_providers: ConfigProvidersContainer) -> No
 
 
 def test_toml_read_exception() -> None:
-    pipeline_root = "./tests/common/cases/configuration/.wrong.dlt"
+    pipeline_root = "./tests/common/cases/configuration/.wrong.data_load_tool"
     with pytest.raises(TomlProviderReadException) as py_ex:
         ConfigTomlProvider(settings_dir=pipeline_root)
     assert py_ex.value.file_name == "config.toml"
@@ -266,9 +266,9 @@ def test_toml_global_config() -> None:
     assert len(secrets._toml_paths) == 1  # type: ignore[attr-defined]
     assert len(config._toml_paths) == 1  # type: ignore[attr-defined]
 
-    # set dlt data and settings dir
+    # set data_load_tool data and settings dir
     global_dir = "./tests/common/cases/configuration/dlt_home"
-    settings_dir = "./tests/common/cases/configuration/.dlt"
+    settings_dir = "./tests/common/cases/configuration/.data_load_tool"
     # create instance with global toml enabled
     config = ConfigTomlProvider(settings_dir=settings_dir, global_dir=global_dir)
     assert config._toml_paths[1] == os.path.join(global_dir, CONFIG_TOML)
@@ -556,7 +556,7 @@ def test_colab_toml() -> None:
         builtins.get_ipython = get_ipython_m  # type: ignore[attr-defined]
         # test mock
         assert get_ipython() == "google.colab.Shell"  # type: ignore[name-defined] # noqa
-        from dlt.common.runtime.exec_info import is_notebook
+        from data_load_tool.common.runtime.exec_info import is_notebook
 
         assert is_notebook()
 
@@ -567,7 +567,7 @@ def test_colab_toml() -> None:
         provider = ConfigTomlProvider("tests/common/null", "unknown")
         assert provider.is_empty
         # prefers files
-        provider = SecretsTomlProvider("tests/common/cases/configuration/.dlt", global_dir=None)
+        provider = SecretsTomlProvider("tests/common/cases/configuration/.data_load_tool", global_dir=None)
         assert provider.get_value("secret_value", str, None) == ("2137", "secret_value")
     finally:
         delattr(builtins, "get_ipython")

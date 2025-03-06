@@ -15,7 +15,7 @@ since the default export will generate `Insert_statement` during the normalizati
 As it's an initial load, we create a separate schema with timestamp initially and then replace the existing schema with the new one.
 
 :::note
-This approach is tested and works well for an initial load (`--replace`), however, the incremental load (`--merge`) might need some adjustments (loading of load-tables of dlt, setting up first run after an initial
+This approach is tested and works well for an initial load (`--replace`), however, the incremental load (`--merge`) might need some adjustments (loading of load-tables of data_load_tool, setting up first run after an initial
 load, etc.).
 :::
 
@@ -28,12 +28,12 @@ We'll learn:
 - How to work with `ConnectionStringCredentials` spec.
 
 
-Be aware that you need to define the database credentials in `.dlt/secrets.toml` or dlt ENVs and adjust the tables names ("table_1" and "table_2").
+Be aware that you need to define the database credentials in `.data_load_tool/secrets.toml` or data_load_tool ENVs and adjust the tables names ("table_1" and "table_2").
 
-Install `dlt` with `duckdb` as extra, also `connectorx`, Postgres adapter and progress bar tool:
+Install `data_load_tool` with `duckdb` as extra, also `connectorx`, Postgres adapter and progress bar tool:
 
 ```sh
-pip install "dlt[duckdb]" connectorx pyarrow psycopg2-binary alive-progress
+pip install "data_load_tool[duckdb]" connectorx pyarrow psycopg2-binary alive-progress
 ```
 
 Run the example:
@@ -52,15 +52,15 @@ here](https://github.com/duckdb/duckdb/issues/8035#issuecomment-2020803032)), th
 
 import argparse
 import os
-from dlt.common import pendulum
+from data_load_tool.common import pendulum
 from typing import List
 
 import connectorx as cx
 import duckdb
 import psycopg2
 
-import dlt
-from dlt.sources.credentials import ConnectionStringCredentials
+import data_load_tool
+from data_load_tool.sources.credentials import ConnectionStringCredentials
 
 CHUNKSIZE = int(
     os.getenv("CHUNKSIZE", 1000000)
@@ -83,7 +83,7 @@ def read_sql_x_chunked(conn_str: str, query: str, chunk_size: int = CHUNKSIZE):
         offset += chunk_size
 
 
-@dlt.source(max_table_nesting=0)
+@data_load_tool.source(max_table_nesting=0)
 def pg_resource_chunked(
     table_name: str,
     primary_key: List[str],
@@ -94,7 +94,7 @@ def pg_resource_chunked(
     credentials: ConnectionStringCredentials = None,
 ):
     print(
-        f"dlt.resource write_disposition: `{load_type}` -- ",
+        f"data_load_tool.resource write_disposition: `{load_type}` -- ",
         "connection string:"
         f" postgresql://{credentials.username}:*****@{credentials.host}:{credentials.host}/{credentials.database}",
     )
@@ -103,7 +103,7 @@ def pg_resource_chunked(
         f"SELECT {columns} FROM {schema_name}.{table_name} ORDER BY {order_date}"
     )
 
-    source = dlt.resource(  # type: ignore
+    source = data_load_tool.resource(  # type: ignore
         name=table_name,
         table_name=table_name,
         write_disposition=load_type,  # use `replace` for initial load, `merge` for incremental
@@ -117,7 +117,7 @@ def pg_resource_chunked(
 
     if load_type == "merge":
         # Retrieve the last value processed for incremental loading
-        source.apply_hints(incremental=dlt.sources.incremental(order_date))
+        source.apply_hints(incremental=data_load_tool.sources.incremental(order_date))
 
     return source
 
@@ -162,12 +162,12 @@ if __name__ == "__main__":
                 table["order_date"],
                 load_type=load_type,
                 columns=table["columns"],
-                credentials=dlt.secrets["sources.postgres.credentials"],
+                credentials=data_load_tool.secrets["sources.postgres.credentials"],
             )
         )
 
     if load_type == "replace":
-        pipeline = dlt.pipeline(
+        pipeline = data_load_tool.pipeline(
             pipeline_name=pipeline_name,
             destination="duckdb",
             dataset_name=target_schema_name,
@@ -175,7 +175,7 @@ if __name__ == "__main__":
             progress="alive_progress",
         )
     else:
-        pipeline = dlt.pipeline(
+        pipeline = data_load_tool.pipeline(
             pipeline_name=pipeline_name,
             destination="postgres",
             dataset_name=target_schema_name,
@@ -231,7 +231,7 @@ if __name__ == "__main__":
         print(f"timestamped_schema: {timestamped_schema}")
 
         target_credentials = ConnectionStringCredentials(
-            dlt.secrets["destination.postgres.credentials"]
+            data_load_tool.secrets["destination.postgres.credentials"]
         )
         # connect to destination (timestamped schema)
         conn.sql(

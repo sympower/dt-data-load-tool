@@ -1,5 +1,5 @@
 # Writing Source Extractors
-`dlt` sources are iterators or lists and writing them does not require any additional knowledge beyond basic python. `dlt` sources are also pythonic in nature: they are simple, can be chained, pipelined and composed like any other python iterator or a sequence.
+`data_load_tool` sources are iterators or lists and writing them does not require any additional knowledge beyond basic python. `data_load_tool` sources are also pythonic in nature: they are simple, can be chained, pipelined and composed like any other python iterator or a sequence.
 
 
 # Examples
@@ -17,7 +17,7 @@
 - clones the desired tap, installs it and runs it in a virtual env
 - passes the catalog and config files
 - like rasa it is a **transformer** (on stdio pipe) and `stream` resource
-- it stores singer state in `dlt` state
+- it stores singer state in `data_load_tool` state
 
 1. `singer_tap_jsonl_example` like the above but instead of process pipe it reads singer messages from file. it creates a huge hubspot schema.
 
@@ -25,9 +25,9 @@
 
 1. `chess` an example of a pipeline project with its own config and credential files. it is also an example of how transformers are connected to resources and resource selection. **it should be run from examples/chess` folder**. It also shows: **how to use retry decorator** and **how to run resources/transformers in parallel with a decorator**
 
-2. `chess/chess_dbt.py`: an example of a `dbt` transformations package working with a dataset loaded by `dlt`. The package is incrementally processing the loaded data following the new loaded packages stored in `_dlt_loads` table at the end of every pipeline run. Note the automatic usage of isolated virtual environment to run dbt and sharing of the credentials.
+2. `chess/chess_dbt.py`: an example of a `dbt` transformations package working with a dataset loaded by `data_load_tool`. The package is incrementally processing the loaded data following the new loaded packages stored in `_dlt_loads` table at the end of every pipeline run. Note the automatic usage of isolated virtual environment to run dbt and sharing of the credentials.
 
-1. `run_dbt_jaffle` runs dbt's jaffle shop example taken directly from the github repo and queries the results with `sql_client`. `duckdb` database is used to load and transform the data. The database `write` access is passed from `dlt` to `dbt` and back.
+1. `run_dbt_jaffle` runs dbt's jaffle shop example taken directly from the github repo and queries the results with `sql_client`. `duckdb` database is used to load and transform the data. The database `write` access is passed from `data_load_tool` to `dbt` and back.
 
 Not yet ported:
 

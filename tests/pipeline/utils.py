@@ -4,18 +4,18 @@ import random
 from os import environ
 import io
 
-import dlt
-from dlt.common import json, sleep
-from dlt.common.configuration.utils import auto_cast
-from dlt.common.data_types import py_type_to_sc_type
-from dlt.common.pipeline import LoadInfo
-from dlt.common.schema.utils import get_table_format
-from dlt.common.typing import DictStrAny
-from dlt.destinations.impl.filesystem.filesystem import FilesystemClient
-from dlt.destinations.fs_client import FSClientBase
-from dlt.destinations.exceptions import DatabaseUndefinedRelation
+import data_load_tool
+from data_load_tool.common import json, sleep
+from data_load_tool.common.configuration.utils import auto_cast
+from data_load_tool.common.data_types import py_type_to_sc_type
+from data_load_tool.common.pipeline import LoadInfo
+from data_load_tool.common.schema.utils import get_table_format
+from data_load_tool.common.typing import DictStrAny
+from data_load_tool.destinations.impl.filesystem.filesystem import FilesystemClient
+from data_load_tool.destinations.fs_client import FSClientBase
+from data_load_tool.destinations.exceptions import DatabaseUndefinedRelation
 
-from dlt.common.schema.typing import TTableSchema
+from data_load_tool.common.schema.typing import TTableSchema
 
 
 PIPELINE_TEST_CASES_PATH = "./tests/pipeline/cases/"
@@ -36,25 +36,25 @@ def load_json_case(name: str) -> DictStrAny:
         return json.load(f)
 
 
-@dlt.source
+@data_load_tool.source
 def airtable_emojis():
-    @dlt.resource(name="📆 Schedule")
+    @data_load_tool.resource(name="📆 Schedule")
     def schedule():
         yield [1, 2, 3]
 
-    @dlt.resource(name="💰Budget", primary_key=("🔑book_id", "asset_id"))
+    @data_load_tool.resource(name="💰Budget", primary_key=("🔑book_id", "asset_id"))
     def budget():
         # return empty
         yield
 
-    @dlt.resource(name="🦚Peacock", selected=False, primary_key="🔑id")
+    @data_load_tool.resource(name="🦚Peacock", selected=False, primary_key="🔑id")
     def peacock():
-        r_state = dlt.current.resource_state()
+        r_state = data_load_tool.current.resource_state()
         r_state.setdefault("🦚🦚🦚", "")
         r_state["🦚🦚🦚"] += "🦚"
         yield [{"peacock": [1, 2, 3], "🔑id": 1}]
 
-    @dlt.resource(name="🦚WidePeacock", selected=False)
+    @data_load_tool.resource(name="🦚WidePeacock", selected=False)
     def wide_peacock():
         yield [{"Peacock": [1, 2, 3]}]
 
@@ -62,7 +62,7 @@ def airtable_emojis():
 
 
 def run_deferred(iters):
-    @dlt.defer
+    @data_load_tool.defer
     def item(n):
         sleep(random.random() / 2)
         return n
@@ -71,19 +71,19 @@ def run_deferred(iters):
         yield item(n)
 
 
-@dlt.source
+@data_load_tool.source
 def many_delayed(many, iters):
     for n in range(many):
-        yield dlt.resource(run_deferred(iters), name="resource_" + str(n))
+        yield data_load_tool.resource(run_deferred(iters), name="resource_" + str(n))
 
 
-@dlt.resource(table_name="users")
+@data_load_tool.resource(table_name="users")
 def users_materialize_table_schema():
-    yield dlt.mark.with_hints(
+    yield data_load_tool.mark.with_hints(
         # this is a special empty item which will materialize table schema
-        dlt.mark.materialize_table_schema(),
+        data_load_tool.mark.materialize_table_schema(),
         # emit table schema with the item
-        dlt.mark.make_hints(
+        data_load_tool.mark.make_hints(
             columns=[
                 {"name": "id", "data_type": "bigint", "precision": 4, "nullable": False},
                 {"name": "name", "data_type": "text", "nullable": False},
@@ -114,7 +114,7 @@ def assert_load_info(info: LoadInfo, expected_load_packages: int = 1) -> None:
 #
 
 
-def _is_filesystem(p: dlt.Pipeline) -> bool:
+def _is_filesystem(p: data_load_tool.Pipeline) -> bool:
     if not p.destination:
         return False
     return p.destination.destination_name == "filesystem"
@@ -179,7 +179,7 @@ def _load_file(client: FSClientBase, filepath) -> List[Dict[str, Any]]:
 
 
 def _load_tables_to_dicts_fs(
-    p: dlt.Pipeline, *table_names: str, schema_name: str = None
+    p: data_load_tool.Pipeline, *table_names: str, schema_name: str = None
 ) -> Dict[str, List[Dict[str, Any]]]:
     """For now this will expect the standard layout in the filesystem destination, if changed the results will not be correct"""
     client = p._fs_client(schema_name=schema_name)
@@ -193,7 +193,7 @@ def _load_tables_to_dicts_fs(
         if get_table_format(client.schema.tables, table_name) == "delta"
     ]
     if len(delta_table_names) > 0:
-        from dlt.common.libs.deltalake import get_delta_tables
+        from data_load_tool.common.libs.deltalake import get_delta_tables
 
         delta_tables = get_delta_tables(p, *table_names, schema_name=schema_name)
 
@@ -203,7 +203,7 @@ def _load_tables_to_dicts_fs(
         if get_table_format(client.schema.tables, table_name) == "iceberg"
     ]
     if len(iceberg_table_names) > 0:
-        from dlt.common.libs.pyiceberg import get_iceberg_tables
+        from data_load_tool.common.libs.pyiceberg import get_iceberg_tables
 
         iceberg_tables = get_iceberg_tables(p, *table_names, schema_name=schema_name)
 
@@ -226,7 +226,7 @@ def _load_tables_to_dicts_fs(
 
 
 def _load_tables_to_dicts_sql(
-    p: dlt.Pipeline, *table_names: str, schema_name: str = None
+    p: data_load_tool.Pipeline, *table_names: str, schema_name: str = None
 ) -> Dict[str, List[Dict[str, Any]]]:
     result = {}
     schema = p.default_schema if not schema_name else p.schemas[schema_name]
@@ -247,7 +247,7 @@ def _load_tables_to_dicts_sql(
 
 
 def load_tables_to_dicts(
-    p: dlt.Pipeline,
+    p: data_load_tool.Pipeline,
     *table_names: str,
     schema_name: str = None,
     exclude_system_cols: bool = False,
@@ -280,7 +280,7 @@ def assert_records_as_set(actual: List[Dict[str, Any]], expected: List[Dict[str,
 
 
 def assert_only_table_columns(
-    p: dlt.Pipeline, table_name: str, expected_columns: Sequence[str], schema_name: str = None
+    p: data_load_tool.Pipeline, table_name: str, expected_columns: Sequence[str], schema_name: str = None
 ) -> None:
     """Table has all and only the expected columns (excluding _dlt columns)"""
     rows = load_tables_to_dicts(p, table_name, schema_name=schema_name)[table_name]
@@ -293,7 +293,7 @@ def assert_only_table_columns(
 #
 # Load table counts
 #
-def _load_table_counts_fs(p: dlt.Pipeline, *table_names: str) -> DictStrAny:
+def _load_table_counts_fs(p: data_load_tool.Pipeline, *table_names: str) -> DictStrAny:
     file_tables = _load_tables_to_dicts_fs(p, *table_names)
     result = {}
     for table_name, items in file_tables.items():
@@ -301,7 +301,7 @@ def _load_table_counts_fs(p: dlt.Pipeline, *table_names: str) -> DictStrAny:
     return result
 
 
-def _load_table_counts_sql(p: dlt.Pipeline, *table_names: str) -> DictStrAny:
+def _load_table_counts_sql(p: data_load_tool.Pipeline, *table_names: str) -> DictStrAny:
     with p.sql_client() as c:
         qualified_names = [c.make_qualified_table_name(name) for name in table_names]
         query = "\nUNION ALL\n".join(
@@ -315,18 +315,18 @@ def _load_table_counts_sql(p: dlt.Pipeline, *table_names: str) -> DictStrAny:
             return {r[0]: r[1] for r in rows}
 
 
-def load_table_counts(p: dlt.Pipeline, *table_names: str) -> DictStrAny:
+def load_table_counts(p: data_load_tool.Pipeline, *table_names: str) -> DictStrAny:
     """Returns row counts for `table_names` as dict"""
     func = _load_table_counts_fs if _is_filesystem(p) else _load_table_counts_sql
     return func(p, *table_names)
 
 
-def load_data_table_counts(p: dlt.Pipeline) -> DictStrAny:
+def load_data_table_counts(p: data_load_tool.Pipeline) -> DictStrAny:
     tables = [table["name"] for table in p.default_schema.data_tables()]
     return load_table_counts(p, *tables)
 
 
-def assert_data_table_counts(p: dlt.Pipeline, expected_counts: DictStrAny) -> None:
+def assert_data_table_counts(p: data_load_tool.Pipeline, expected_counts: DictStrAny) -> None:
     table_counts = load_data_table_counts(p)
     assert (
         table_counts == expected_counts
@@ -338,7 +338,7 @@ def assert_data_table_counts(p: dlt.Pipeline, expected_counts: DictStrAny) -> No
 #
 
 
-def table_exists(p: dlt.Pipeline, table_name: str, schema_name: str = None) -> bool:
+def table_exists(p: data_load_tool.Pipeline, table_name: str, schema_name: str = None) -> bool:
     """Returns True if table exists in the destination database/filesystem"""
     if _is_filesystem(p):
         client = p._fs_client(schema_name=schema_name)
@@ -355,7 +355,7 @@ def table_exists(p: dlt.Pipeline, table_name: str, schema_name: str = None) -> b
 
 
 def _assert_table_sql(
-    p: dlt.Pipeline,
+    p: data_load_tool.Pipeline,
     table_name: str,
     table_data: List[Any],
     schema_name: str = None,
@@ -375,7 +375,7 @@ def _assert_table_sql(
 
 
 def _assert_table_fs(
-    p: dlt.Pipeline,
+    p: data_load_tool.Pipeline,
     table_name: str,
     table_data: List[Any],
     schema_name: str = None,
@@ -393,7 +393,7 @@ def _assert_table_fs(
 
 
 def assert_table(
-    p: dlt.Pipeline,
+    p: data_load_tool.Pipeline,
     table_name: str,
     table_data: List[Any],
     schema_name: str = None,
@@ -403,14 +403,14 @@ def assert_table(
     func(p, table_name, table_data, schema_name, info)
 
 
-def select_data(p: dlt.Pipeline, sql: str, schema_name: str = None) -> List[Sequence[Any]]:
+def select_data(p: data_load_tool.Pipeline, sql: str, schema_name: str = None) -> List[Sequence[Any]]:
     with p.sql_client(schema_name=schema_name) as c:
         with c.execute_query(sql) as cur:
             return list(cur.fetchall())
 
 
 def assert_query_data(
-    p: dlt.Pipeline,
+    p: data_load_tool.Pipeline,
     sql: str,
     table_data: List[Any],
     schema_name: str = None,
@@ -484,7 +484,7 @@ def assert_schema_on_data(
 
 
 def load_table_distinct_counts(
-    p: dlt.Pipeline, distinct_column: str, *table_names: str
+    p: data_load_tool.Pipeline, distinct_column: str, *table_names: str
 ) -> DictStrAny:
     """Returns counts of distinct values for column `distinct_column` for `table_names` as dict"""
     with p.sql_client() as c:

@@ -46,7 +46,7 @@ if (knownVersions) {
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'dlt Docs',
+  title: 'data_load_tool Docs',
   tagline: 'data load tool',
   url: 'https://dlthub.com',
   baseUrl: process.env.DOCUSAURUS_BASE_URL || '/docs',
@@ -59,7 +59,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'dltHub', // Usually your GitHub org/user name.
-  projectName: 'dlt', // Usually your repo name.
+  projectName: 'data_load_tool', // Usually your repo name.
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -85,7 +85,7 @@ const config = {
           ],
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: (params) => {
-            return "https://github.com/dlt-hub/dlt/tree/devel/docs/website/docs/" + params.docPath;
+            return "https://github.com/dlt-hub/data_load_tool/tree/devel/docs/website/docs/" + params.docPath;
           },
           versions: versions,
           showLastUpdateAuthor: true,
@@ -104,7 +104,7 @@ const config = {
       navbar: {
         title: '',
         logo: {
-          alt: 'dlt Docs Logo',
+          alt: 'data_load_tool Docs Logo',
           src: 'img/dlthub-logo.png',
           href: 'https://dlthub.com'
         },
@@ -120,7 +120,7 @@ const config = {
             className: 'slack-navbar',
           },
           {
-            href: 'https://github.com/dlt-hub/dlt',
+            href: 'https://github.com/dlt-hub/data_load_tool',
             label: 'Star us',
             position: 'right',
             className: 'github-navbar',
@@ -156,7 +156,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/dlt-hub/dlt',
+                href: 'https://github.com/dlt-hub/data_load_tool',
                 className: 'footer-link'
               },
               {

@@ -3,12 +3,12 @@ from tests.pipeline.utils import assert_load_info
 
 def intro_snippet() -> None:
     # @@@DLT_SNIPPET_START api
-    import dlt
-    from dlt.sources.helpers import requests
+    import data_load_tool
+    from data_load_tool.sources.helpers import requests
 
-    # Create a dlt pipeline that will load
+    # Create a data_load_tool pipeline that will load
     # chess player data to the DuckDB destination
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="chess_pipeline", destination="duckdb", dataset_name="player_data"
     )
     # Grab some player data from Chess.com API
@@ -26,7 +26,7 @@ def intro_snippet() -> None:
 
 def csv_snippet() -> None:
     # @@@DLT_SNIPPET_START csv
-    import dlt
+    import data_load_tool
     import pandas as pd
 
     owid_disasters_csv = (
@@ -37,7 +37,7 @@ def csv_snippet() -> None:
     df = pd.read_csv(owid_disasters_csv)
     data = df.to_dict(orient="records")
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="from_csv",
         destination="duckdb",
         dataset_name="mydata",
@@ -52,7 +52,7 @@ def csv_snippet() -> None:
 
 def db_snippet() -> None:
     # @@@DLT_SNIPPET_START db
-    import dlt
+    import data_load_tool
     from sqlalchemy import create_engine
 
     # Use any SQL database supported by SQLAlchemy, below we use a public
@@ -66,7 +66,7 @@ def db_snippet() -> None:
         query = "SELECT * FROM genome LIMIT 1000"
         rows = conn.execution_options(yield_per=100).exec_driver_sql(query)
 
-        pipeline = dlt.pipeline(
+        pipeline = data_load_tool.pipeline(
             pipeline_name="from_database",
             destination="duckdb",
             dataset_name="genome_data",

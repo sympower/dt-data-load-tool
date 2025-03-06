@@ -3,12 +3,12 @@ import os
 import pytest
 from pytest_mock import MockerFixture
 
-import dlt
-from dlt.common import pendulum
-from dlt.common.utils import uniq_id
-from dlt.destinations.exceptions import DatabaseUndefinedRelation
-from dlt.load.exceptions import LoadClientJobFailed
-from dlt.pipeline.exceptions import PipelineStepFailed
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.destinations.exceptions import DatabaseUndefinedRelation
+from data_load_tool.load.exceptions import LoadClientJobFailed
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 from tests.load.pipeline.test_pipelines import simple_nested_pipeline
 from tests.load.snowflake.test_snowflake_client import QUERY_TAG
@@ -35,9 +35,9 @@ pytestmark = pytest.mark.essential
 def test_snowflake_case_sensitive_identifiers(
     destination_config: DestinationTestConfiguration, mocker: MockerFixture
 ) -> None:
-    from dlt.destinations.impl.snowflake.sql_client import SnowflakeSqlClient
+    from data_load_tool.destinations.impl.snowflake.sql_client import SnowflakeSqlClient
 
-    snow_ = dlt.destinations.snowflake(naming_convention="sql_cs_v1")
+    snow_ = data_load_tool.destinations.snowflake(naming_convention="sql_cs_v1")
     # we make sure that session was not tagged (lack of query tag in config)
     tag_query_spy = mocker.spy(SnowflakeSqlClient, "_tag_session")
 
@@ -85,7 +85,7 @@ def test_snowflake_case_sensitive_identifiers(
 def test_snowflake_query_tagging(
     destination_config: DestinationTestConfiguration, mocker: MockerFixture
 ):
-    from dlt.destinations.impl.snowflake.sql_client import SnowflakeSqlClient
+    from data_load_tool.destinations.impl.snowflake.sql_client import SnowflakeSqlClient
 
     os.environ["DESTINATION__SNOWFLAKE__QUERY_TAG"] = QUERY_TAG
     tag_query_spy = mocker.spy(SnowflakeSqlClient, "_tag_session")
@@ -162,7 +162,7 @@ def test_snowflake_delete_file_after_copy(destination_config: DestinationTestCon
         assert_query_data(pipeline, f"SELECT value FROM {tbl_name}", ["a", None, None])
 
 
-from dlt.common.normalizers.naming.sql_cs_v1 import NamingConvention as SqlCsV1NamingConvention
+from data_load_tool.common.normalizers.naming.sql_cs_v1 import NamingConvention as SqlCsV1NamingConvention
 
 
 class ScandinavianNamingConvention(SqlCsV1NamingConvention):
@@ -182,7 +182,7 @@ class ScandinavianNamingConvention(SqlCsV1NamingConvention):
 def test_char_replacement_cs_naming_convention(
     destination_config: DestinationTestConfiguration,
 ) -> None:
-    snow_ = dlt.destinations.snowflake(
+    snow_ = data_load_tool.destinations.snowflake(
         naming_convention=ScandinavianNamingConvention, replace_strategy="staging-optimized"
     )
 
@@ -229,7 +229,7 @@ def test_snowflake_use_vectorized_scanner(
 ) -> None:
     """Tests whether the vectorized scanner option is correctly applied when loading Parquet files into Snowflake."""
 
-    from dlt.destinations.impl.snowflake.snowflake import SnowflakeLoadJob
+    from data_load_tool.destinations.impl.snowflake.snowflake import SnowflakeLoadJob
 
     os.environ["DESTINATION__SNOWFLAKE__USE_VECTORIZED_SCANNER"] = use_vectorized_scanner
 
@@ -239,7 +239,7 @@ def test_snowflake_use_vectorized_scanner(
     column_schemas = deepcopy(TABLE_UPDATE_COLUMNS_SCHEMA)
     expected_rows = deepcopy(TABLE_ROW_ALL_DATA_TYPES_DATETIMES)
 
-    @dlt.resource(table_name="data_types", write_disposition="merge", columns=column_schemas)
+    @data_load_tool.resource(table_name="data_types", write_disposition="merge", columns=column_schemas)
     def my_resource():
         nonlocal data_types
         yield [data_types] * 10

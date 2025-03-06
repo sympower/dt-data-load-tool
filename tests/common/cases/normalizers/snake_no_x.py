@@ -1,4 +1,4 @@
-from dlt.common.normalizers.naming.snake_case import NamingConvention as SnakeCaseNamingConvention
+from data_load_tool.common.normalizers.naming.snake_case import NamingConvention as SnakeCaseNamingConvention
 
 
 class NamingConvention(SnakeCaseNamingConvention):

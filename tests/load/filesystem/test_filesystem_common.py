@@ -9,21 +9,21 @@ import pytest
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from dlt.common import logger
-from dlt.common import json, pendulum
-from dlt.common.configuration import resolve
-from dlt.common.configuration.inject import with_config
-from dlt.common.configuration.specs import AnyAzureCredentials
-from dlt.common.exceptions import TerminalValueError
-from dlt.common.storages import fsspec_from_config, FilesystemConfiguration
-from dlt.common.storages.configuration import ensure_canonical_az_url, make_fsspec_url
-from dlt.common.storages.fsspec_filesystem import MTIME_DISPATCH, glob_files
-from dlt.common.utils import custom_environ, uniq_id
-from dlt.destinations import filesystem
-from dlt.destinations.impl.filesystem.configuration import (
+from data_load_tool.common import logger
+from data_load_tool.common import json, pendulum
+from data_load_tool.common.configuration import resolve
+from data_load_tool.common.configuration.inject import with_config
+from data_load_tool.common.configuration.specs import AnyAzureCredentials
+from data_load_tool.common.exceptions import TerminalValueError
+from data_load_tool.common.storages import fsspec_from_config, FilesystemConfiguration
+from data_load_tool.common.storages.configuration import ensure_canonical_az_url, make_fsspec_url
+from data_load_tool.common.storages.fsspec_filesystem import MTIME_DISPATCH, glob_files
+from data_load_tool.common.utils import custom_environ, uniq_id
+from data_load_tool.destinations import filesystem
+from data_load_tool.destinations.impl.filesystem.configuration import (
     FilesystemDestinationClientConfiguration,
 )
-from dlt.destinations.impl.filesystem.typing import TExtraPlaceholders
+from data_load_tool.destinations.impl.filesystem.typing import TExtraPlaceholders
 
 from tests.common.configuration.utils import environment
 from tests.common.storages.utils import TEST_SAMPLE_FILES, assert_sample_files
@@ -63,7 +63,7 @@ def test_remote_url(bucket_url: str) -> None:
         scheme = "file"
         bucket_url = FilesystemConfiguration.make_file_url(bucket_url)
     if scheme == "gdrive":
-        from dlt.common.storages.fsspecs.google_drive import GoogleDriveFileSystem
+        from data_load_tool.common.storages.fsspecs.google_drive import GoogleDriveFileSystem
 
         register_implementation("gdrive", GoogleDriveFileSystem, "GoogleDriveFileSystem")
 
@@ -266,7 +266,7 @@ def test_filesystem_destination_config_reports_unused_placeholders(mocker) -> No
     extra_placeholders: TExtraPlaceholders = {
         "value": 1,
         "otters": "lab",
-        "dlt": "labs",
+        "data_load_tool": "labs",
         "dlthub": "platform",
         "x": "files",
     }
@@ -280,7 +280,7 @@ def test_filesystem_destination_config_reports_unused_placeholders(mocker) -> No
             extra_placeholders=extra_placeholders,
         )._bind_dataset_name("dataset")
     )
-    logger_spy.assert_called_once_with("Found unused layout placeholders: value, dlt, dlthub")
+    logger_spy.assert_called_once_with("Found unused layout placeholders: value, data_load_tool, dlthub")
 
 
 def test_filesystem_destination_passed_parameters_override_config_values() -> None:
@@ -295,7 +295,7 @@ def test_filesystem_destination_passed_parameters_override_config_values() -> No
     ):
         extra_placeholders: TExtraPlaceholders = {
             "new_value": 1,
-            "dlt": "labs",
+            "data_load_tool": "labs",
             "dlthub": "platform",
         }
         now = pendulum.now()

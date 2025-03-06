@@ -1,6 +1,6 @@
 ---
 title: Transforming data in Python with Arrow tables or DataFrames
-description: Transforming data loaded by a dlt pipeline with pandas dataframes or arrow tables
+description: Transforming data loaded by a data_load_tool pipeline with pandas dataframes or arrow tables
 keywords: [transform, pandas]
 ---
 
@@ -18,7 +18,7 @@ The example below reads GitHub reactions data from the `issues` table and
 counts the reaction types.
 
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="github_pipeline",
     destination="duckdb",
     dataset_name="github_reactions",
@@ -39,7 +39,7 @@ reactions = pipeline.dataset().issues.select("reactions__+1", "reactions__-1", "
 
 ## Persisting your transformed data
 
-Since dlt supports DataFrames and Arrow tables from resources directly, you can use the same pipeline to load the transformed data back into the destination.
+Since data_load_tool supports DataFrames and Arrow tables from resources directly, you can use the same pipeline to load the transformed data back into the destination.
 
 
 ### A simple example
@@ -47,7 +47,7 @@ Since dlt supports DataFrames and Arrow tables from resources directly, you can 
 A simple example that creates a new table from an existing user table but only with columns that do not contain private information. Note that we use the `iter_arrow()` method on the relation to iterate over the arrow table instead of fetching it all at once.
 
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="users_pipeline",
     destination="duckdb",
     dataset_name="users_raw",
@@ -68,7 +68,7 @@ The example above could easily be done in SQL. Let's assume you'd like to actual
 ```py
 import pyarrow.compute as pc
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="users_pipeline",
     destination="duckdb",
     dataset_name="users_raw",
@@ -77,7 +77,7 @@ pipeline = dlt.pipeline(
 
 # NOTE: this resource will work like a regular resource and support write_disposition, primary_key, etc.
 # NOTE: For selecting only users above 18, we could also use the filter method on the relation with ibis expressions
-@dlt.resource(table_name="users_clean")
+@data_load_tool.resource(table_name="users_clean")
 def users_clean():
     users = pipeline.dataset().users
     for arrow_table in users.iter_arrow(chunk_size=1000):
@@ -105,5 +105,5 @@ If you want to transform your data before loading, you can use Python. If you wa
 data after loading, you can use Pandas or one of the following:
 
 1. [dbt.](dbt/dbt.md) (recommended)
-2. [`dlt` SQL client.](sql.md)
+2. [`data_load_tool` SQL client.](sql.md)
 

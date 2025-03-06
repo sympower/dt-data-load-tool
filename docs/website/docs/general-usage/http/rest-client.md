@@ -14,9 +14,9 @@ This guide shows how to use the `RESTClient` class to read data from APIs, focus
 ## Creating a RESTClient instance
 
 ```py
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.auth import BearerTokenAuth
-from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.auth import BearerTokenAuth
+from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 
 client = RESTClient(
     base_url="https://api.example.com",
@@ -146,15 +146,15 @@ Suppose the API response for `https://api.example.com/posts` looks like this:
 To paginate this response, you can use the `JSONLinkPaginator` with the `next_url_path` set to `"pagination.next"`:
 
 ```py
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 
 client = RESTClient(
     base_url="https://api.example.com",
     paginator=JSONLinkPaginator(next_url_path="pagination.next")
 )
 
-@dlt.resource
+@data_load_tool.resource
 def get_data():
     for page in client.paginate("/posts"):
         yield page
@@ -377,8 +377,8 @@ Suppose an API uses query parameters for pagination, incrementing a page paramet
 
 ```py
 from typing import Any, List, Optional
-from dlt.sources.helpers.rest_client.paginators import BasePaginator
-from dlt.sources.helpers.requests import Response, Request
+from data_load_tool.sources.helpers.rest_client.paginators import BasePaginator
+from data_load_tool.sources.helpers.requests import Response, Request
 
 class QueryParamPaginator(BasePaginator):
     def __init__(self, page_param: str = "page", initial_page: int = 1):
@@ -406,21 +406,21 @@ class QueryParamPaginator(BasePaginator):
 After defining your custom paginator, you can use it with the `RESTClient` by passing an instance of your paginator to the paginator parameter during the client's initialization. Here's how to use the `QueryParamPaginator`:
 
 ```py
-from dlt.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client import RESTClient
 
 client = RESTClient(
     base_url="https://api.example.com",
     paginator=QueryParamPaginator(page_param="page", initial_page=1)
 )
 
-@dlt.resource
+@data_load_tool.resource
 def get_data():
     for page in client.paginate("/data"):
         yield page
 ```
 
 :::tip
-[`PageNumberPaginator`](#pagenumberpaginator) that ships with dlt does the same thing, but with more flexibility and error handling. This example is meant to demonstrate how to implement a custom paginator. For most use cases, you should use the [built-in paginators](#paginators).
+[`PageNumberPaginator`](#pagenumberpaginator) that ships with data_load_tool does the same thing, but with more flexibility and error handling. This example is meant to demonstrate how to implement a custom paginator. For most use cases, you should use the [built-in paginators](#paginators).
 :::
 
 #### Example 2: Creating a paginator for POST requests
@@ -429,9 +429,9 @@ Some APIs use POST requests for pagination, where the next page is fetched by se
 
 ```py
 from typing import Any, List, Optional
-from dlt.sources.helpers.rest_client.paginators import BasePaginator
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.requests import Response, Request
+from data_load_tool.sources.helpers.rest_client.paginators import BasePaginator
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.requests import Response, Request
 
 class PostBodyPaginator(BasePaginator):
     def __init__(self):
@@ -457,7 +457,7 @@ client = RESTClient(
     paginator=PostBodyPaginator()
 )
 
-@dlt.resource
+@data_load_tool.resource
 def get_data():
     for page in client.paginate("/data"):
         yield page
@@ -467,14 +467,14 @@ def get_data():
 
 The RESTClient supports various authentication strategies, such as bearer tokens, API keys, and HTTP basic auth, configured through the `auth` parameter of both the `RESTClient` and the `paginate()` method.
 
-The available authentication methods are defined in the `dlt.sources.helpers.rest_client.auth` module:
+The available authentication methods are defined in the `data_load_tool.sources.helpers.rest_client.auth` module:
 
 - [BearerTokenAuth](#bearer-token-authentication)
 - [APIKeyAuth](#api-key-authentication)
 - [HttpBasicAuth](#http-basic-authentication)
 - [OAuth2ClientCredentials](#oauth-20-authorization)
 
-For specific use cases, you can [implement custom authentication](#implementing-custom-authentication) by subclassing the `AuthConfigBase` class from the `dlt.sources.helpers.rest_client.auth` module.
+For specific use cases, you can [implement custom authentication](#implementing-custom-authentication) by subclassing the `AuthConfigBase` class from the `data_load_tool.sources.helpers.rest_client.auth` module.
 For specific flavors of OAuth 2.0, you can [implement custom OAuth 2.0](#oauth-20-authorization) by subclassing `OAuth2ClientCredentials`.
 
 ### Bearer token authentication
@@ -488,8 +488,8 @@ Bearer Token Authentication (`BearerTokenAuth`) is an auth method where the clie
 **Example:**
 
 ```py
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.auth import BearerTokenAuth
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.auth import BearerTokenAuth
 
 client = RESTClient(
     base_url="https://api.example.com",
@@ -513,8 +513,8 @@ API Key Authentication (`ApiKeyAuth`) is an auth method where the client sends a
 **Example:**
 
 ```py
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.auth import APIKeyAuth
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.auth import APIKeyAuth
 
 auth = APIKeyAuth(name="X-API-Key", api_key="your_api_key_here", location="header")  # type: ignore
 
@@ -536,8 +536,8 @@ HTTP Basic Authentication is a simple authentication scheme built into the HTTP 
 **Example:**
 
 ```py
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.auth import HttpBasicAuth
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.auth import HttpBasicAuth
 
 auth = HttpBasicAuth(username="your_username", password="your_password")  # type: ignore
 client = RESTClient(base_url="https://api.example.com", auth=auth)
@@ -563,8 +563,8 @@ Unfortunately, most OAuth 2.0 implementations vary, and thus you might need to s
 
 ```py
 from base64 import b64encode
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.auth import OAuth2ClientCredentials
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.auth import OAuth2ClientCredentials
 
 class OAuth2ClientCredentialsHTTPBasic(OAuth2ClientCredentials):
     """Used e.g. by Zoom Video Communications, Inc."""
@@ -581,12 +581,12 @@ class OAuth2ClientCredentialsHTTPBasic(OAuth2ClientCredentials):
         }
 
 oauth = OAuth2ClientCredentialsHTTPBasic(
-    access_token_url=dlt.secrets["sources.zoom.access_token_url"],  # "https://zoom.us/oauth/token"
-    client_id=dlt.secrets["sources.zoom.client_id"],
-    client_secret=dlt.secrets["sources.zoom.client_secret"],
+    access_token_url=data_load_tool.secrets["sources.zoom.access_token_url"],  # "https://zoom.us/oauth/token"
+    client_id=data_load_tool.secrets["sources.zoom.client_id"],
+    client_secret=data_load_tool.secrets["sources.zoom.client_secret"],
     access_token_request_data={
         "grant_type": "account_credentials",
-        "account_id": dlt.secrets["sources.zoom.account_id"],
+        "account_id": data_load_tool.secrets["sources.zoom.account_id"],
     },
 )
 client = RESTClient(base_url="https://api.zoom.us/v2", auth=oauth)
@@ -601,7 +601,7 @@ response = client.get("/users")
 You can implement custom authentication by subclassing the `AuthConfigBase` class and implementing the `__call__` method:
 
 ```py
-from dlt.sources.helpers.rest_client.auth import AuthConfigBase
+from data_load_tool.sources.helpers.rest_client.auth import AuthConfigBase
 
 class CustomAuth(AuthConfigBase):
     def __init__(self, token):
@@ -642,7 +642,7 @@ The handler function may raise `IgnoreResponseException` to exit the pagination 
 The `paginate()` function provides a shorthand for paginating API responses. It takes the same parameters as the `RESTClient.paginate()` method but automatically creates a RESTClient instance with the specified base URL:
 
 ```py
-from dlt.sources.helpers.rest_client import paginate
+from data_load_tool.sources.helpers.rest_client import paginate
 
 for page in paginate("https://api.example.com/posts"):
     print(page)
@@ -671,8 +671,8 @@ These methods work similarly to the [get()](https://docs.python-requests.org/en/
 You can inspect the `Response` object to get the `response.status_code`, `response.headers`, and `response.content`. For example:
 
 ```py
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.auth import BearerTokenAuth
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.auth import BearerTokenAuth
 
 client = RESTClient(base_url="https://api.example.com")
 response = client.get("/posts", auth=BearerTokenAuth(token="your_access_token"))  # type: ignore
@@ -696,8 +696,8 @@ RUNTIME__LOG_LEVEL=INFO python my_script.py
 and [response](https://docs.python-requests.org/en/latest/api/#requests.Response) objects:
 
 ```py
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
+from data_load_tool.sources.helpers.rest_client import RESTClient
+from data_load_tool.sources.helpers.rest_client.paginators import JSONLinkPaginator
 
 client = RESTClient(
     base_url="https://api.example.com",
@@ -712,7 +712,7 @@ for page in client.paginate("/posts"):
 3. Use the `hooks` parameter to add custom response handlers to the `paginate()` method:
 
 ```py
-from dlt.sources.helpers.rest_client.auth import BearerTokenAuth
+from data_load_tool.sources.helpers.rest_client.auth import BearerTokenAuth
 
 def response_hook(response, *args):
     print(response.status_code)

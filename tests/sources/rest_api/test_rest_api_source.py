@@ -1,18 +1,18 @@
-import dlt
+import data_load_tool
 import pytest
 
-from dlt.common.configuration.specs.config_providers_context import ConfigProvidersContainer
+from data_load_tool.common.configuration.specs.config_providers_context import ConfigProvidersContainer
 
-from dlt.sources.rest_api.typing import RESTAPIConfig
-from dlt.sources.helpers.rest_client.paginators import SinglePagePaginator
-from dlt.sources.rest_api import rest_api_source, rest_api
+from data_load_tool.sources.rest_api.typing import RESTAPIConfig
+from data_load_tool.sources.helpers.rest_client.paginators import SinglePagePaginator
+from data_load_tool.sources.rest_api import rest_api_source, rest_api
 
 from tests.common.configuration.utils import environment, toml_providers
 from tests.utils import ALL_DESTINATIONS, assert_load_info, load_table_counts
 
 
 def _make_pipeline(destination_name: str):
-    return dlt.pipeline(
+    return data_load_tool.pipeline(
         pipeline_name="rest_api",
         destination=destination_name,
         dataset_name="rest_api_data",
@@ -22,10 +22,10 @@ def _make_pipeline(destination_name: str):
 
 def test_rest_api_config_provider(toml_providers: ConfigProvidersContainer) -> None:
     # mock dicts in toml provider
-    dlt.config["client"] = {
+    data_load_tool.config["client"] = {
         "base_url": "https://pokeapi.co/api/v2/",
     }
-    dlt.config["resources"] = [
+    data_load_tool.config["resources"] = [
         {
             "name": "pokemon_list",
             "endpoint": {

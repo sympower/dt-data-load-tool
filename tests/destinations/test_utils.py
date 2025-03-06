@@ -1,8 +1,8 @@
-import dlt
+import data_load_tool
 import pytest
 
-from dlt.destinations.utils import get_resource_for_adapter
-from dlt.extract import DltResource
+from data_load_tool.destinations.utils import get_resource_for_adapter
+from data_load_tool.extract import DltResource
 
 
 def test_get_resource_for_adapter() -> None:
@@ -14,7 +14,7 @@ def test_get_resource_for_adapter() -> None:
     assert adapted_resource.name == "content"
 
     # test on resource
-    @dlt.resource(table_name="my_table")
+    @data_load_tool.resource(table_name="my_table")
     def some_resource():
         yield [1, 2, 3]
 
@@ -23,7 +23,7 @@ def test_get_resource_for_adapter() -> None:
     assert adapted_resource.name == "some_resource"
 
     # test on source with one resource
-    @dlt.source
+    @data_load_tool.source
     def source():
         return [some_resource]
 
@@ -31,11 +31,11 @@ def test_get_resource_for_adapter() -> None:
     assert adapted_resource.table_name == "my_table"
 
     # test on source with multiple resources
-    @dlt.resource(table_name="my_table")
+    @data_load_tool.resource(table_name="my_table")
     def other_resource():
         yield [1, 2, 3]
 
-    @dlt.source
+    @data_load_tool.source
     def other_source():
         return [some_resource, other_resource]
 

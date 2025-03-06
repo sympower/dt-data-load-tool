@@ -5,9 +5,9 @@ import tempfile
 import pytest
 import shutil
 
-from dlt.common.exceptions import CannotInstallDependencies
-from dlt.common.runners import Venv, VenvNotFound
-from dlt.common.utils import custom_environ
+from data_load_tool.common.exceptions import CannotInstallDependencies
+from data_load_tool.common.runners import Venv, VenvNotFound
+from data_load_tool.common.utils import custom_environ
 
 from tests.utils import preserve_environ
 
@@ -198,8 +198,8 @@ def test_current_venv() -> None:
 
     # use python to run module
     freeze = venv.run_module("pip", "freeze", "--all")
-    # we are in current venv so dlt package is here
-    assert "dlt" in freeze
+    # we are in current venv so data_load_tool package is here
+    assert "data_load_tool" in freeze
 
     # use command
     with venv.start_command("pip", "freeze", "--all", stdout=PIPE, text=True) as process:
@@ -217,7 +217,7 @@ def test_current_base_python() -> None:
     # use python to run module
     freeze = venv.run_module("pip", "freeze", "--all")
     # we are still in poetry virtual env but directly
-    assert "dlt" in freeze
+    assert "data_load_tool" in freeze
 
     # use command
     with venv.start_command("pip", "freeze", "--all", stdout=PIPE, text=True) as process:

@@ -1,12 +1,12 @@
 ---
 title: Tracing
-description: Rich information on executed dlt pipelines
+description: Rich information on executed data_load_tool pipelines
 keywords: [tracing, sentry, opt in]
 ---
 
 # Tracing
 
-`dlt` users can configure [Sentry](https://sentry.io) DSN to start receiving rich information on
+`data_load_tool` users can configure [Sentry](https://sentry.io) DSN to start receiving rich information on
 executed pipelines, including encountered errors and exceptions. **Sentry tracing is disabled by
 default.**
 
@@ -14,8 +14,8 @@ default.**
 
 An exception trace is sent when:
 
-- Any Python logger (including `dlt`) logs an error.
-- Any Python logger (including `dlt`) logs a warning (enabled only if the `dlt` logging level is
+- Any Python logger (including `data_load_tool`) logs an error.
+- Any Python logger (including `data_load_tool`) logs a warning (enabled only if the `data_load_tool` logging level is
   `WARNING` or below).
 - On unhandled exceptions.
 
@@ -25,7 +25,7 @@ A transaction trace is sent when the `pipeline.run` is called. We send informati
 The data available in Sentry makes finding and documenting bugs easy, allowing you to easily find
 bottlenecks and profile data extraction, normalization, and loading.
 
-`dlt` adds a set of additional tags (e.g., pipeline name, destination name) to the Sentry data.
+`data_load_tool` adds a set of additional tags (e.g., pipeline name, destination name) to the Sentry data.
 
 Please refer to the Sentry [documentation](https://docs.sentry.io/platforms/python/data-collected/).
 
@@ -46,14 +46,14 @@ Alternatively, you can use environment variables:
 RUNTIME__SENTRY_DSN="https:///<...>"
 ```
 
-The Sentry client is configured after the first pipeline is created with `dlt.pipeline()`. Feel free
+The Sentry client is configured after the first pipeline is created with `data_load_tool.pipeline()`. Feel free
 to use `sentry_sdk` init again to cover your specific needs.
 
-> 💡 `dlt` does not have Sentry client as a dependency. Remember to install it with `pip install sentry-sdk`.
+> 💡 `data_load_tool` does not have Sentry client as a dependency. Remember to install it with `pip install sentry-sdk`.
 
 ## Disable all tracing
 
-`dlt` allows you to completely disable pipeline tracing, including the anonymous telemetry and
+`data_load_tool` allows you to completely disable pipeline tracing, including the anonymous telemetry and
 Sentry. Using `config.toml`:
 
 ```toml

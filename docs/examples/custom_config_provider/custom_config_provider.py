@@ -7,9 +7,9 @@ keywords: [config, yaml config, profiles]
 
 This example shows how to replace secrets/config toml files with a yaml file that contains several profiles (prod and dev) and jinja-like
 placeholders that are replaced with corresponding env variables.
-`dlt` resolves configuration by querying so called config providers (to ie. query env variables or content of a toml file).
+`data_load_tool` resolves configuration by querying so called config providers (to ie. query env variables or content of a toml file).
 Here we will instantiate a provider with a custom loader and register it to be queried. At the end we demonstrate (using mock github source)
-that `dlt` uses it along other (standard) providers to resolve configuration.
+that `data_load_tool` uses it along other (standard) providers to resolve configuration.
 
 In this example you will learn to:
 
@@ -21,12 +21,12 @@ In this example you will learn to:
 
 import os
 import re
-import dlt
+import data_load_tool
 import yaml
 import functools
 
-from dlt.common.configuration.providers import CustomLoaderDocProvider
-from dlt.common.utils import map_nested_in_place
+from data_load_tool.common.configuration.providers import CustomLoaderDocProvider
+from data_load_tool.common.utils import map_nested_in_place
 
 
 # config for all resources found in this file will be grouped in this source level config section
@@ -60,8 +60,8 @@ def loader(profile_name: str):
     return map_nested_in_place(eval_placeholder, config)
 
 
-@dlt.resource(standalone=True)
-def github(url: str = dlt.config.value, api_key=dlt.secrets.value):
+@data_load_tool.resource(standalone=True)
+def github(url: str = data_load_tool.config.value, api_key=data_load_tool.secrets.value):
     # just return the injected config and secret
     yield url, api_key
 
@@ -70,14 +70,14 @@ if __name__ == "__main__":
     # mock env variables to fill placeholders in profiles.yaml
     os.environ["GITHUB_API_KEY"] = "secret_key"  # mock expected var
 
-    # dlt standard providers work at this point (we have profile name in config.toml)
-    profile_name = dlt.config["dlt_config_profile_name"]
+    # data_load_tool standard providers work at this point (we have profile name in config.toml)
+    profile_name = data_load_tool.config["dlt_config_profile_name"]
 
     # instantiate custom provider using `prod` profile
     # NOTE: all placeholders (ie. GITHUB_API_KEY) will be evaluated in next line!
     provider = CustomLoaderDocProvider("profiles", functools.partial(loader, profile_name))
     # register provider, it will be added as the last one in chain
-    dlt.config.register_provider(provider)
+    data_load_tool.config.register_provider(provider)
 
     # your pipeline will now be able to use your yaml provider
     # p = Pipeline(...)

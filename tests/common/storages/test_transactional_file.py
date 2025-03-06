@@ -7,8 +7,8 @@ from typing import Iterator
 import fsspec
 import pytest
 
-from dlt.common.storages import fsspec_filesystem
-from dlt.common.storages.transactional_file import TransactionalFile
+from data_load_tool.common.storages import fsspec_filesystem
+from data_load_tool.common.storages.transactional_file import TransactionalFile
 
 from tests.utils import skipifwindows
 

@@ -4,16 +4,16 @@ from tests.pipeline.utils import assert_load_info
 
 def basic_api_snippet() -> None:
     # @@@DLT_SNIPPET_START basic_api
-    import dlt
-    from dlt.sources.helpers import requests
+    import data_load_tool
+    from data_load_tool.sources.helpers import requests
 
     # Specify the URL of the API endpoint
-    url = "https://api.github.com/repos/dlt-hub/dlt/issues"
+    url = "https://api.github.com/repos/dlt-hub/data_load_tool/issues"
     # Make a request and check if it was successful
     response = requests.get(url)
     response.raise_for_status()
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="github_issues",
         destination="duckdb",
         dataset_name="github_data",
@@ -29,11 +29,11 @@ def basic_api_snippet() -> None:
 
 def replace_snippet() -> None:
     # @@@DLT_SNIPPET_START replace
-    import dlt
+    import data_load_tool
 
     data = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="replace_data",
         destination="duckdb",
         dataset_name="mydata",
@@ -48,17 +48,17 @@ def replace_snippet() -> None:
 
 def incremental_snippet() -> None:
     # @@@DLT_SNIPPET_START incremental
-    import dlt
-    from dlt.sources.helpers import requests
+    import data_load_tool
+    from data_load_tool.sources.helpers import requests
 
-    @dlt.resource(table_name="issues", write_disposition="append")
+    @data_load_tool.resource(table_name="issues", write_disposition="append")
     def get_issues(
-        created_at=dlt.sources.incremental("created_at", initial_value="1970-01-01T00:00:00Z")
+        created_at=data_load_tool.sources.incremental("created_at", initial_value="1970-01-01T00:00:00Z")
     ):
         # NOTE: we read only open issues to minimize number of calls to the API.
         # There's a limit of ~50 calls for not authenticated Github users.
         url = (
-            "https://api.github.com/repos/dlt-hub/dlt/issues"
+            "https://api.github.com/repos/dlt-hub/data_load_tool/issues"
             "?per_page=100&sort=created&directions=desc&state=open"
         )
 
@@ -79,7 +79,7 @@ def incremental_snippet() -> None:
                 break
             url = response.links["next"]["url"]
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="github_issues_incremental",
         destination="duckdb",
         dataset_name="github_data_append",
@@ -98,22 +98,22 @@ def incremental_snippet() -> None:
 
 def incremental_merge_snippet() -> None:
     # @@@DLT_SNIPPET_START incremental_merge
-    import dlt
-    from dlt.sources.helpers import requests
+    import data_load_tool
+    from data_load_tool.sources.helpers import requests
 
-    @dlt.resource(
+    @data_load_tool.resource(
         table_name="issues",
         write_disposition="merge",
         primary_key="id",
     )
     def get_issues(
-        updated_at=dlt.sources.incremental("updated_at", initial_value="1970-01-01T00:00:00Z")
+        updated_at=data_load_tool.sources.incremental("updated_at", initial_value="1970-01-01T00:00:00Z")
     ):
         # NOTE: we read only open issues to minimize number of calls to
         # the API. There's a limit of ~50 calls for not authenticated
         # Github users
         url = (
-            "https://api.github.com/repos/dlt-hub/dlt/issues"
+            "https://api.github.com/repos/dlt-hub/data_load_tool/issues"
             f"?since={updated_at.last_value}&per_page=100&sort=updated"
             "&directions=desc&state=open"
         )
@@ -128,7 +128,7 @@ def incremental_merge_snippet() -> None:
                 break
             url = response.links["next"]["url"]
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="github_issues_merge",
         destination="duckdb",
         dataset_name="github_data_merge",
@@ -146,12 +146,12 @@ def incremental_merge_snippet() -> None:
 
 def table_dispatch_snippet() -> None:
     # @@@DLT_SNIPPET_START table_dispatch
-    import dlt
-    from dlt.sources.helpers import requests
+    import data_load_tool
+    from data_load_tool.sources.helpers import requests
 
-    @dlt.resource(primary_key="id", table_name=lambda i: i["type"], write_disposition="append")
-    def repo_events(last_created_at=dlt.sources.incremental("created_at")):
-        url = "https://api.github.com/repos/dlt-hub/dlt/events?per_page=100"
+    @data_load_tool.resource(primary_key="id", table_name=lambda i: i["type"], write_disposition="append")
+    def repo_events(last_created_at=data_load_tool.sources.incremental("created_at")):
+        url = "https://api.github.com/repos/dlt-hub/data_load_tool/events?per_page=100"
 
         while True:
             response = requests.get(url)
@@ -168,7 +168,7 @@ def table_dispatch_snippet() -> None:
                 break
             url = response.links["next"]["url"]
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="github_events",
         destination="duckdb",
         dataset_name="github_events_data",

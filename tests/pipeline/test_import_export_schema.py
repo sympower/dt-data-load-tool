@@ -1,13 +1,13 @@
-import dlt, os
+import data_load_tool, os
 
-from dlt.common.utils import uniq_id
+from data_load_tool.common.utils import uniq_id
 
 from tests.pipeline.utils import assert_load_info
 from tests.utils import TEST_STORAGE_ROOT
-from dlt.common.schema import Schema
-from dlt.common.storages.schema_storage import SchemaStorage
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.storages.schema_storage import SchemaStorage
 
-from dlt.destinations import dummy
+from data_load_tool.destinations import dummy
 
 
 IMPORT_SCHEMA_PATH = os.path.join(TEST_STORAGE_ROOT, "schemas", "import")
@@ -28,7 +28,7 @@ def _get_export_schema(schema_name: str) -> Schema:
 def test_schemas_files_get_created() -> None:
     name = "schema_test" + uniq_id()
 
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name=name,
         destination=dummy(completed_prob=1),
         import_schema_path=IMPORT_SCHEMA_PATH,
@@ -51,7 +51,7 @@ def test_schemas_files_get_created() -> None:
 def test_provided_columns_exported_to_import() -> None:
     name = "schema_test" + uniq_id()
 
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name=name,
         destination=dummy(completed_prob=1),
         import_schema_path=IMPORT_SCHEMA_PATH,
@@ -75,7 +75,7 @@ def test_provided_columns_exported_to_import() -> None:
 def test_import_schema_is_respected() -> None:
     name = "schema_test" + uniq_id()
 
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name=name,
         destination=dummy(completed_prob=1),
         import_schema_path=IMPORT_SCHEMA_PATH,
@@ -110,7 +110,7 @@ def test_import_schema_is_respected() -> None:
     assert _get_import_schema(name).tables["person"]["columns"]["id"]["data_type"] == "text"
 
     # when creating a new schema (e.g. with full refresh), this will work
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name=name,
         destination=dummy(completed_prob=1),
         import_schema_path=IMPORT_SCHEMA_PATH,
@@ -138,15 +138,15 @@ def test_import_schema_is_respected() -> None:
 
 
 def test_only_explicit_hints_in_import_schema() -> None:
-    @dlt.source(schema_contract={"columns": "evolve"})
+    @data_load_tool.source(schema_contract={"columns": "evolve"})
     def source():
-        @dlt.resource(primary_key="id", name="person")
+        @data_load_tool.resource(primary_key="id", name="person")
         def resource():
             yield EXAMPLE_DATA
 
         return resource()
 
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         pipeline_name=uniq_id(),
         destination=dummy(completed_prob=1),
         import_schema_path=IMPORT_SCHEMA_PATH,
@@ -179,7 +179,7 @@ def test_only_explicit_hints_in_import_schema() -> None:
     }
 
     # adding column to the resource will not change the import schema, but the pipeline schema will evolve
-    @dlt.resource(primary_key="id", name="person", columns={"email": {"data_type": "text"}})
+    @data_load_tool.resource(primary_key="id", name="person", columns={"email": {"data_type": "text"}})
     def resource():
         yield EXAMPLE_DATA
 

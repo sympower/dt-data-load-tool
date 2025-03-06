@@ -17,7 +17,7 @@ By default, the existing source and resource functions, `sql_database` and `sql_
 The example below uses `query_adapter_callback` to filter on the column `customer_id` for the table `orders`:
 
 ```py
-from dlt.sources.sql_database import sql_database
+from data_load_tool.sources.sql_database import sql_database
 
 def query_adapter_callback(query, table):
     if table.name == "orders":
@@ -32,7 +32,7 @@ source = sql_database(
 ```
 
 ## Write custom SQL custom queries
-We recommend that you create a SQL VIEW in your source database and extract data from it. In that case `dlt` will infer all column types and read data in
+We recommend that you create a SQL VIEW in your source database and extract data from it. In that case `data_load_tool` will infer all column types and read data in
 shape you define in a view without any further customization.
 
 If creating a view is not feasible, you can fully rewrite the automatically generated query with extended version of `query_adapter_callback`:
@@ -73,18 +73,18 @@ def add_new_columns(table) -> None:
         if col_name not in table.c:
             table.append_column(sa.Column(col_name, col_type, **col_kwargs))
 ```
-Otherwise `dlt` will attempt to infer the types from the extracted data.
+Otherwise `data_load_tool` will attempt to infer the types from the extracted data.
 
 Here's how you call `sql_table` with those adapters:
 ```py
-import dlt
-from dlt.sources.sql_database import sql_table
+import data_load_tool
+from data_load_tool.sources.sql_database import sql_table
 
 table = sql_table(
   table="chat_channel",
   table_adapter_callback=add_new_columns,
   query_adapter_callback=query_adapter_callback,
-  incremental=dlt.sources.incremental("updated_at"),
+  incremental=data_load_tool.sources.incremental("updated_at"),
 )
 ```
 
@@ -104,16 +104,16 @@ We add new `max_timestamp` column that is a MAX of `created_at` and `updated_at`
 because we intend to use it for incremental loading which will attach a `WHERE` clause to it.
 
 ```py
-import dlt
-from dlt.sources.sql_database import sql_table
+import data_load_tool
+from data_load_tool.sources.sql_database import sql_table
 
 read_table = sql_table(
     table="chat_message",
     table_adapter_callback=add_max_timestamp,
-    incremental=dlt.sources.incremental("max_timestamp"),
+    incremental=data_load_tool.sources.incremental("max_timestamp"),
 )
 ```
-`dlt` will use your subquery instead of original `chat_message` table to generate incremental query. Note that you can further
+`data_load_tool` will use your subquery instead of original `chat_message` table to generate incremental query. Note that you can further
 customize subquery with query adapter as in the example above.
 
 ## Transforming the data before load
@@ -125,12 +125,12 @@ The PyArrow backend does not yield individual rows but loads chunks of data as `
 
 
 Examples:
-1. Pseudonymizing data to hide personally identifiable information (PII) before loading it to the destination. (See [here](../../../general-usage/customising-pipelines/pseudonymizing_columns) for more information on pseudonymizing data with `dlt`)
+1. Pseudonymizing data to hide personally identifiable information (PII) before loading it to the destination. (See [here](../../../general-usage/customising-pipelines/pseudonymizing_columns) for more information on pseudonymizing data with `data_load_tool`)
 
     ```py
-    import dlt
+    import data_load_tool
     import hashlib
-    from dlt.sources.sql_database import sql_database
+    from data_load_tool.sources.sql_database import sql_database
 
     def pseudonymize_name(doc):
         '''
@@ -147,7 +147,7 @@ Examples:
         doc['rfam_acc'] = hashed_string
         return doc
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         # Configure the pipeline
     )
     # using sql_database source to load family table and pseudonymize the column "rfam_acc"
@@ -162,14 +162,14 @@ Examples:
 2. Excluding unnecessary columns before load
 
     ```py
-    import dlt
-    from dlt.sources.sql_database import sql_database
+    import data_load_tool
+    from data_load_tool.sources.sql_database import sql_database
 
     def remove_columns(doc):
         del doc["rfam_id"]
         return doc
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         # Configure the pipeline
     )
     # using sql_database source to load family table and remove the column "rfam_id"
@@ -183,11 +183,11 @@ Examples:
 
 ## Deploying the sql_database pipeline
 
-You can deploy the `sql_database` pipeline with any of the `dlt` deployment methods, such as [GitHub Actions](../../../walkthroughs/deploy-a-pipeline/deploy-with-github-actions), [Airflow](../../../walkthroughs/deploy-a-pipeline/deploy-with-airflow-composer), [Dagster](../../../walkthroughs/deploy-a-pipeline/deploy-with-dagster), etc. See [here](../../../walkthroughs/deploy-a-pipeline) for a full list of deployment methods.
+You can deploy the `sql_database` pipeline with any of the `data_load_tool` deployment methods, such as [GitHub Actions](../../../walkthroughs/deploy-a-pipeline/deploy-with-github-actions), [Airflow](../../../walkthroughs/deploy-a-pipeline/deploy-with-airflow-composer), [Dagster](../../../walkthroughs/deploy-a-pipeline/deploy-with-dagster), etc. See [here](../../../walkthroughs/deploy-a-pipeline) for a full list of deployment methods.
 
 ### Running on Airflow
 When running on Airflow:
-1. Use the `dlt` [Airflow Helper](../../../walkthroughs/deploy-a-pipeline/deploy-with-airflow-composer.md#2-modify-dag-file) to create tasks from the `sql_database` source. (If you want to run table extraction in parallel, you can do this by setting `decompose = "parallel-isolated"` when doing the source->DAG conversion. See [here](../../../walkthroughs/deploy-a-pipeline/deploy-with-airflow-composer#2-modify-dag-file) for a code example.)
+1. Use the `data_load_tool` [Airflow Helper](../../../walkthroughs/deploy-a-pipeline/deploy-with-airflow-composer.md#2-modify-dag-file) to create tasks from the `sql_database` source. (If you want to run table extraction in parallel, you can do this by setting `decompose = "parallel-isolated"` when doing the source->DAG conversion. See [here](../../../walkthroughs/deploy-a-pipeline/deploy-with-airflow-composer#2-modify-dag-file) for a code example.)
 2. Reflect tables at runtime with the `defer_table_reflect` argument.
 3. Set `allow_external_schedulers` to load data using [Airflow intervals](../../../general-usage/incremental-loading.md#using-airflow-schedule-for-backfill-and-incremental-loading).
 

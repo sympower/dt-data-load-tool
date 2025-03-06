@@ -5,28 +5,28 @@ from typing import List, Optional, Dict, Iterator, Any, cast
 import pytest
 from pydantic import BaseModel
 
-import dlt
-from dlt.common.configuration import known_sections
-from dlt.common.configuration.container import Container
-from dlt.common.configuration.exceptions import ConfigFieldMissingException
-from dlt.common.configuration.inject import get_fun_spec
-from dlt.common.configuration.plugins import PluginContext
-from dlt.common.configuration.resolve import inject_section
-from dlt.common.configuration.specs.config_section_context import ConfigSectionContext
-from dlt.common.exceptions import ArgumentsOverloadException, DictValidationException
-from dlt.common.pipeline import StateInjectableContext, TPipelineState
-from dlt.common.schema import Schema
-from dlt.common.schema.utils import new_table, new_column
-from dlt.common.schema.typing import TTableSchemaColumns
-from dlt.common.schema.exceptions import InvalidSchemaName
-from dlt.common.typing import TDataItem
+import data_load_tool
+from data_load_tool.common.configuration import known_sections
+from data_load_tool.common.configuration.container import Container
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException
+from data_load_tool.common.configuration.inject import get_fun_spec
+from data_load_tool.common.configuration.plugins import PluginContext
+from data_load_tool.common.configuration.resolve import inject_section
+from data_load_tool.common.configuration.specs.config_section_context import ConfigSectionContext
+from data_load_tool.common.exceptions import ArgumentsOverloadException, DictValidationException
+from data_load_tool.common.pipeline import StateInjectableContext, TPipelineState
+from data_load_tool.common.schema import Schema
+from data_load_tool.common.schema.utils import new_table, new_column
+from data_load_tool.common.schema.typing import TTableSchemaColumns
+from data_load_tool.common.schema.exceptions import InvalidSchemaName
+from data_load_tool.common.typing import TDataItem
 
-from dlt.cli.source_detection import detect_source_configs
-from dlt.common.utils import custom_environ
-from dlt.extract.decorators import _DltSingleSource, DltSourceFactoryWrapper
-from dlt.extract.reference import SourceReference
-from dlt.extract import DltResource, DltSource
-from dlt.extract.exceptions import (
+from data_load_tool.cli.source_detection import detect_source_configs
+from data_load_tool.common.utils import custom_environ
+from data_load_tool.extract.decorators import _DltSingleSource, DltSourceFactoryWrapper
+from data_load_tool.extract.reference import SourceReference
+from data_load_tool.extract import DltResource, DltSource
+from data_load_tool.extract.exceptions import (
     DynamicNameNotStandaloneResource,
     ExplicitSourceNameInvalid,
     InvalidResourceDataTypeFunctionNotAGenerator,
@@ -44,7 +44,7 @@ from dlt.extract.exceptions import (
     InvalidParallelResourceDataType,
     UnknownSourceReference,
 )
-from dlt.extract.items import TableNameMeta
+from data_load_tool.extract.items import TableNameMeta
 
 from tests.common.utils import load_yml_case
 from tests.utils import MockableRunContext, unload_modules
@@ -66,7 +66,7 @@ def preserve_sources_registry() -> Iterator[None]:
 
 
 def test_default_resource() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     def resource():
         yield [1, 2, 3]
 
@@ -87,15 +87,15 @@ def test_default_resource() -> None:
 
 def test_none_returning_source() -> None:
     with pytest.raises(SourceNotAFunction):
-        dlt.source("data")()  # type: ignore[call-overload]
+        data_load_tool.source("data")()  # type: ignore[call-overload]
 
     def empty() -> None:
         pass
 
     with pytest.raises(SourceDataIsNone):
-        dlt.source(empty)()
+        data_load_tool.source(empty)()
 
-    @dlt.source
+    @data_load_tool.source
     def deco_empty() -> None:
         pass
 
@@ -105,16 +105,16 @@ def test_none_returning_source() -> None:
 
 def test_none_returning_resource() -> None:
     with pytest.raises(ResourceFunctionExpected):
-        dlt.resource(None)(None)
+        data_load_tool.resource(None)(None)
 
     def empty() -> None:
         pass
 
     with pytest.raises(InvalidResourceDataTypeFunctionNotAGenerator):
-        dlt.resource(empty)()
+        data_load_tool.resource(empty)()
 
     with pytest.raises(InvalidResourceDataTypeFunctionNotAGenerator):
-        dlt.resource(None)(empty)()
+        data_load_tool.resource(None)(empty)()
 
     with pytest.raises(InvalidResourceDataTypeIsNone):
         DltResource.from_data(None, name="test")
@@ -139,13 +139,13 @@ def test_unbound_parametrized_transformer() -> None:
     assert not empty_pipe.is_data_bound
     assert not empty_pipe.has_parent
 
-    bound_r = dlt.resource([1, 2, 3], name="data")
+    bound_r = data_load_tool.resource([1, 2, 3], name="data")
     assert bound_r._pipe.is_data_bound
     assert not bound_r._pipe.has_parent
     assert not bound_r._pipe.is_empty
     bound_r._pipe.evaluate_gen()
 
-    @dlt.transformer()
+    @data_load_tool.transformer()
     def empty_t_1(items, _meta):
         yield [1, 2, 3]
 
@@ -174,9 +174,9 @@ def test_unbound_parametrized_transformer() -> None:
 
 
 def test_transformer_no_parens() -> None:
-    bound_r = dlt.resource([1, 2, 3], name="data")
+    bound_r = data_load_tool.resource([1, 2, 3], name="data")
 
-    @dlt.transformer
+    @data_load_tool.transformer
     def empty_t_1(item, meta=None):
         yield "a" * item
 
@@ -186,22 +186,22 @@ def test_transformer_no_parens() -> None:
         yield _meta * item
 
     # create dynamic transformer with explicit func
-    t = dlt.transformer(empty_t_2, data_from=bound_r)
+    t = data_load_tool.transformer(empty_t_2, data_from=bound_r)
     assert list(t("m")) == ["m", "mm", "mmm"]
 
 
 def test_transformer_kwargs() -> None:
-    @dlt.resource
+    @data_load_tool.resource
     def emit_tables():
-        yield dlt.mark.with_table_name(1, "table_1")
-        yield dlt.mark.with_table_name(2, "table_2")
+        yield data_load_tool.mark.with_table_name(1, "table_1")
+        yield data_load_tool.mark.with_table_name(2, "table_2")
 
-    @dlt.transformer
+    @data_load_tool.transformer
     def ignore_meta(item, **kwargs):
         assert "meta" not in kwargs
         yield item
 
-    @dlt.transformer
+    @data_load_tool.transformer
     def accept_meta(item, meta=None, **kwargs):
         assert "meta" not in kwargs
         assert isinstance(meta, TableNameMeta)
@@ -213,9 +213,9 @@ def test_transformer_kwargs() -> None:
 
 def test_source_name_is_invalid_schema_name() -> None:
     def camelCase():
-        return dlt.resource([1, 2, 3], name="resource")
+        return data_load_tool.resource([1, 2, 3], name="resource")
 
-    s = dlt.source(camelCase)()
+    s = data_load_tool.source(camelCase)()
     # source name will be normalized
     assert s.name == "camelCase"
     assert s.schema.name == "camelCase"
@@ -225,20 +225,20 @@ def test_source_name_is_invalid_schema_name() -> None:
 
     # explicit name
     with pytest.raises(InvalidSchemaName) as py_ex:
-        s = dlt.source(camelCase, name="source!")()
+        s = data_load_tool.source(camelCase, name="source!")()
     assert py_ex.value.name == "source!"
 
     # explicit name and schema mismatch
     with pytest.raises(ArgumentsOverloadException) as py_ex2:
-        s = dlt.source(camelCase, name="source_ovr", schema=Schema("compat"))()
-    # overload exception applies to dlt.source
+        s = data_load_tool.source(camelCase, name="source_ovr", schema=Schema("compat"))()
+    # overload exception applies to data_load_tool.source
     assert py_ex2.value.func_name == "source"
 
 
 def test_resource_name_is_invalid_table_name_and_columns() -> None:
-    @dlt.source
+    @data_load_tool.source
     def camelCase():
-        return dlt.resource(
+        return data_load_tool.resource(
             [1, 2, 3],
             name="Resource !",
             columns={"KA!AX": {"name": "DIF!", "nullable": False, "data_type": "text"}},
@@ -257,7 +257,7 @@ def test_resource_name_is_invalid_table_name_and_columns() -> None:
 
 
 def test_columns_argument() -> None:
-    @dlt.resource(name="user", columns={"tags": {"data_type": "json", "x-extra": "x-annotation"}})  # type: ignore[typeddict-unknown-key]
+    @data_load_tool.resource(name="user", columns={"tags": {"data_type": "json", "x-extra": "x-annotation"}})  # type: ignore[typeddict-unknown-key]
     def get_users():
         yield {"u": "u", "tags": [1, 2, 3]}
 
@@ -282,7 +282,7 @@ def test_columns_argument() -> None:
 
 
 def test_apply_hints_columns() -> None:
-    @dlt.resource(name="user", columns={"tags": {"data_type": "json", "primary_key": True}})
+    @data_load_tool.resource(name="user", columns={"tags": {"data_type": "json", "primary_key": True}})
     def get_users():
         yield {"u": "u", "tags": [1, 2, 3]}
 
@@ -320,7 +320,7 @@ def test_apply_hints_columns() -> None:
 
 
 def test_apply_hints_reference() -> None:
-    @dlt.resource(
+    @data_load_tool.resource(
         references=[
             {
                 "columns": ["User ID", "user_name"],
@@ -347,7 +347,7 @@ def test_columns_from_pydantic() -> None:
         tags: List[str]
         name: Optional[str]
 
-    @dlt.resource(name="user", columns=Columns)
+    @data_load_tool.resource(name="user", columns=Columns)
     def get_users() -> Iterator[Dict[str, Any]]:
         yield None
 
@@ -388,7 +388,7 @@ def test_columns_from_pydantic() -> None:
 
 
 def test_not_normalized_identifiers_in_hints() -> None:
-    @dlt.resource(
+    @data_load_tool.resource(
         primary_key="ID",
         merge_key=["Month", "Day"],
         columns=[{"name": "Col1", "data_type": "bigint"}],
@@ -426,7 +426,7 @@ def test_resource_name_from_generator() -> None:
     def some_data():
         yield [1, 2, 3]
 
-    r = dlt.resource(some_data())
+    r = data_load_tool.resource(some_data())
     assert r.name == "some_data"
     assert r.section == "test_decorators"
 
@@ -483,11 +483,11 @@ def test_source_sections() -> None:
 
 
 def test_source_explicit_section() -> None:
-    @dlt.source(section="custom_section", schema=Schema("custom_section"))
-    def with_section(secret=dlt.secrets.value):
-        @dlt.resource
+    @data_load_tool.source(section="custom_section", schema=Schema("custom_section"))
+    def with_section(secret=data_load_tool.secrets.value):
+        @data_load_tool.resource
         def mod_state():
-            dlt.current.source_state()["val"] = secret
+            data_load_tool.current.source_state()["val"] = secret
             yield 1
 
         return mod_state
@@ -501,14 +501,14 @@ def test_source_explicit_section() -> None:
 
 
 def test_resource_section() -> None:
-    r = dlt.resource([1, 2, 3], name="T")
+    r = data_load_tool.resource([1, 2, 3], name="T")
     assert r.name == "T"
     assert r.section is None
 
     def _inner_gen():
         yield from [1, 2, 3]
 
-    r = dlt.resource(_inner_gen)()
+    r = data_load_tool.resource(_inner_gen)()
     assert r.name == "_inner_gen"
     assert r.section == "test_decorators"
 
@@ -598,14 +598,14 @@ def test_resources_injected_sections() -> None:
 
 
 def test_source_schema_context() -> None:
-    import dlt
+    import data_load_tool
 
     # global schema directly in the module
     global_schema = Schema("global")
 
     # not called from the source
     with pytest.raises(CurrentSourceSchemaNotAvailable):
-        dlt.current.source_schema()
+        data_load_tool.current.source_schema()
 
     def _assert_source_schema(s: DltSource, expected_name: str) -> None:
         assert list(s) == [1, 2, 3]
@@ -613,35 +613,35 @@ def test_source_schema_context() -> None:
         assert "source_table" in s.discover_schema().tables
 
     # schema created by the source
-    @dlt.source
+    @data_load_tool.source
     def created_ad_hoc():
-        schema = dlt.current.source_schema()
+        schema = data_load_tool.current.source_schema()
         assert schema.name == "created_ad_hoc"
         # modify schema in place
         schema.update_table(new_table("source_table"))
-        return dlt.resource([1, 2, 3], name="res")
+        return data_load_tool.resource([1, 2, 3], name="res")
 
     _assert_source_schema(created_ad_hoc(), "created_ad_hoc")
 
     # schema created directly
-    @dlt.source(schema=Schema("explicit"))
+    @data_load_tool.source(schema=Schema("explicit"))
     def created_explicit():
-        schema = dlt.current.source_schema()
+        schema = data_load_tool.current.source_schema()
         assert schema.name == "explicit"
         # modify schema in place
         schema.update_table(new_table("source_table"))
-        return dlt.resource([1, 2, 3], name="res")
+        return data_load_tool.resource([1, 2, 3], name="res")
 
     _assert_source_schema(created_explicit(), "explicit")
 
     # schema instance from a module
-    @dlt.source(schema=global_schema)
+    @data_load_tool.source(schema=global_schema)
     def created_global():
-        schema = dlt.current.source_schema()
+        schema = data_load_tool.current.source_schema()
         assert schema.name == "global"
         # modify schema in place
         schema.update_table(new_table("source_table"))
-        return dlt.resource([1, 2, 3], name="res")
+        return data_load_tool.resource([1, 2, 3], name="res")
 
     _assert_source_schema(created_global(), "global")
 
@@ -650,35 +650,35 @@ def test_source_schema_removes_processing_hints() -> None:
     eth_V9 = load_yml_case("schemas/eth/ethereum_schema_v9")
     assert "x-normalizer" in eth_V9["tables"]["blocks"]
 
-    @dlt.source(schema=Schema.from_dict(eth_V9))
+    @data_load_tool.source(schema=Schema.from_dict(eth_V9))
     def created_explicit():
-        schema = dlt.current.source_schema()
+        schema = data_load_tool.current.source_schema()
         assert schema.name == "ethereum"
         assert "x-normalizer" not in schema.tables["blocks"]
-        return dlt.resource([1, 2, 3], name="res")
+        return data_load_tool.resource([1, 2, 3], name="res")
 
     source = created_explicit()
     assert "x-normalizer" not in source.schema.tables["blocks"]
 
 
 def test_source_state_context() -> None:
-    @dlt.resource(selected=False)
+    @data_load_tool.resource(selected=False)
     def main():
-        state = dlt.current.state()
+        state = data_load_tool.current.state()
         mark = state.setdefault("mark", 1)
         # increase the multiplier each time state is obtained
         state["mark"] *= 2
         yield [1, 2, 3]
-        assert dlt.state()["mark"] == mark * 2
+        assert data_load_tool.state()["mark"] == mark * 2
 
-    @dlt.transformer(data_from=main)
+    @data_load_tool.transformer(data_from=main)
     def feeding(item):
         # we must have state
-        assert dlt.current.source_state()["mark"] > 1
-        mark = dlt.current.source_state()["mark"]
+        assert data_load_tool.current.source_state()["mark"] > 1
+        mark = data_load_tool.current.source_state()["mark"]
         yield from map(lambda i: i * mark, item)
 
-    @dlt.source
+    @data_load_tool.source
     def pass_the_state():
         return main, feeding
 
@@ -692,9 +692,9 @@ def test_source_state_context() -> None:
 
 
 def test_source_schema_modified() -> None:
-    @dlt.source
+    @data_load_tool.source
     def schema_test():
-        return dlt.resource(["A", "B"], name="alpha")
+        return data_load_tool.resource(["A", "B"], name="alpha")
 
     s = schema_test()
     schema = s.discover_schema()
@@ -703,24 +703,24 @@ def test_source_schema_modified() -> None:
     assert "table" not in s.discover_schema().tables
 
 
-@dlt.source
+@data_load_tool.source
 def alpha_source():
-    return dlt.resource(["A", "B"], name="alpha")
+    return data_load_tool.resource(["A", "B"], name="alpha")
 
 
-@dlt.source(section="special")
-def absolute_config(init: int, mark: str = dlt.config.value, secret: str = dlt.secrets.value):
+@data_load_tool.source(section="special")
+def absolute_config(init: int, mark: str = data_load_tool.config.value, secret: str = data_load_tool.secrets.value):
     # will need to bind secret
-    return (res_reg_with_secret, dlt.resource([init, mark, secret], name="dump"))
+    return (res_reg_with_secret, data_load_tool.resource([init, mark, secret], name="dump"))
 
 
-@dlt.resource
-def res_reg_with_secret(secretz: str = dlt.secrets.value):
+@data_load_tool.resource
+def res_reg_with_secret(secretz: str = data_load_tool.secrets.value):
     yield [secretz] * 3
 
 
-@dlt.resource(standalone=True)
-def res_reg_with_secret_standalone(secretz: str = dlt.secrets.value):
+@data_load_tool.resource(standalone=True)
+def res_reg_with_secret_standalone(secretz: str = data_load_tool.secrets.value):
     yield [secretz] * 4
 
 
@@ -757,9 +757,9 @@ def test_source_reference() -> None:
 
     ref_count = len(SourceReference.SOURCES)
 
-    @dlt.source
+    @data_load_tool.source
     def _inner_source():
-        return dlt.resource(["C", "D"], name="beta")
+        return data_load_tool.resource(["C", "D"], name="beta")
 
     # inner sources are NOT registered
     assert len(SourceReference.SOURCES) == ref_count
@@ -768,18 +768,18 @@ def test_source_reference() -> None:
     with pytest.raises(UnknownSourceReference) as ref_ex:
         SourceReference.from_reference("$ref")
     assert ref_ex.value.ref == "$ref"
-    # NOTE: 'dlt.sources.$ref.$ref' twice because top module of run context is dlt.
+    # NOTE: 'data_load_tool.sources.$ref.$ref' twice because top module of run context is data_load_tool.
     assert ref_ex.value.qualified_refs == [
         "$ref",
-        "dlt.sources.$ref.$ref",
+        "data_load_tool.sources.$ref.$ref",
         "tests.extract.cases.sources.$ref.$ref",
-        "dlt.sources.$ref.$ref",
+        "data_load_tool.sources.$ref.$ref",
     ]
     # tried to auto import the following refs
     assert [t.ref for t in ref_ex.value.traces] == [
-        "dlt.sources.$ref.$ref",
+        "data_load_tool.sources.$ref.$ref",
         "tests.extract.cases.sources.$ref.$ref",
-        "dlt.sources.$ref.$ref",
+        "data_load_tool.sources.$ref.$ref",
     ]
     with pytest.raises(UnknownSourceReference):
         SourceReference.find("$ref")
@@ -832,7 +832,7 @@ def test_source_reference_with_args() -> None:
 def test_source_reference_import_core() -> None:
     # unload core sources
     import sys
-    from dlt.sources import rest_api, sql_database, filesystem
+    from data_load_tool.sources import rest_api, sql_database, filesystem
 
     for mod in (rest_api, sql_database, filesystem):
         del sys.modules[mod.__name__]
@@ -849,7 +849,7 @@ def test_source_reference_import_core() -> None:
     assert len(SourceReference.SOURCES) == 3
 
     # auto import by full reference
-    ref = SourceReference.find("dlt.sources.filesystem.filesystem")
+    ref = SourceReference.find("data_load_tool.sources.filesystem.filesystem")
     assert len(SourceReference.SOURCES) == 9
 
 
@@ -965,10 +965,10 @@ def test_source_factory_clone(cloner: str) -> None:
     assert source.schema_contract == "evolve"
 
     # when section / name are changed, config location follows
-    @dlt.source
-    def absolute_config(init: int, mark: str = dlt.config.value, secret: str = dlt.secrets.value):
+    @data_load_tool.source
+    def absolute_config(init: int, mark: str = data_load_tool.config.value, secret: str = data_load_tool.secrets.value):
         # will need to bind secret
-        return (res_reg_with_secret, dlt.resource([init, mark, secret], name="dump"))
+        return (res_reg_with_secret, data_load_tool.resource([init, mark, secret], name="dump"))
 
     absolute_config = absolute_config.clone(name="absolute", section="special")
     os.environ["SOURCES__SPECIAL__ABSOLUTE__MARK"] = "ma"
@@ -979,8 +979,8 @@ def test_source_factory_clone(cloner: str) -> None:
     assert list(source) == ["resourse", "resourse", "resourse", 100, "ma", "sourse"]
 
 
-@dlt.resource
-def standalone_resource(secret=dlt.secrets.value, config=dlt.config.value, opt: str = "A"):
+@data_load_tool.resource
+def standalone_resource(secret=data_load_tool.secrets.value, config=data_load_tool.config.value, opt: str = "A"):
     yield 1
 
 
@@ -989,8 +989,8 @@ def test_spec_generation() -> None:
 
     with pytest.raises(ResourceInnerCallableConfigWrapDisallowed) as py_ex:
 
-        @dlt.resource(write_disposition="merge", primary_key="id")
-        def inner_resource(initial_id=dlt.config.value):
+        @data_load_tool.resource(write_disposition="merge", primary_key="id")
+        def inner_resource(initial_id=data_load_tool.config.value):
             yield [{"id": 1, "name": "row1"}, {"id": 1, "name": "row2"}]
 
     assert py_ex.value.resource_name == "inner_resource"
@@ -1004,9 +1004,9 @@ def test_spec_generation() -> None:
     assert "secret" in fields
     assert "config" in fields
 
-    @dlt.resource(standalone=True)
+    @data_load_tool.resource(standalone=True)
     def inner_standalone_resource(
-        secret=dlt.secrets.value, config=dlt.config.value, opt: str = "A"
+        secret=data_load_tool.secrets.value, config=data_load_tool.config.value, opt: str = "A"
     ):
         yield 1
 
@@ -1016,8 +1016,8 @@ def test_spec_generation() -> None:
     assert len(fields) == 3
     assert {"secret", "config", "opt"} == set(fields.keys())
 
-    @dlt.source
-    def inner_source(secret=dlt.secrets.value, config=dlt.config.value, opt: str = "A"):
+    @data_load_tool.source
+    def inner_source(secret=data_load_tool.secrets.value, config=data_load_tool.config.value, opt: str = "A"):
         return standalone_resource
 
     # factory has reference
@@ -1026,12 +1026,12 @@ def test_spec_generation() -> None:
     assert {"secret", "config", "opt"} == set(fields.keys())
 
 
-@dlt.source
+@data_load_tool.source
 def no_args():
-    return dlt.resource([1, 2], name="data")
+    return data_load_tool.resource([1, 2], name="data")
 
 
-@dlt.resource
+@data_load_tool.resource
 def not_args_r():
     yield from [1, 2, 3]
 
@@ -1052,7 +1052,7 @@ def test_sources_no_arguments() -> None:
 
     ref_count = len(SourceReference.SOURCES)
 
-    @dlt.resource
+    @data_load_tool.resource
     def not_args_r_i():
         yield from [1, 2, 3]
 
@@ -1066,7 +1066,7 @@ def test_sources_no_arguments() -> None:
 
 
 def test_resource_sets_invalid_write_disposition() -> None:
-    @dlt.resource(write_disposition="xxxx")  # type: ignore[call-overload]
+    @data_load_tool.resource(write_disposition="xxxx")  # type: ignore[call-overload]
     def invalid_disposition():
         yield from [1, 2, 3]
 
@@ -1081,9 +1081,9 @@ def test_custom_source_impl() -> None:
         def users(self, mode: str) -> DltResource:
             return self.resources["users"](mode)
 
-    @dlt.source(_impl_cls=TypedSource)
+    @data_load_tool.source(_impl_cls=TypedSource)
     def all_users():
-        @dlt.resource
+        @data_load_tool.resource
         def users(mode: str):
             yield mode
 
@@ -1096,46 +1096,46 @@ def test_custom_source_impl() -> None:
 
 class TypedResource(DltResource):
     def __call__(
-        self: "TypedResource", api_key: dlt.TSecretValue = dlt.secrets.value, limit: int = 10
+        self: "TypedResource", api_key: data_load_tool.TSecretValue = data_load_tool.secrets.value, limit: int = 10
     ) -> "TypedResource":
         """Pass api key and limit"""
         return super().__call__(api_key, limit)
 
 
-@dlt.resource(_impl_cls=TypedResource)
-def inner_r(api_key: dlt.TSecretValue = dlt.secrets.value, limit: int = 10):
+@data_load_tool.resource(_impl_cls=TypedResource)
+def inner_r(api_key: data_load_tool.TSecretValue = data_load_tool.secrets.value, limit: int = 10):
     yield from ["A"] * limit
 
 
 def test_custom_resource_impl() -> None:
-    inn_r = inner_r(dlt.TSecretValue("key"), limit=3)
+    inn_r = inner_r(data_load_tool.TSecretValue("key"), limit=3)
     assert isinstance(inn_r, TypedResource)
     assert list(inn_r) == ["A"] * 3
 
-    @dlt.resource(_impl_cls=TypedResource, standalone=True)
-    def inner_standalone(api_key: dlt.TSecretValue = dlt.secrets.value, limit: int = 10):
+    @data_load_tool.resource(_impl_cls=TypedResource, standalone=True)
+    def inner_standalone(api_key: data_load_tool.TSecretValue = data_load_tool.secrets.value, limit: int = 10):
         yield from range(1, limit + 1)
 
-    std_r = inner_standalone(dlt.TSecretValue("key"), limit=4)
+    std_r = inner_standalone(data_load_tool.TSecretValue("key"), limit=4)
     assert isinstance(std_r, TypedResource)
     assert list(std_r) == [1, 2, 3, 4]
 
 
 # wrapped flag will not create the resource but just simple function wrapper that must be called before use
-@dlt.resource(standalone=True)
-def standalone_signature(init: int, secret_end: int = dlt.secrets.value):
+@data_load_tool.resource(standalone=True)
+def standalone_signature(init: int, secret_end: int = data_load_tool.secrets.value):
     """Has fine docstring"""
     yield from range(init, secret_end)
 
 
-@dlt.resource
-def regular_signature(init: int, secret_end: int = dlt.secrets.value):
+@data_load_tool.resource
+def regular_signature(init: int, secret_end: int = data_load_tool.secrets.value):
     yield from range(init, secret_end)
 
 
 def test_standalone_resource() -> None:
     # wrapped flag will not create the resource but just simple function wrapper that must be called before use
-    @dlt.resource(standalone=True)
+    @data_load_tool.resource(standalone=True)
     def nice_signature(init: int):
         """Has nice signature"""
         yield from range(init, 10)
@@ -1152,7 +1152,7 @@ def test_standalone_resource() -> None:
 
     # can't work in a source
 
-    @dlt.source
+    @data_load_tool.source
     def nice_source():
         return nice_signature
 
@@ -1161,7 +1161,7 @@ def test_standalone_resource() -> None:
     with pytest.raises(PipeGenInvalid):
         assert list(source) == [7, 8, 9]
 
-    @dlt.source
+    @data_load_tool.source
     def many_instances():
         return nice_signature(9), nice_signature(7)
 
@@ -1227,32 +1227,32 @@ def test_inner_resource_not_registered() -> None:
     ref_count = len(SourceReference.SOURCES)
 
     # inner resources are not registered
-    @dlt.resource(standalone=True)
+    @data_load_tool.resource(standalone=True)
     def inner_data_std():
         yield [1, 2, 3]
 
     assert len(SourceReference.SOURCES) == ref_count
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def inner_data_reg():
         yield [1, 2, 3]
 
     assert len(SourceReference.SOURCES) == ref_count
 
 
-@dlt.transformer(standalone=True)
-def standalone_transformer(item: TDataItem, init: int, secret_end: int = dlt.secrets.value):
+@data_load_tool.transformer(standalone=True)
+def standalone_transformer(item: TDataItem, init: int, secret_end: int = data_load_tool.secrets.value):
     """Has fine transformer docstring"""
     yield from range(item + init, secret_end)
 
 
-@dlt.transformer
-def regular_transformer(item: TDataItem, init: int, secret_end: int = dlt.secrets.value):
+@data_load_tool.transformer
+def regular_transformer(item: TDataItem, init: int, secret_end: int = data_load_tool.secrets.value):
     yield from range(item + init, secret_end)
 
 
-@dlt.transformer(standalone=True)
-def standalone_transformer_returns(item: TDataItem, init: int = dlt.config.value):
+@data_load_tool.transformer(standalone=True)
+def standalone_transformer_returns(item: TDataItem, init: int = data_load_tool.config.value):
     """Has fine transformer docstring"""
     return "A" * item * init
 
@@ -1321,7 +1321,7 @@ def test_standalone_transformer(next_item_mode: str) -> None:
 
 
 def test_transformer_required_args() -> None:
-    @dlt.transformer
+    @data_load_tool.transformer
     def path_params(id_, workspace_id, load_id, base: bool = False):
         yield {"id": id_, "workspace_id": workspace_id, "load_id": load_id}
 
@@ -1329,11 +1329,11 @@ def test_transformer_required_args() -> None:
     assert len(data) == 3
     assert data[0] == {"id": 1, "workspace_id": 121, "load_id": 343}
 
-    # @dlt
+    # @data_load_tool
 
 
-@dlt.transformer(standalone=True, name=lambda args: args["res_name"])
-def standalone_tx_with_name(item: TDataItem, res_name: str, init: int = dlt.config.value):
+@data_load_tool.transformer(standalone=True, name=lambda args: args["res_name"])
+def standalone_tx_with_name(item: TDataItem, res_name: str, init: int = data_load_tool.config.value):
     return res_name * item * init
 
 
@@ -1344,7 +1344,7 @@ def test_standalone_resource_with_name() -> None:
 
     # config uses the actual resource name (my_tx)
     os.environ["SOURCES__TEST_DECORATORS__MY_TX__INIT"] = "2"
-    assert list(dlt.resource([1, 2, 3], name="x") | my_tx) == [
+    assert list(data_load_tool.resource([1, 2, 3], name="x") | my_tx) == [
         "my_txmy_tx",
         "my_txmy_txmy_txmy_tx",
         "my_txmy_txmy_txmy_txmy_txmy_tx",
@@ -1352,12 +1352,12 @@ def test_standalone_resource_with_name() -> None:
 
     with pytest.raises(DynamicNameNotStandaloneResource):
 
-        @dlt.resource(standalone=False, name=lambda args: args["res_name"])  # type: ignore[call-overload]
+        @data_load_tool.resource(standalone=False, name=lambda args: args["res_name"])  # type: ignore[call-overload]
         def standalone_name():
             yield "A"
 
     # we looks for non existing argument in lambda
-    @dlt.resource(standalone=True, name=lambda args: args["res_name"])
+    @data_load_tool.resource(standalone=True, name=lambda args: args["res_name"])
     def standalone_name_2(_name: str):
         yield "A"
 
@@ -1367,7 +1367,7 @@ def test_standalone_resource_with_name() -> None:
 
 
 def test_standalone_resource_returns() -> None:
-    @dlt.resource(standalone=True)
+    @data_load_tool.resource(standalone=True)
     def rv_data(name: str):
         return [name] * 10
 
@@ -1376,9 +1376,9 @@ def test_standalone_resource_returns() -> None:
 
 
 def test_standalone_resource_returning_resource() -> None:
-    @dlt.resource(standalone=True)
+    @data_load_tool.resource(standalone=True)
     def rv_resource(name: str):
-        return dlt.resource([1, 2, 3], name=name, primary_key="value")
+        return data_load_tool.resource([1, 2, 3], name=name, primary_key="value")
 
     r = rv_resource("returned")
     assert r.name == "returned"
@@ -1387,9 +1387,9 @@ def test_standalone_resource_returning_resource() -> None:
 
 
 def test_standalone_resource_returning_resource_exception() -> None:
-    @dlt.resource(standalone=True)
-    def rv_resource(uniq_name: str = dlt.config.value):
-        return dlt.resource([1, 2, 3], name=uniq_name, primary_key="value")
+    @data_load_tool.resource(standalone=True)
+    def rv_resource(uniq_name: str = data_load_tool.config.value):
+        return data_load_tool.resource([1, 2, 3], name=uniq_name, primary_key="value")
 
     # pass through of the exception in `rv_resource` when it returns, not yields
     with pytest.raises(ConfigFieldMissingException) as conf_ex:
@@ -1425,10 +1425,10 @@ def test_class_source() -> None:
             self.elems = elems
 
         def __call__(self, more: int = 1):
-            return dlt.resource(["A", "V"] * self.elems * more, name="_list")
+            return data_load_tool.resource(["A", "V"] * self.elems * more, name="_list")
 
     # CAN decorate callable classes
-    s = dlt.source(_Source(4))(more=1)
+    s = data_load_tool.source(_Source(4))(more=1)
     assert s.name == "_Source"
     schema = s.discover_schema()
     assert schema.name == "_Source"
@@ -1438,49 +1438,49 @@ def test_class_source() -> None:
     # CAN'T decorate classes themselves
     with pytest.raises(SourceIsAClassTypeError):
 
-        @dlt.source(name="planB")
+        @data_load_tool.source(name="planB")
         class _SourceB:
             def __init__(self, elems: int) -> None:
                 self.elems = elems
 
             def __call__(self, more: int = 1):
-                return dlt.resource(["A", "V"] * self.elems * more, name="_list")
+                return data_load_tool.resource(["A", "V"] * self.elems * more, name="_list")
 
 
 @pytest.mark.asyncio
 async def test_async_source() -> None:
-    @dlt.source
+    @data_load_tool.source
     async def source_rv_no_parens(reverse: bool = False):
         # test is expected context is present
-        dlt.current.state()
-        dlt.current.source_schema()
+        data_load_tool.current.state()
+        data_load_tool.current.source_schema()
         data = [1, 2, 3]
         if reverse:
             data = list(reversed(data))
-        return dlt.resource(data, name="data")
+        return data_load_tool.resource(data, name="data")
 
-    @dlt.source(name="with_parens")
+    @data_load_tool.source(name="with_parens")
     async def source_rv_with_parens(reverse: bool = False):
         # test is expected context is present
-        dlt.current.state()
-        dlt.current.source_schema()
+        data_load_tool.current.state()
+        data_load_tool.current.source_schema()
         data = [4, 5, 6]
         if reverse:
             data = list(reversed(data))
-        return dlt.resource(data, name="data")
+        return data_load_tool.resource(data, name="data")
 
-    @dlt.source(name="with_parens")
+    @data_load_tool.source(name="with_parens")
     async def source_yield_with_parens(reverse: bool = False):
         # test is expected context is present
-        dlt.current.state()
-        dlt.current.source_schema()
+        data_load_tool.current.state()
+        data_load_tool.current.source_schema()
         data = [7, 8, 9]
         if reverse:
             data = list(reversed(data))
-        return dlt.resource(data, name="data")
+        return data_load_tool.resource(data, name="data")
 
     # create a pipeline so current.state() works
-    dlt.pipeline("async_state_pipeline")
+    data_load_tool.pipeline("async_state_pipeline")
 
     async def _assert_source(source_coro_f, expected_data) -> None:
         # test various forms of source decorator, parens, no parens, yield, return
@@ -1515,7 +1515,7 @@ def test_parallelized_resource_decorator() -> None:
         yield from [1, 2, 3]
 
     # Create resource with decorated function
-    resource = dlt.resource(some_gen, parallelized=True)
+    resource = data_load_tool.resource(some_gen, parallelized=True)
 
     # Generator func is wrapped with parallelized gen that yields callables
     gen = resource._pipe.gen()  # type: ignore
@@ -1524,7 +1524,7 @@ def test_parallelized_resource_decorator() -> None:
     assert list(resource) == [1, 2, 3]
 
     # Same but wrapping generator directly
-    resource = dlt.resource(some_gen(), parallelized=True)
+    resource = data_load_tool.resource(some_gen(), parallelized=True)
 
     result = next(resource._pipe.gen)  # type: ignore
     assert result() == 1
@@ -1535,9 +1535,9 @@ def test_parallelized_resource_decorator() -> None:
     def some_tx(item):
         yield item + 1
 
-    resource = dlt.resource(some_gen, parallelized=True)
+    resource = data_load_tool.resource(some_gen, parallelized=True)
 
-    transformer = dlt.transformer(some_tx, parallelized=True, data_from=resource)
+    transformer = data_load_tool.transformer(some_tx, parallelized=True, data_from=resource)
     pipe_gen = transformer._pipe.gen
     # Calling transformer returns the parallel wrapper generator
     inner = pipe_gen(1)  # type: ignore
@@ -1548,7 +1548,7 @@ def test_parallelized_resource_decorator() -> None:
     def some_tx_func(item):
         return list(range(item))
 
-    transformer = dlt.transformer(some_tx_func, data_from=resource)
+    transformer = data_load_tool.transformer(some_tx_func, data_from=resource)
     pipe_gen = transformer._pipe.gen
     inner = pipe_gen(3)  # type: ignore
     # this is a regular function returning list
@@ -1560,18 +1560,18 @@ def test_parallelized_resource_decorator() -> None:
     # From async generator
     with pytest.raises(InvalidParallelResourceDataType):
 
-        @dlt.resource(parallelized=True)
+        @data_load_tool.resource(parallelized=True)
         async def some_data():
             yield 1
             yield 2
 
     # From list
     with pytest.raises(InvalidParallelResourceDataType):
-        dlt.resource([1, 2, 3], name="T", parallelized=True)
+        data_load_tool.resource([1, 2, 3], name="T", parallelized=True)
 
     # Test that inner generator is closed when wrapper is closed
     gen_orig = some_gen()
-    resource = dlt.resource(gen_orig, parallelized=True)
+    resource = data_load_tool.resource(gen_orig, parallelized=True)
     gen = resource._pipe.gen
 
     next(gen)  # type: ignore

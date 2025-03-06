@@ -21,8 +21,8 @@ We'll learn how to:
 
 import pandas as pd
 
-import dlt
-from dlt.sources.sql_database import sql_database
+import data_load_tool
+from data_load_tool.sources.sql_database import sql_database
 
 
 if __name__ == "__main__":
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # and load incrementally on the created datetime column
     source.family.apply_hints(
         primary_key="rfam_id",
-        incremental=dlt.sources.incremental(
+        incremental=data_load_tool.sources.incremental(
             cursor_path="created", initial_value=None, row_order="asc"
         ),
     )
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     source.add_limit(1)
 
     # create pipeline
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="rfam", destination="duckdb", dataset_name="rfam_data", dev_mode=True
     )
 

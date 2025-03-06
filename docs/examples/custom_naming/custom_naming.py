@@ -8,7 +8,7 @@ keywords: [example]
 This example shows how to add and use custom naming convention. Naming conventions translate identifiers found in source data into identifiers in
 destination, where rules for a valid identifier are constrained.
 
-Custom naming conventions are classes that derive from `NamingConvention` that you can import from `dlt.common.normalizers.naming`. We recommend the following module layout:
+Custom naming conventions are classes that derive from `NamingConvention` that you can import from `data_load_tool.common.normalizers.naming`. We recommend the following module layout:
 1. Each naming convention resides in a separate Python module (file)
 2. The class is always named `NamingConvention`
 
@@ -25,7 +25,7 @@ With this example you will learn to:
 
 """
 
-import dlt
+import data_load_tool
 
 if __name__ == "__main__":
     # sql_cs_latin2 module
@@ -33,11 +33,11 @@ if __name__ == "__main__":
 
     # create postgres destination with a custom naming convention. pass sql_cs_latin2 as module
     # NOTE: ql_cs_latin2 is case sensitive and postgres accepts UNICODE letters in identifiers
-    dest_ = dlt.destinations.postgres(
+    dest_ = data_load_tool.destinations.postgres(
         "postgresql://loader:loader@localhost:5432/dlt_data", naming_convention=sql_cs_latin2
     )
     # run a pipeline
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="sql_cs_latin2_pipeline",
         destination=dest_,
         dataset_name="example_data",
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # sql_ci_no_collision (configured in config toml)
     # NOTE: pipeline with name `sql_ci_no_collision` will create default schema with the same name
     # so we are free to use it in config.toml to just affect this pipeline and leave the postgres pipeline as it is
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="sql_ci_no_collision",
         destination="duckdb",
         dataset_name="example_data",

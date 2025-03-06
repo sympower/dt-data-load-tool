@@ -1,12 +1,12 @@
 ---
 title: Load data from a REST API
-description: How to extract data from a REST API using dlt's REST API source
+description: How to extract data from a REST API using data_load_tool's REST API source
 keywords: [tutorial, api, github, duckdb, rest api, source, pagination, authentication]
 ---
 
-This tutorial demonstrates how to extract data from a REST API using dlt's REST API source and load it into a destination. You will learn how to build a data pipeline that loads data from the [Pokemon](https://pokeapi.co/) and the [GitHub API](https://docs.github.com/en/) into a local DuckDB database.
+This tutorial demonstrates how to extract data from a REST API using data_load_tool's REST API source and load it into a destination. You will learn how to build a data pipeline that loads data from the [Pokemon](https://pokeapi.co/) and the [GitHub API](https://docs.github.com/en/) into a local DuckDB database.
 
-Extracting data from an API is straightforward with dlt: provide the base URL, define the resources you want to fetch, and dlt will handle the pagination, authentication, and data loading.
+Extracting data from an API is straightforward with data_load_tool: provide the base URL, define the resources you want to fetch, and data_load_tool will handle the pagination, authentication, and data loading.
 
 ## What you will learn
 
@@ -22,32 +22,32 @@ Extracting data from an API is straightforward with dlt: provide the base URL, d
 - Python 3.9 or higher installed
 - Virtual environment set up
 
-## Installing dlt
+## Installing data_load_tool
 
-Before we start, make sure you have a Python virtual environment set up. Follow the instructions in the [installation guide](../reference/installation) to create a new virtual environment and install dlt.
+Before we start, make sure you have a Python virtual environment set up. Follow the instructions in the [installation guide](../reference/installation) to create a new virtual environment and install data_load_tool.
 
-Verify that dlt is installed by running the following command in your terminal:
+Verify that data_load_tool is installed by running the following command in your terminal:
 
 ```sh
-dlt --version
+data_load_tool --version
 ```
 
-If you see the version number (such as "dlt 0.5.3"), you're ready to proceed.
+If you see the version number (such as "data_load_tool 0.5.3"), you're ready to proceed.
 
 ## Setting up a new project
 
-Initialize a new dlt project with a REST API source and DuckDB destination:
+Initialize a new data_load_tool project with a REST API source and DuckDB destination:
 
 ```sh
-dlt init rest_api duckdb
+data_load_tool init rest_api duckdb
 ```
 
-`dlt init` creates multiple files and a directory for your project. Let's take a look at the project structure:
+`data_load_tool init` creates multiple files and a directory for your project. Let's take a look at the project structure:
 
 ```sh
 rest_api_pipeline.py
 requirements.txt
-.dlt/
+.data_load_tool/
     config.toml
     secrets.toml
 ```
@@ -56,9 +56,9 @@ Here's what each file and directory contains:
 
 - `rest_api_pipeline.py`: This is the main script where you'll define your data pipeline. It contains two basic pipeline examples for Pokemon and GitHub APIs. You can modify or rename this file as needed.
 - `requirements.txt`: This file lists all the Python dependencies required for your project.
-- `.dlt/`: This directory contains the [configuration files](../general-usage/credentials/) for your project:
+- `.data_load_tool/`: This directory contains the [configuration files](../general-usage/credentials/) for your project:
     - `secrets.toml`: This file stores your API keys, tokens, and other sensitive information.
-    - `config.toml`: This file contains the configuration settings for your dlt project.
+    - `config.toml`: This file contains the configuration settings for your data_load_tool project.
 
 ## Installing dependencies
 
@@ -87,7 +87,7 @@ Load package 1692364844.9254808 is LOADED and contains no failed jobs
 
 ## Exploring the data
 
-Now that the pipeline has run successfully, let's explore the data loaded into DuckDB. dlt comes with a built-in browser application that allows you to interact with the data. To enable it, run the following command:
+Now that the pipeline has run successfully, let's explore the data loaded into DuckDB. data_load_tool comes with a built-in browser application that allows you to interact with the data. To enable it, run the following command:
 
 ```sh
 pip install streamlit
@@ -96,7 +96,7 @@ pip install streamlit
 Next, run the following command to start the data browser:
 
 ```sh
-dlt pipeline rest_api_pokemon show
+data_load_tool pipeline rest_api_pokemon show
 ```
 
 The command opens a new browser window with the data browser application. `rest_api_pokemon` is the name of the pipeline defined in the `rest_api_pipeline.py` file.
@@ -109,11 +109,11 @@ You can explore the loaded data, run queries, and see some pipeline execution de
 Now that your environment and the project are set up, let's take a closer look at the configuration of the REST API source. Open the `rest_api_pipeline.py` file in your code editor and locate the following code snippet:
 
 ```py
-import dlt
-from dlt.sources.rest_api import rest_api_source
+import data_load_tool
+from data_load_tool.sources.rest_api import rest_api_source
 
 def load_pokemon() -> None:
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="rest_api_pokemon",
         destination="duckdb",
         dataset_name="rest_api_data",
@@ -147,9 +147,9 @@ def load_pokemon() -> None:
 
 Here's what's happening in the code:
 
-1. With `dlt.pipeline()`, we define a new pipeline named `rest_api_pokemon` with DuckDB as the destination and `rest_api_data` as the dataset name.
+1. With `data_load_tool.pipeline()`, we define a new pipeline named `rest_api_pokemon` with DuckDB as the destination and `rest_api_data` as the dataset name.
 2. The `rest_api_source()` function creates a new REST API source object.
-3. We pass this source object to the `pipeline.run()` method to start the pipeline execution. Inside the `run()` method, dlt will fetch data from the API and load it into the DuckDB database.
+3. We pass this source object to the `pipeline.run()` method to start the pipeline execution. Inside the `run()` method, data_load_tool will fetch data from the API and load it into the DuckDB database.
 4. The `print(load_info)` outputs the pipeline execution details to the console.
 
 Let's break down the configuration of the REST API source. It consists of three main parts: `client`, `resource_defaults`, and `resources`.
@@ -174,12 +174,12 @@ config: RESTAPIConfig = {
 
 :::note
 ### Pagination
-You may have noticed that we didn't specify any pagination configuration in the `rest_api_source()` function. That's because for REST APIs that follow best practices, dlt can automatically detect and handle pagination. Read more about [configuring pagination](../dlt-ecosystem/verified-sources/rest_api/basic#pagination) in the REST API source documentation.
+You may have noticed that we didn't specify any pagination configuration in the `rest_api_source()` function. That's because for REST APIs that follow best practices, data_load_tool can automatically detect and handle pagination. Read more about [configuring pagination](../dlt-ecosystem/verified-sources/rest_api/basic#pagination) in the REST API source documentation.
 :::
 
 ## Appending, replacing, and merging loaded data
 
-Try running the pipeline again with `python rest_api_pipeline.py`. You will notice that all the tables have duplicated data. This happens because, by default, dlt appends the data to the destination table. In dlt, you can control how the data is loaded into the destination table by setting the `write_disposition` parameter in the resource configuration. The possible values are:
+Try running the pipeline again with `python rest_api_pipeline.py`. You will notice that all the tables have duplicated data. This happens because, by default, data_load_tool appends the data to the destination table. In data_load_tool, you can control how the data is loaded into the destination table by setting the `write_disposition` parameter in the resource configuration. The possible values are:
 - `append`: Appends the data to the destination table. This is the default.
 - `replace`: Replaces the data in the destination table with the new data.
 - `merge`: Merges the new data with the existing data in the destination table based on the primary key.
@@ -266,10 +266,10 @@ When working with some APIs, you may need to load data incrementally to avoid fe
 To illustrate incremental loading, let's consider the GitHub API. In the `rest_api_pipeline.py` file, you can find an example of how to load data from the GitHub API incrementally. Let's take a look at the configuration:
 
 ```py
-import dlt
-from dlt.sources.rest_api import rest_api_source
+import data_load_tool
+from data_load_tool.sources.rest_api import rest_api_source
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="rest_api_github",
     destination="duckdb",
     dataset_name="rest_api_data",
@@ -277,7 +277,7 @@ pipeline = dlt.pipeline(
 
 github_source = rest_api_source({
     "client": {
-        "base_url": "https://api.github.com/repos/dlt-hub/dlt/",
+        "base_url": "https://api.github.com/repos/dlt-hub/data_load_tool/",
     },
     "resource_defaults": {
         "primary_key": "id",
@@ -314,15 +314,15 @@ print(load_info)
 
 In this configuration, the `since` parameter is defined as a special incremental parameter. The `cursor_path` field specifies the JSON path to the field that will be used to fetch the updated data, and we use the `initial_value` for the initial value for the incremental parameter. This value will be used in the first request to fetch the data.
 
-When the pipeline runs, dlt will automatically update the `since` parameter with the latest value from the response data. This way, you can fetch only the new or updated data from the API.
+When the pipeline runs, data_load_tool will automatically update the `since` parameter with the latest value from the response data. This way, you can fetch only the new or updated data from the API.
 
 Read more about [incremental loading](../dlt-ecosystem/verified-sources/rest_api/basic#incremental-loading) in the REST API source documentation.
 
 ## What's next?
 
-Congratulations on completing the tutorial! You've learned how to set up a REST API source in dlt and run a data pipeline to load the data into DuckDB.
+Congratulations on completing the tutorial! You've learned how to set up a REST API source in data_load_tool and run a data pipeline to load the data into DuckDB.
 
-Interested in learning more about dlt? Here are some suggestions:
+Interested in learning more about data_load_tool? Here are some suggestions:
 
 - Learn more about the REST API source configuration in the [REST API source documentation](../dlt-ecosystem/verified-sources/rest_api/)
 - Learn how to [create a custom source](./load-data-from-an-api.md) in the advanced tutorial.

@@ -1,25 +1,25 @@
 import os
 import pytest
 
-import dlt
-from dlt.common.configuration.exceptions import ConfigFieldMissingException
-from dlt.common.typing import DictStrStr
-from dlt.common.utils import uniq_id
-from dlt.common.storages import FilesystemConfiguration
-from dlt.destinations import duckdb, dummy, filesystem
+import data_load_tool
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException
+from data_load_tool.common.typing import DictStrStr
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.storages import FilesystemConfiguration
+from data_load_tool.destinations import duckdb, dummy, filesystem
 
 from tests.utils import TEST_STORAGE_ROOT
 
 
 def test_default_name_to_type() -> None:
     duck = duckdb(credentials=os.path.join(TEST_STORAGE_ROOT, "quack.duckdb"))
-    p = dlt.pipeline(pipeline_name="quack_pipeline", destination=duck)
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline", destination=duck)
     load_info = p.run([1, 2, 3], table_name="table", dataset_name="dataset")
 
     assert p.destination.destination_name == "duckdb"
-    assert p.destination.destination_type == "dlt.destinations.duckdb"
+    assert p.destination.destination_type == "data_load_tool.destinations.duckdb"
     assert load_info.destination_name == "duckdb"
-    assert load_info.destination_type == "dlt.destinations.duckdb"
+    assert load_info.destination_type == "data_load_tool.destinations.duckdb"
     assert load_info.environment is None
 
 
@@ -29,15 +29,15 @@ def test_set_name_and_environment() -> None:
         destination_name="duck1",
         environment="production",
     )
-    p = dlt.pipeline(pipeline_name="quack_pipeline", destination=duck)
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline", destination=duck)
     assert (
-        p.destination.destination_type == "dlt.destinations.duckdb" == p.state["destination_type"]
+        p.destination.destination_type == "data_load_tool.destinations.duckdb" == p.state["destination_type"]
     )
     assert p.destination.destination_name == "duck1" == p.state["destination_name"]
 
     load_info = p.run([1, 2, 3], table_name="table", dataset_name="dataset")
     assert (
-        p.destination.destination_type == "dlt.destinations.duckdb" == p.state["destination_type"]
+        p.destination.destination_type == "data_load_tool.destinations.duckdb" == p.state["destination_type"]
     )
     assert p.destination.destination_name == "duck1" == p.state["destination_name"]
     # stagign is empty
@@ -46,12 +46,12 @@ def test_set_name_and_environment() -> None:
     assert "staging_name" not in p.state
 
     assert load_info.destination_name == "duck1"
-    assert load_info.destination_type == "dlt.destinations.duckdb"
+    assert load_info.destination_type == "data_load_tool.destinations.duckdb"
     # TODO: create destination_info and have same information for staging
     assert load_info.environment == "production"
     p.drop()
 
-    rp = dlt.pipeline(pipeline_name="quack_pipeline", destination=duck)
+    rp = data_load_tool.pipeline(pipeline_name="quack_pipeline", destination=duck)
     assert rp.default_schema_name is None
     assert rp.schema_names == []
     rp.sync_destination()
@@ -66,7 +66,7 @@ def test_preserve_destination_instance() -> None:
         destination_name="local_fs",
         environment="devel",
     )
-    p = dlt.pipeline(pipeline_name="dummy_pipeline", destination=dummy1, staging=filesystem1)
+    p = data_load_tool.pipeline(pipeline_name="dummy_pipeline", destination=dummy1, staging=filesystem1)
     destination_id = id(p.destination)
     staging_id = id(p.staging)
     import os
@@ -85,7 +85,7 @@ def test_preserve_destination_instance() -> None:
     )
     assert (
         p.destination.destination_type
-        == "dlt.destinations.dummy"
+        == "data_load_tool.destinations.dummy"
         == p.state["destination_type"]
         == load_info.destination_type
     )
@@ -98,18 +98,18 @@ def test_preserve_destination_instance() -> None:
     )
     assert (
         p.staging.destination_type
-        == "dlt.destinations.filesystem"
+        == "data_load_tool.destinations.filesystem"
         == p.state["staging_type"]
         == load_info.staging_type
     )
     assert p.staging.config_params["environment"] == "devel"
 
     # attach pipeline
-    p = dlt.attach(pipeline_name="dummy_pipeline")
+    p = data_load_tool.attach(pipeline_name="dummy_pipeline")
     assert p.destination.destination_name == "dummy1" == p.state["destination_name"]
-    assert p.destination.destination_type == "dlt.destinations.dummy" == p.state["destination_type"]
+    assert p.destination.destination_type == "data_load_tool.destinations.dummy" == p.state["destination_type"]
     assert p.staging.destination_name == "local_fs" == p.state["staging_name"]
-    assert p.staging.destination_type == "dlt.destinations.filesystem" == p.state["staging_type"]
+    assert p.staging.destination_type == "data_load_tool.destinations.filesystem" == p.state["staging_type"]
 
     # config args should not contain self
     assert "self" not in p.destination.config_params
@@ -124,9 +124,9 @@ def test_preserve_destination_instance() -> None:
     assert p.schema_names == ["dummy"]
 
     # create new pipeline with the same name but different destination
-    p = dlt.pipeline(pipeline_name="dummy_pipeline", destination="duckdb")
+    p = data_load_tool.pipeline(pipeline_name="dummy_pipeline", destination="duckdb")
     assert (
-        p.destination.destination_type == "dlt.destinations.duckdb" == p.state["destination_type"]
+        p.destination.destination_type == "data_load_tool.destinations.duckdb" == p.state["destination_type"]
     )
     assert p.destination.configured_name is None is p.state["destination_name"]
     assert p.destination.destination_name == "duckdb"
@@ -144,7 +144,7 @@ def test_config_respects_dataset_name(environment: DictStrStr) -> None:
 
     # default will pick from global destination settings
     duck = duckdb(credentials=os.path.join(TEST_STORAGE_ROOT, "quack.duckdb"))
-    p = dlt.pipeline(pipeline_name="quack_pipeline_devel", destination=duck)
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline_devel", destination=duck)
     load_info = p.run([1, 2, 3], table_name="table")
     with p.destination_client() as client:
         assert client.config.environment == "devel"
@@ -155,7 +155,7 @@ def test_config_respects_dataset_name(environment: DictStrStr) -> None:
     duck = duckdb(
         credentials=os.path.join(TEST_STORAGE_ROOT, "quack.duckdb"), destination_name="duck1"
     )
-    p = dlt.pipeline(pipeline_name="quack_pipeline_staging", destination=duck)
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline_staging", destination=duck)
     load_info = p.run([1, 2, 3], table_name="table")
     with p.destination_client() as client:
         assert client.config.environment == "staging"
@@ -166,7 +166,7 @@ def test_config_respects_dataset_name(environment: DictStrStr) -> None:
     duck = duckdb(
         credentials=os.path.join(TEST_STORAGE_ROOT, "quack.duckdb"), destination_name="duck2"
     )
-    p = dlt.pipeline(pipeline_name="quack_pipeline_production", destination=duck)
+    p = data_load_tool.pipeline(pipeline_name="quack_pipeline_production", destination=duck)
     load_info = p.run([1, 2, 3], table_name="table")
     with p.destination_client() as client:
         assert client.config.environment == "production"
@@ -176,32 +176,32 @@ def test_config_respects_dataset_name(environment: DictStrStr) -> None:
 
 def test_pipeline_config(environment: DictStrStr) -> None:
     environment["DESTINATION_TYPE"] = "redshift"
-    p = dlt.pipeline(pipeline_name="p_" + uniq_id())
+    p = data_load_tool.pipeline(pipeline_name="p_" + uniq_id())
     assert p.config.destination_type == "redshift"
     assert p.destination.destination_name == "redshift"
-    assert p.destination.destination_type == "dlt.destinations.redshift"
+    assert p.destination.destination_type == "data_load_tool.destinations.redshift"
     assert p.staging is None
 
     del environment["DESTINATION_TYPE"]
     environment["DESTINATION_NAME"] = "duckdb"
-    p = dlt.pipeline(pipeline_name="p_" + uniq_id())
+    p = data_load_tool.pipeline(pipeline_name="p_" + uniq_id())
     assert p.destination.destination_name == "duckdb"
-    assert p.destination.destination_type == "dlt.destinations.duckdb"
+    assert p.destination.destination_type == "data_load_tool.destinations.duckdb"
     assert p.staging is None
 
     environment["DESTINATION_TYPE"] = "bigquery"
     environment["DESTINATION_NAME"] = "my_dest"
-    p = dlt.pipeline(pipeline_name="p_" + uniq_id())
+    p = data_load_tool.pipeline(pipeline_name="p_" + uniq_id())
     assert p.destination.destination_name == "my_dest"
-    assert p.destination.destination_type == "dlt.destinations.bigquery"
+    assert p.destination.destination_type == "data_load_tool.destinations.bigquery"
     assert p.staging is None
 
     environment["STAGING_TYPE"] = "filesystem"
     environment["STAGING_NAME"] = "my_staging"
-    p = dlt.pipeline(pipeline_name="p_" + uniq_id())
+    p = data_load_tool.pipeline(pipeline_name="p_" + uniq_id())
     assert p.destination.destination_name == "my_dest"
-    assert p.destination.destination_type == "dlt.destinations.bigquery"
-    assert p.staging.destination_type == "dlt.destinations.filesystem"
+    assert p.destination.destination_type == "data_load_tool.destinations.bigquery"
+    assert p.staging.destination_type == "data_load_tool.destinations.filesystem"
     assert p.staging.destination_name == "my_staging"
 
 
@@ -209,7 +209,7 @@ def test_destination_config_in_name(environment: DictStrStr) -> None:
     environment["DESTINATION_TYPE"] = "filesystem"
     environment["DESTINATION_NAME"] = "filesystem-prod"
 
-    p = dlt.pipeline(pipeline_name="p_" + uniq_id())
+    p = data_load_tool.pipeline(pipeline_name="p_" + uniq_id())
 
     # we do not have config for postgres-prod so getting destination client must fail
     with pytest.raises(ConfigFieldMissingException):

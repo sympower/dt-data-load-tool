@@ -1,7 +1,7 @@
 """
 ---
 title: Pokemon details in parallel using transformers
-description: Learn how to use dlt transformers and how to speed up your loads with parallelism
+description: Learn how to use data_load_tool transformers and how to speed up your loads with parallelism
 keywords: [transformers, parallelism, example]
 ---
 
@@ -10,43 +10,43 @@ Pokemon details in parallel.
 
 We'll learn how to:
 - create 2 [transformers](../general-usage/resource.md#process-resources-with-dlttransformer) and connect them to a resource with the pipe operator `|`;
-- [load these transformers in parallel](../reference/performance.md#parallelism-within-a-pipeline) using the `@dlt.defer` decorator;
+- [load these transformers in parallel](../reference/performance.md#parallelism-within-a-pipeline) using the `@data_load_tool.defer` decorator;
 - [configure parallelism](../reference/performance.md#parallel-pipeline-config-example) in the `config.toml` file;
 - deselect the main resource, so it will not be loaded into the database;
-- importing and using a pre-configured `requests` library with automatic retries (`from dlt.sources.helpers import requests`).
+- importing and using a pre-configured `requests` library with automatic retries (`from data_load_tool.sources.helpers import requests`).
 
 """
 
-import dlt
-from dlt.sources.helpers import requests
+import data_load_tool
+from data_load_tool.sources.helpers import requests
 
 
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def source(pokemon_api_url: str):
     # note that we deselect `pokemon_list` - we do not want it to be loaded
-    @dlt.resource(write_disposition="replace", selected=False)
+    @data_load_tool.resource(write_disposition="replace", selected=False)
     def pokemon_list():
         """Retrieve a first page of Pokemons and yield it. We do not retrieve all the pages in this example"""
         yield requests.get(pokemon_api_url).json()["results"]
 
     # transformer that retrieves a list of objects in parallel
-    @dlt.transformer
+    @data_load_tool.transformer
     def pokemon(pokemons):
         """Yields details for a list of `pokemons`"""
 
-        # @dlt.defer marks a function to be executed in parallel
+        # @data_load_tool.defer marks a function to be executed in parallel
         # in a thread pool
-        @dlt.defer
+        @data_load_tool.defer
         def _get_pokemon(_pokemon):
             return requests.get(_pokemon["url"]).json()
 
-        # call and yield the function result normally, the @dlt.defer takes care of parallelism
+        # call and yield the function result normally, the @data_load_tool.defer takes care of parallelism
         for _pokemon in pokemons:
             yield _get_pokemon(_pokemon)
 
     # a special case where just one item is retrieved in transformer
     # a whole transformer may be marked for parallel execution
-    @dlt.transformer(parallelized=True)
+    @data_load_tool.transformer(parallelized=True)
     def species(pokemon_details):
         """Yields species details for a pokemon"""
         species_data = requests.get(pokemon_details["species"]["url"]).json()
@@ -58,14 +58,14 @@ def source(pokemon_api_url: str):
     # create two simple pipelines with | operator
     # 1. send list of pokemons into `pokemon` transformer to get pokemon details
     # 2. send pokemon details into `species` transformer to get species details
-    # NOTE: dlt is smart enough to get data from pokemon_list and pokemon details once
+    # NOTE: data_load_tool is smart enough to get data from pokemon_list and pokemon details once
 
     return (pokemon_list | pokemon, pokemon_list | pokemon | species)
 
 
 if __name__ == "__main__":
     # build duck db pipeline
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="pokemon", destination="duckdb", dataset_name="pokemon_data"
     )
 

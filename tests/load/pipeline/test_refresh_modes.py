@@ -1,16 +1,16 @@
 from typing import Any, List
 import os
 import pytest
-import dlt
-from dlt.common.destination.exceptions import DestinationUndefinedEntity
-from dlt.common.pipeline import resource_state
-from dlt.common.utils import uniq_id
-from dlt.common.typing import DictStrAny
-from dlt.common.pipeline import pipeline_state as current_pipeline_state
+import data_load_tool
+from data_load_tool.common.destination.exceptions import DestinationUndefinedEntity
+from data_load_tool.common.pipeline import resource_state
+from data_load_tool.common.utils import uniq_id
+from data_load_tool.common.typing import DictStrAny
+from data_load_tool.common.pipeline import pipeline_state as current_pipeline_state
 
-from dlt.destinations.sql_client import DBApiCursor
-from dlt.extract.source import DltSource
-from dlt.pipeline.state_sync import load_pipeline_state_from_destination
+from data_load_tool.destinations.sql_client import DBApiCursor
+from data_load_tool.extract.source import DltSource
+from data_load_tool.pipeline.state_sync import load_pipeline_state_from_destination
 
 from tests.utils import clean_test_storage, TEST_STORAGE_ROOT
 from tests.pipeline.utils import (
@@ -40,13 +40,13 @@ def column_values(cursor: DBApiCursor, column_name: str) -> List[Any]:
     return [row[idx] for row in cursor.fetchall()]
 
 
-@dlt.source
+@data_load_tool.source
 def refresh_source(first_run: bool = True, drop_sources: bool = False):
-    @dlt.resource
+    @data_load_tool.resource
     def some_data_1():
         if first_run:
             # Set some source and resource state
-            dlt.state()["source_key_1"] = "source_value_1"
+            data_load_tool.state()["source_key_1"] = "source_value_1"
             resource_state("some_data_1")["run1_1"] = "value1_1"
             resource_state("some_data_1")["run1_2"] = "value1_2"
             yield {"id": 1, "name": "John"}
@@ -55,15 +55,15 @@ def refresh_source(first_run: bool = True, drop_sources: bool = False):
             # Check state is cleared for this resource
             assert not resource_state("some_data_1")
             if drop_sources:
-                assert_source_state_is_wiped(dlt.state())
+                assert_source_state_is_wiped(data_load_tool.state())
             # Second dataset without name column to test tables are re-created
             yield {"id": 3}
             yield {"id": 4}
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data_2():
         if first_run:
-            dlt.state()["source_key_2"] = "source_value_2"
+            data_load_tool.state()["source_key_2"] = "source_value_2"
             resource_state("some_data_2")["run1_1"] = "value1_1"
             resource_state("some_data_2")["run1_2"] = "value1_2"
             yield {"id": 5, "name": "Joe"}
@@ -71,25 +71,25 @@ def refresh_source(first_run: bool = True, drop_sources: bool = False):
         else:
             assert not resource_state("some_data_2")
             if drop_sources:
-                assert_source_state_is_wiped(dlt.state())
+                assert_source_state_is_wiped(data_load_tool.state())
             yield {"id": 7}
             yield {"id": 8}
 
-    @dlt.resource(primary_key="id", write_disposition="merge")
+    @data_load_tool.resource(primary_key="id", write_disposition="merge")
     def some_data_3():
         if first_run:
-            dlt.state()["source_key_3"] = "source_value_3"
+            data_load_tool.state()["source_key_3"] = "source_value_3"
             resource_state("some_data_3")["run1_1"] = "value1_1"
             yield {"id": 9, "name": "Jack"}
             yield {"id": 10, "name": "Jill"}
         else:
             assert not resource_state("some_data_3")
             if drop_sources:
-                assert_source_state_is_wiped(dlt.state())
+                assert_source_state_is_wiped(data_load_tool.state())
             yield {"id": 11}
             yield {"id": 12}
 
-    @dlt.resource
+    @data_load_tool.resource
     def some_data_4():
         yield []
 
@@ -361,13 +361,13 @@ def test_refresh_drop_sources_multiple_sources(destination_config: DestinationTe
     Ensure only state and tables for currently selected source is dropped
     """
 
-    @dlt.source
+    @data_load_tool.source
     def refresh_source_2(first_run=True):
-        @dlt.resource
+        @data_load_tool.resource
         def source_2_data_1():
             pipeline_state, _ = current_pipeline_state(pipeline._container)
             if first_run:
-                dlt.state()["source_2_key_1"] = "source_2_value_1"
+                data_load_tool.state()["source_2_key_1"] = "source_2_value_1"
                 resource_state("source_2_data_1")["run1_1"] = "value1_1"
                 yield {"product": "apple", "price": 1}
                 yield {"product": "banana", "price": 2}
@@ -381,19 +381,19 @@ def test_refresh_drop_sources_multiple_sources(destination_config: DestinationTe
                     "run1_2": "value1_2",
                 }
                 # Source state is wiped
-                assert_source_state_is_wiped(dlt.state())
+                assert_source_state_is_wiped(data_load_tool.state())
                 yield {"product": "orange"}
                 yield {"product": "pear"}
 
-        @dlt.resource
+        @data_load_tool.resource
         def source_2_data_2():
             if first_run:
-                dlt.state()["source_2_key_2"] = "source_2_value_2"
+                data_load_tool.state()["source_2_key_2"] = "source_2_value_2"
                 resource_state("source_2_data_2")["run1_1"] = "value1_1"
                 yield {"product": "carrot", "price": 3}
                 yield {"product": "potato", "price": 4}
             else:
-                assert_source_state_is_wiped(dlt.state())
+                assert_source_state_is_wiped(data_load_tool.state())
                 yield {"product": "cabbage"}
                 yield {"product": "lettuce"}
 
@@ -529,11 +529,11 @@ def test_refresh_staging_dataset(destination_config: DestinationTestConfiguratio
     pipeline = destination_config.setup_pipeline("test_refresh_staging_dataset" + uniq_id())
 
     source = DltSource(
-        dlt.Schema("data_x"),
+        data_load_tool.Schema("data_x"),
         "data_section",
         [
-            dlt.resource(data, name="data_1", primary_key="id", write_disposition="merge"),
-            dlt.resource(data, name="data_2", primary_key="id", write_disposition="append"),
+            data_load_tool.resource(data, name="data_1", primary_key="id", write_disposition="merge"),
+            data_load_tool.resource(data, name="data_2", primary_key="id", write_disposition="append"),
         ],
     )
     # create two tables so two tables need to be dropped
@@ -547,11 +547,11 @@ def test_refresh_staging_dataset(destination_config: DestinationTestConfiguratio
         {"id": "A", "pop": 0.4},
     ]
     source_i = DltSource(
-        dlt.Schema("data_x"),
+        data_load_tool.Schema("data_x"),
         "data_section",
         [
-            dlt.resource(data_i, name="data_1", primary_key="id", write_disposition="merge"),
-            dlt.resource(data_i, name="data_2", primary_key="id", write_disposition="append"),
+            data_load_tool.resource(data_i, name="data_1", primary_key="id", write_disposition="merge"),
+            data_load_tool.resource(data_i, name="data_2", primary_key="id", write_disposition="append"),
         ],
     )
     info = pipeline.run(source_i, refresh="drop_resources", **destination_config.run_kwargs)
@@ -559,11 +559,11 @@ def test_refresh_staging_dataset(destination_config: DestinationTestConfiguratio
 
     # now replace the whole source and load different tables
     source_i = DltSource(
-        dlt.Schema("data_x"),
+        data_load_tool.Schema("data_x"),
         "data_section",
         [
-            dlt.resource(data_i, name="data_1_v2", primary_key="id", write_disposition="merge"),
-            dlt.resource(data_i, name="data_2_v2", primary_key="id", write_disposition="append"),
+            data_load_tool.resource(data_i, name="data_1_v2", primary_key="id", write_disposition="merge"),
+            data_load_tool.resource(data_i, name="data_2_v2", primary_key="id", write_disposition="append"),
         ],
     )
     info = pipeline.run(source_i, refresh="drop_sources", **destination_config.run_kwargs)

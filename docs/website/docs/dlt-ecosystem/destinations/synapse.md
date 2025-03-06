@@ -1,15 +1,15 @@
 ---
 title: Azure Synapse
-description: Azure Synapse `dlt` destination
+description: Azure Synapse `data_load_tool` destination
 keywords: [synapse, destination, data warehouse]
 ---
 
 # Synapse
 
-## Install dlt with Synapse
-**To install the dlt library with Synapse dependencies:**
+## Install data_load_tool with Synapse
+**To install the data_load_tool library with Synapse dependencies:**
 ```sh
-pip install "dlt[synapse]"
+pip install "data_load_tool[synapse]"
 ```
 
 ## Setup guide
@@ -19,12 +19,12 @@ pip install "dlt[synapse]"
 * **Microsoft ODBC Driver for SQL Server**
 
     The _Microsoft ODBC Driver for SQL Server_ must be installed to use this destination.
-    This cannot be included with `dlt`'s Python dependencies, so you must install it separately on your system. You can find the official installation instructions [here](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16).
+    This cannot be included with `data_load_tool`'s Python dependencies, so you must install it separately on your system. You can find the official installation instructions [here](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16).
 
     Supported driver versions:
     * `ODBC Driver 18 for SQL Server`
 
-    > 💡 Older driver versions do not work properly because they do not support the `LongAsMax` keyword that was [introduced](https://learn.microsoft.com/en-us/sql/connect/odbc/windows/features-of-the-microsoft-odbc-driver-for-sql-server-on-windows?view=sql-server-ver15#microsoft-odbc-driver-180-for-sql-server-on-windows) in `ODBC Driver 18 for SQL Server`. Synapse does not support the legacy ["long data types"](https://learn.microsoft.com/en-us/sql/t-sql/data-types/ntext-text-and-image-transact-sql), and requires "max data types" instead. `dlt` uses the `LongAsMax` keyword to automatically do the conversion.
+    > 💡 Older driver versions do not work properly because they do not support the `LongAsMax` keyword that was [introduced](https://learn.microsoft.com/en-us/sql/connect/odbc/windows/features-of-the-microsoft-odbc-driver-for-sql-server-on-windows?view=sql-server-ver15#microsoft-odbc-driver-180-for-sql-server-on-windows) in `ODBC Driver 18 for SQL Server`. Synapse does not support the legacy ["long data types"](https://learn.microsoft.com/en-us/sql/t-sql/data-types/ntext-text-and-image-transact-sql), and requires "max data types" instead. `data_load_tool` uses the `LongAsMax` keyword to automatically do the conversion.
 * **Azure Synapse Workspace and dedicated SQL pool**
 
     You need an Azure Synapse workspace with a dedicated SQL pool to load data into. If you do not have one yet, you can use this [quickstart](https://learn.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-sql-pool-studio).
@@ -33,14 +33,14 @@ pip install "dlt[synapse]"
 
 **1. Initialize a project with a pipeline that loads to Synapse by running**
 ```sh
-dlt init chess synapse
+data_load_tool init chess synapse
 ```
 
 **2. Install the necessary dependencies for Synapse by running**
 ```sh
 pip install -r requirements.txt
 ```
-This will install `dlt` with the **synapse** extra that contains all dependencies required for the Synapse destination.
+This will install `data_load_tool` with the **synapse** extra that contains all dependencies required for the Synapse destination.
 
 **3. Create a loader user**
 
@@ -67,7 +67,7 @@ GRANT ADMINISTER DATABASE BULK OPERATIONS TO loader; -- only required when loadi
 
 Optionally, you can create a `WORKLOAD GROUP` and add the `loader` user as a member to manage [workload isolation](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-isolation). See the [instructions](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/data-loading-best-practices#create-a-loading-user) on setting up a loader user for an example of how to do this.
 
-**4. Enter your credentials into `.dlt/secrets.toml`.**
+**4. Enter your credentials into `.data_load_tool/secrets.toml`.**
 
 Example, replace with your database connection info:
 ```toml
@@ -85,11 +85,11 @@ Equivalently, you can also pass a connection string as follows:
 destination.synapse.credentials = "synapse://loader:your_loader_password@your_synapse_workspace_name.azuresynapse.net/yourpool"
 ```
 
-To pass credentials directly you can use the `credentials` argument of `dlt.destinations.synapse(...)`:
+To pass credentials directly you can use the `credentials` argument of `data_load_tool.destinations.synapse(...)`:
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='chess',
-    destination=dlt.destinations.synapse(
+    destination=data_load_tool.destinations.synapse(
         credentials='synapse://loader:your_loader_password@your_synapse_workspace_name.azuresynapse.net/yourpool'
     ),
     dataset_name='chess_data'
@@ -119,9 +119,9 @@ connection_url = URL.create(
 
 Once you have the connection URL, you can directly use it in your pipeline configuration or convert it to a string.
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='chess',
-    destination=dlt.destinations.synapse(
+    destination=data_load_tool.destinations.synapse(
         credentials=connection_url.render_as_string(hide_password=False)
     ),
     dataset_name='chess_data'
@@ -136,21 +136,21 @@ All write dispositions are supported.
 ## Data loading
 Data is loaded via `INSERT` statements by default.
 
-> 💡 Multi-row `INSERT INTO ... VALUES` statements are **not** possible in Synapse, because it doesn't support the [Table Value Constructor](https://learn.microsoft.com/en-us/sql/t-sql/queries/table-value-constructor-transact-sql). `dlt` uses `INSERT INTO ... SELECT ... UNION` statements as described [here](https://stackoverflow.com/a/73579830) to work around this limitation.
+> 💡 Multi-row `INSERT INTO ... VALUES` statements are **not** possible in Synapse, because it doesn't support the [Table Value Constructor](https://learn.microsoft.com/en-us/sql/t-sql/queries/table-value-constructor-transact-sql). `data_load_tool` uses `INSERT INTO ... SELECT ... UNION` statements as described [here](https://stackoverflow.com/a/73579830) to work around this limitation.
 
 ## Supported file formats
 * [insert-values](../file-formats/insert-format.md) is used by default
 * [Parquet](../file-formats/parquet.md) is used when [staging](#staging-support) is enabled
 
 ## Data type limitations
-* **Synapse cannot load `TIME` columns from Parquet files**. `dlt` will fail such jobs permanently. Use the `insert_values` file format instead, or convert `datetime.time` objects to `str` or `datetime.datetime` to load `TIME` columns.
-* **Synapse does not have a nested/JSON/struct data type**. The `dlt` `json` data type is mapped to the `nvarchar` type in Synapse.
+* **Synapse cannot load `TIME` columns from Parquet files**. `data_load_tool` will fail such jobs permanently. Use the `insert_values` file format instead, or convert `datetime.time` objects to `str` or `datetime.datetime` to load `TIME` columns.
+* **Synapse does not have a nested/JSON/struct data type**. The `data_load_tool` `json` data type is mapped to the `nvarchar` type in Synapse.
 
 ## Table index type
 The [table index type](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-tables-index) of the created tables can be configured at the resource level with the `synapse_adapter`:
 
 ```py
-from dlt.destinations.adapters import synapse_adapter
+from data_load_tool.destinations.adapters import synapse_adapter
 
 info = pipeline.run(
     synapse_adapter(
@@ -167,10 +167,10 @@ Possible values:
 
 > ❗ Important:
 >* **Set `default_table_index_type` to `"clustered_columnstore_index"` if you want to change the default** (see [additional destination options](#additional-destination-options)).
->* **CLUSTERED COLUMNSTORE INDEX tables do not support the `varchar(max)`, `nvarchar(max)`, and `varbinary(max)` data types.** If you don't specify the `precision` for columns that map to any of these types, `dlt` will use the maximum lengths `varchar(4000)`, `nvarchar(4000)`, and `varbinary(8000)`.
->* **While Synapse creates CLUSTERED COLUMNSTORE INDEXES by default, `dlt` creates HEAP tables by default.** HEAP is a more robust choice because it supports all data types and doesn't require conversions.
+>* **CLUSTERED COLUMNSTORE INDEX tables do not support the `varchar(max)`, `nvarchar(max)`, and `varbinary(max)` data types.** If you don't specify the `precision` for columns that map to any of these types, `data_load_tool` will use the maximum lengths `varchar(4000)`, `nvarchar(4000)`, and `varbinary(8000)`.
+>* **While Synapse creates CLUSTERED COLUMNSTORE INDEXES by default, `data_load_tool` creates HEAP tables by default.** HEAP is a more robust choice because it supports all data types and doesn't require conversions.
 >* **When using the `insert-from-staging` [`replace` strategy](../../general-usage/full-loading.md), the staging tables are always created as HEAP tables**—any configuration of the table index types is ignored. The HEAP strategy makes sense for staging tables for reasons explained [here](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-tables-index#heap-tables).
->* **`dlt` system tables are always created as HEAP tables, regardless of any configuration.** This is in line with Microsoft's recommendation that "for small lookup tables, less than 60 million rows, consider using HEAP or clustered index for faster query performance."
+>* **`data_load_tool` system tables are always created as HEAP tables, regardless of any configuration.** This is in line with Microsoft's recommendation that "for small lookup tables, less than 60 million rows, consider using HEAP or clustered index for faster query performance."
 >* Child tables, if any, inherit the table index type of their parent table.
 
 ## Supported column hints
@@ -183,17 +183,17 @@ Synapse supports the following [column hints](../../general-usage/schema#tables-
 > ❗ These hints are **disabled by default**. This is because the `PRIMARY KEY` and `UNIQUE` [constraints](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-table-constraints) are tricky in Synapse: they are **not enforced** and can lead to inaccurate results if the user does not ensure all column values are unique. For the column hints to take effect, the `create_indexes` configuration needs to be set to `True`, see [additional destination options](#additional-destination-options).
 
 ## Staging support
-Synapse supports Azure Blob Storage (both standard and [ADLS Gen2](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction)) as a file staging destination. `dlt` first uploads Parquet files to the blob container, and then instructs Synapse to read the Parquet file and load its data into a Synapse table using the [COPY INTO](https://learn.microsoft.com/en-us/sql/t-sql/statements/copy-into-transact-sql) statement.
+Synapse supports Azure Blob Storage (both standard and [ADLS Gen2](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction)) as a file staging destination. `data_load_tool` first uploads Parquet files to the blob container, and then instructs Synapse to read the Parquet file and load its data into a Synapse table using the [COPY INTO](https://learn.microsoft.com/en-us/sql/t-sql/statements/copy-into-transact-sql) statement.
 
-Please refer to the [Azure Blob Storage filesystem documentation](./filesystem.md#azure-blob-storage) to learn how to configure credentials for the staging destination. By default, `dlt` will use these credentials for both the write into the blob container, and the read from it to load into Synapse. Managed Identity authentication can be enabled through the `staging_use_msi` option (see [additional destination options](#additional-destination-options)).
+Please refer to the [Azure Blob Storage filesystem documentation](./filesystem.md#azure-blob-storage) to learn how to configure credentials for the staging destination. By default, `data_load_tool` will use these credentials for both the write into the blob container, and the read from it to load into Synapse. Managed Identity authentication can be enabled through the `staging_use_msi` option (see [additional destination options](#additional-destination-options)).
 
 To run Synapse with staging on Azure Blob Storage:
 
 ```py
-# Create a dlt pipeline that will load
+# Create a data_load_tool pipeline that will load
 # chess player data to the Synapse destination
 # via staging on Azure Blob Storage
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name='chess_pipeline',
     destination='synapse',
     staging='filesystem', # add this to activate the staging location
@@ -231,8 +231,8 @@ Descriptions:
 ### dbt support
 Integration with [dbt](../transformations/dbt/dbt.md) is supported via `dbt-synapse`. Only **sql** authentication is supported.
 
-### Syncing of `dlt` state
-This destination fully supports [dlt state sync](../../general-usage/state#syncing-state-with-destination).
+### Syncing of `data_load_tool` state
+This destination fully supports [data_load_tool state sync](../../general-usage/state#syncing-state-with-destination).
 
 <!--@@@DLT_TUBA synapse-->
 

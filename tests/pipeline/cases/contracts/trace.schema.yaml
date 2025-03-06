@@ -829,7 +829,7 @@ settings:
 normalizers:
   names: snake_case
   json:
-    module: dlt.common.normalizers.json.relational
+    module: data_load_tool.common.normalizers.json.relational
 previous_hashes:
 - JE62zVwqT2T/qHTi2Qdnn2d1A/JzCzyGtDwc+qUmbTs=
 - 9Ysjq/W0xpxkI/vBiYm8Qbr2nDP3JMt6KvGKUS/FCyI=

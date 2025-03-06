@@ -1,20 +1,20 @@
 """
 ---
 title: Similarity searching with Qdrant
-description: Learn how to use the dlt source, Zendesk and dlt destination, Qdrant to conduct a similarity search on your tickets data.
+description: Learn how to use the data_load_tool source, Zendesk and data_load_tool destination, Qdrant to conduct a similarity search on your tickets data.
 keywords: [similarity search, example]
 ---
 
 This article outlines a system to map vectorized ticket data from Zendesk to Qdrant, similar to our guide on the topic concerning [Weaviate](https://dlthub.com/docs/dlt-ecosystem/destinations/qdrant). In this example, we will:
 - Connect to our [Zendesk source](https://dlthub.com/docs/dlt-ecosystem/verified-sources/zendesk).
 - Extract tickets data from our Zendesk source.
-- [Create a dlt pipeline](https://dlthub.com/docs/walkthroughs/create-a-pipeline) with Qdrant as destination.
+- [Create a data_load_tool pipeline](https://dlthub.com/docs/walkthroughs/create-a-pipeline) with Qdrant as destination.
 - Vectorize/embed the tickets data from Zendesk.
-- Pass the vectorized data to be stored in Qdrant via the dlt pipeline.
+- Pass the vectorized data to be stored in Qdrant via the data_load_tool pipeline.
 - Query data that we stored in Qdrant.
 - Explore the similarity search results.
 
-First, configure the destination credentials for [Qdrant](https://dlthub.com/docs/dlt-ecosystem/destinations/qdrant#setup-guide) and [Zendesk](https://dlthub.com/docs/walkthroughs/zendesk-weaviate#configuration) in `.dlt/secrets.toml`.
+First, configure the destination credentials for [Qdrant](https://dlthub.com/docs/dlt-ecosystem/destinations/qdrant#setup-guide) and [Zendesk](https://dlthub.com/docs/walkthroughs/zendesk-weaviate#configuration) in `.data_load_tool/secrets.toml`.
 
 Next, make sure you have the following dependencies installed:
 
@@ -25,24 +25,24 @@ pip install fastembed>=0.1.1
 
 """
 
-# NOTE: this line is only for dlt CI purposes, you may delete it if you are using this example
+# NOTE: this line is only for data_load_tool CI purposes, you may delete it if you are using this example
 __source_name__ = "zendesk"
 
 from typing import Optional, Dict, Any, Tuple
 
-import dlt
-from dlt.common import pendulum
-from dlt.common.time import ensure_pendulum_datetime
-from dlt.common.typing import TAnyDateTime
-from dlt.sources.helpers.requests import client
-from dlt.destinations.adapters import qdrant_adapter
+import data_load_tool
+from data_load_tool.common import pendulum
+from data_load_tool.common.time import ensure_pendulum_datetime
+from data_load_tool.common.typing import TAnyDateTime
+from data_load_tool.sources.helpers.requests import client
+from data_load_tool.destinations.adapters import qdrant_adapter
 from qdrant_client import QdrantClient
 
 
 # function from: https://github.com/dlt-hub/verified-sources/tree/master/sources/zendesk
-@dlt.source(max_table_nesting=2)
+@data_load_tool.source(max_table_nesting=2)
 def zendesk_support(
-    credentials: Dict[str, str] = dlt.secrets.value,
+    credentials: Dict[str, str] = data_load_tool.secrets.value,
     start_date: Optional[TAnyDateTime] = pendulum.datetime(year=2000, month=1, day=1),  # noqa: B008
     end_date: Optional[TAnyDateTime] = None,
 ):
@@ -50,7 +50,7 @@ def zendesk_support(
     Retrieves data from Zendesk Support for tickets events.
 
     Args:
-        credentials: Zendesk credentials (default: dlt.secrets.value)
+        credentials: Zendesk credentials (default: data_load_tool.secrets.value)
         start_date: Start date for data extraction (default: 2000-01-01)
         end_date: End date for data extraction (default: None).
             If end time is not provided, the incremental loading will be
@@ -72,9 +72,9 @@ def zendesk_support(
     #  so we do not need to merge
     # we set primary_key so allow deduplication of events by the `incremental` below in the rare case
     #  when two events have the same timestamp
-    @dlt.resource(primary_key="id", write_disposition="append")
+    @data_load_tool.resource(primary_key="id", write_disposition="append")
     def tickets_data(
-        updated_at: dlt.sources.incremental[pendulum.DateTime] = dlt.sources.incremental(
+        updated_at: data_load_tool.sources.incremental[pendulum.DateTime] = data_load_tool.sources.incremental(
             "updated_at",
             initial_value=start_date_obj,
             end_value=end_date_obj,
@@ -159,7 +159,7 @@ def get_pages(
 
 if __name__ == "__main__":
     # create a pipeline with an appropriate name
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="qdrant_zendesk_pipeline",
         destination="qdrant",
         dataset_name="zendesk_data",
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     # ...and apply special hints on the ticket resource to tell qdrant which fields to embed
     qdrant_adapter(source.tickets_data, embed=["subject", "description"])
 
-    # run the dlt pipeline and print info about the load process
+    # run the data_load_tool pipeline and print info about the load process
     load_info = pipeline.run(source)
 
     print(load_info)

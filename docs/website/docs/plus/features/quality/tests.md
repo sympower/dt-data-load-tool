@@ -1,7 +1,7 @@
 ---
 title: Test utils
-description: dlt+ Test utils
-keywords: ["dlt+", "data tests", "test"]
+description: data_load_tool+ Test utils
+keywords: ["data_load_tool+", "data tests", "test"]
 ---
 
 import Link from '../../../_plus_admonition.md';
@@ -10,7 +10,7 @@ import Link from '../../../_plus_admonition.md';
 
 ## Introduction
 
-dlt+ provides a `pytest` plugin with a set of powerful fixtures and utilities that simplify testing for dlt+ projects. These testing utilities are packaged separately in `dlt-plus-tests`, making it easy to install them as a development dependency. Check the [installation guide](#installation) for instructions on how to install the package.
+data_load_tool+ provides a `pytest` plugin with a set of powerful fixtures and utilities that simplify testing for data_load_tool+ projects. These testing utilities are packaged separately in `dlt-plus-tests`, making it easy to install them as a development dependency. Check the [installation guide](#installation) for instructions on how to install the package.
 
 The `dlt-plus-tests` package includes:
 
@@ -62,7 +62,7 @@ These fixtures must be explicitly imported to be activated. Please find the shor
 
 ### Tests execution
 
-Config setup will activate the run context with `dlt.yml` of the Project being tested. The `tests` profile will be activated (and must be present).
+Config setup will activate the run context with `data_load_tool.yml` of the Project being tested. The `tests` profile will be activated (and must be present).
 
 In the test project run context:
 - `run_dir` points to the project being tested
@@ -83,7 +83,7 @@ Additional cool 😎 utilities for verifying loads, checking table counts, and i
 | `IsInstanceMockMatch`       | Class    | A helper for mocking comparisons: its `__eq__` method returns `True` if the compared object is an instance of a specified class.                                                          |
 | `get_test_project_context`  | Function | Retrieves the current `ProjectRunContext` from `dlt_plus`.                                                                                                                                |
 | `get_local_dir`             | Function | Fetches the path to the local directory from the current project's configuration.                                                                                                          |
-| `clean_test_storage`        | Function | Removes any existing data directory, recreates it, and sets up a `FileStorage` in the project's temporary directory. Optionally copies configuration files from `tests/.dlt`.             |
+| `clean_test_storage`        | Function | Removes any existing data directory, recreates it, and sets up a `FileStorage` in the project's temporary directory. Optionally copies configuration files from `tests/.data_load_tool`.             |
 | `delete_test_storage`       | Function | Deletes the folder used by the test storage if it exists.                                                                                                                                 |
 | `drop_active_pipeline_data` | Function | Drops all datasets for the currently active pipeline, attempts to remove its working folder, and then deactivates the pipeline context.                                                   |
 | `assert_load_info`          | Function | Ensures that the specified number of load packages have been loaded successfully, with no failed jobs. Raises an error if any failed jobs are present.                                    |
@@ -111,7 +111,7 @@ Below is an example pyproject.toml configuration for uv:
 name = "dlt-portable-data-lake-demo"
 
 dependencies = [
-    "dlt[duckdb,parquet,deltalake,filesystem,snowflake]>=1.4.1a0",
+    "data_load_tool[duckdb,parquet,deltalake,filesystem,snowflake]>=1.4.1a0",
     "dlt-plus>=0.2.6",
     "enlighten",
     "duckdb<=1.1.2"
@@ -134,7 +134,7 @@ dlt-plus-tests = { index = "dlt-hub" }
 
 ## Writing tests
 
-When writing tests, you can use the dlt project API to request project entities and run them. For example:
+When writing tests, you can use the data_load_tool project API to request project entities and run them. For example:
 
 ```py
 from dlt_plus.project import Project

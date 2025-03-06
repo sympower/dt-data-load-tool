@@ -1,6 +1,6 @@
 ---
 title: Monitoring
-description: How to monitor a dlt pipeline
+description: How to monitor a data_load_tool pipeline
 keywords: [monitoring, run monitoring, data monitoring, airflow, github actions]
 ---
 
@@ -9,7 +9,7 @@ keywords: [monitoring, run monitoring, data monitoring, airflow, github actions]
 Monitoring and [alerting](alerting.md) are used together to provide a more complete picture of the
 health of a data product. With monitoring, we examine much more information than we consider when
 alerting. Monitoring is meant to give a fast, simple overview of the health of the system. How to
-best monitor a `dlt` pipeline will depend on your [deployment method](../walkthroughs/deploy-a-pipeline/).
+best monitor a `data_load_tool` pipeline will depend on your [deployment method](../walkthroughs/deploy-a-pipeline/).
 
 ## Run monitoring
 
@@ -45,7 +45,7 @@ GitHub Actions workflow DAG:
 
 ### Sentry
 
-Using `dlt` [tracing](tracing.md), you can configure [Sentry](https://sentry.io) DSN to start
+Using `data_load_tool` [tracing](tracing.md), you can configure [Sentry](https://sentry.io) DSN to start
 receiving rich information on executed pipelines, including encountered errors and exceptions.
 
 ## Data monitoring
@@ -65,7 +65,7 @@ For example, to monitor data loading, consider plotting "count of records by `lo
 To find the number of rows loaded per table, use the following command:
 
 ```sh
-dlt pipeline <pipeline_name> trace
+data_load_tool pipeline <pipeline_name> trace
 ```
 
 This command will display the names of the tables that were loaded and the number of rows in each table.
@@ -106,7 +106,7 @@ representation of the rows loaded with `load_id` for different tables:
 Data loading time for each table can be obtained by using the following command:
 
 ```sh
-dlt pipeline <pipeline_name> load-package
+data_load_tool pipeline <pipeline_name> load-package
 ```
 
 The above information can also be obtained from the script as follows:

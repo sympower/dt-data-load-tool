@@ -21,9 +21,9 @@ This will exclude all the child tables and columns of `event_user` table that st
 ⛔ Once the lineages are implemented the exclude and include filters will work with them. now it is better not to use them.
 
 ## Working with schema files
-`dlt` automates working with schema files by setting up schema import and export folders. Settings are available via config providers (ie. `config.toml`) or via `dlt.pipeline(import_schema_path, export_schema_path)` settings. Example:
+`data_load_tool` automates working with schema files by setting up schema import and export folders. Settings are available via config providers (ie. `config.toml`) or via `data_load_tool.pipeline(import_schema_path, export_schema_path)` settings. Example:
 ```python
-dlt.pipeline(import_schema_path="schemas/import", export_schema_path="schemas/export")
+data_load_tool.pipeline(import_schema_path="schemas/import", export_schema_path="schemas/export")
 ```
 will create following folder structure in project root folder
 ```
@@ -38,22 +38,22 @@ Which will expose pipeline schemas to the user in `yml` format.
 2. Every such new schema will be saved to `import` folder (if not existing there already) and used as initial version for all future pipeline runs.
 3. Once schema is present in `import` folder, **it is writable by the user only**.
 4. Any change to the schemas in that folder are detected and propagated to the pipeline automatically on the next run (in fact any call to `Pipeline` object does that sync.). It means that after an user update, the schema in `import` folder resets all the automatic updates from the data.
-4. Otherwise **the schema evolves automatically in the normalize stage** and each update is saved in `export` folder. The export folder is **writable by dlt only** and provides the actual view of the schema.
+4. Otherwise **the schema evolves automatically in the normalize stage** and each update is saved in `export` folder. The export folder is **writable by data_load_tool only** and provides the actual view of the schema.
 5. The `export` and `import` folders may be the same. In that case the evolved schema is automatically "accepted" as the initial one.
 
 
 ## Working with schema in code
-`dlt` user can "check-out" any pipeline schema for modification in the code.
+`data_load_tool` user can "check-out" any pipeline schema for modification in the code.
 
 > ⛔ I do not have any cool API to work with the table, columns and other hints in the code - the schema is a typed dictionary and currently it is the only way.
 
-`dlt` will "commit" all the schema changes with any call to `run`, `extract`, `normalize` or `load` methods.
+`data_load_tool` will "commit" all the schema changes with any call to `run`, `extract`, `normalize` or `load` methods.
 
 Examples:
 
 ```python
 # extract some to "table" resource using default schema
-p = dlt.pipeline(destination=redshift)
+p = data_load_tool.pipeline(destination=redshift)
 p.extract([1,2,3,4], name="table")
 # get live schema
 schema = p.default_schema

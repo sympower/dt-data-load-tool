@@ -1,25 +1,25 @@
 from typing import List, Tuple, Dict
 
-import dlt
+import data_load_tool
 import pytest
 import os
 
 from copy import deepcopy
-from dlt.common.configuration.specs.base_configuration import configspec
-from dlt.common.schema.schema import Schema
-from dlt.common.typing import TDataItems
-from dlt.common.schema import TTableSchema
-from dlt.common.data_writers.writers import TLoaderFileFormat
-from dlt.common.destination import Destination, DestinationReference
-from dlt.common.destination.exceptions import DestinationTransientException
-from dlt.common.configuration.exceptions import ConfigFieldMissingException, ConfigurationValueError
-from dlt.common.configuration.specs import ConnectionStringCredentials
-from dlt.common.configuration.inject import get_fun_spec
-from dlt.common.configuration.specs import BaseConfiguration
+from data_load_tool.common.configuration.specs.base_configuration import configspec
+from data_load_tool.common.schema.schema import Schema
+from data_load_tool.common.typing import TDataItems
+from data_load_tool.common.schema import TTableSchema
+from data_load_tool.common.data_writers.writers import TLoaderFileFormat
+from data_load_tool.common.destination import Destination, DestinationReference
+from data_load_tool.common.destination.exceptions import DestinationTransientException
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException, ConfigurationValueError
+from data_load_tool.common.configuration.specs import ConnectionStringCredentials
+from data_load_tool.common.configuration.inject import get_fun_spec
+from data_load_tool.common.configuration.specs import BaseConfiguration
 
-from dlt.destinations.impl.destination.configuration import CustomDestinationClientConfiguration
-from dlt.destinations.impl.destination.factory import UnknownCustomDestinationCallable
-from dlt.pipeline.exceptions import PipelineStepFailed
+from data_load_tool.destinations.impl.destination.configuration import CustomDestinationClientConfiguration
+from data_load_tool.destinations.impl.destination.factory import UnknownCustomDestinationCallable
+from data_load_tool.pipeline.exceptions import PipelineStepFailed
 
 from tests.load.utils import (
     TABLE_ROW_ALL_DATA_TYPES,
@@ -46,7 +46,7 @@ def _run_through_sink(
     """
     calls: List[Tuple[TDataItems, TTableSchema]] = []
 
-    @dlt.destination(loader_file_format=loader_file_format, batch_size=batch_size)
+    @data_load_tool.destination(loader_file_format=loader_file_format, batch_size=batch_size)
     def test_sink(items: TDataItems, table: TTableSchema) -> None:
         nonlocal calls
         # convert pyarrow table to dict list here to make tests more simple downstream
@@ -54,12 +54,12 @@ def _run_through_sink(
             items = items.to_pylist()  # type: ignore
         calls.append((items, table))
 
-    @dlt.resource(columns=columns, table_name="items")
+    @data_load_tool.resource(columns=columns, table_name="items")
     def items_resource() -> TDataItems:
         nonlocal items
         yield items
 
-    p = dlt.pipeline("sink_test", destination=test_sink, dev_mode=True)
+    p = data_load_tool.pipeline("sink_test", destination=test_sink, dev_mode=True)
     p.run([items_resource()])
 
     return calls
@@ -132,7 +132,7 @@ def global_sink_func(items: TDataItems, table: TTableSchema) -> None:
 
 def test_capabilities() -> None:
     # test default caps
-    dest = dlt.destination()(global_sink_func)()
+    dest = data_load_tool.destination()(global_sink_func)()
     caps = dest.capabilities()
     assert caps.preferred_loader_file_format == "typed-jsonl"
     assert caps.supported_loader_file_formats == ["typed-jsonl", "parquet"]
@@ -142,7 +142,7 @@ def test_capabilities() -> None:
     assert dict(caps) == dict(client_caps)
 
     # test modified caps
-    dest = dlt.destination(
+    dest = data_load_tool.destination(
         loader_file_format="parquet",
         batch_size=0,
         name="my_name",
@@ -163,7 +163,7 @@ def test_instantiation() -> None:
     calls: List[Tuple[TDataItems, TTableSchema]] = []
 
     # NOTE: we also test injection of config vars here
-    def local_sink_func(items: TDataItems, table: TTableSchema, my_val=dlt.config.value, /) -> None:
+    def local_sink_func(items: TDataItems, table: TTableSchema, my_val=data_load_tool.config.value, /) -> None:
         nonlocal calls
         assert my_val == "something"
         calls.append((items, table))
@@ -172,17 +172,17 @@ def test_instantiation() -> None:
 
     # test decorator
     calls = []
-    p = dlt.pipeline("sink_test", destination=dlt.destination()(local_sink_func), dev_mode=True)
+    p = data_load_tool.pipeline("sink_test", destination=data_load_tool.destination()(local_sink_func), dev_mode=True)
     p.run([1, 2, 3], table_name="items")
     assert len(calls) == 1
     # local func does not create entry in destinations
     with pytest.raises(KeyError):
         DestinationReference.find("local_sink_func")
-    assert "dlt.destinations.local_sink_func" not in DestinationReference.DESTINATIONS
+    assert "data_load_tool.destinations.local_sink_func" not in DestinationReference.DESTINATIONS
 
     # test passing via from_reference
     calls = []
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         "sink_test",
         destination=Destination.from_reference("destination", destination_callable=local_sink_func),
         dev_mode=True,
@@ -192,13 +192,13 @@ def test_instantiation() -> None:
     # local func does not create entry in destinations
     with pytest.raises(KeyError):
         DestinationReference.find("local_sink_func")
-    assert "dlt.destinations.local_sink_func" not in DestinationReference.DESTINATIONS
+    assert "data_load_tool.destinations.local_sink_func" not in DestinationReference.DESTINATIONS
 
     def local_sink_func_no_params(items: TDataItems, table: TTableSchema) -> None:
         # consume data
         pass
 
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         "sink_test",
         destination=Destination.from_reference(
             "destination", destination_callable=local_sink_func_no_params
@@ -217,8 +217,8 @@ def test_instantiation() -> None:
     )
     assert dest_ref.destination_name == "global_sink_func"
     # type comes from the "destination" wrapper destination
-    assert dest_ref.destination_type == "dlt.destinations.destination"
-    p = dlt.pipeline(
+    assert dest_ref.destination_type == "data_load_tool.destinations.destination"
+    p = data_load_tool.pipeline(
         "sink_test",
         destination=dest_ref,
         dev_mode=True,
@@ -227,7 +227,7 @@ def test_instantiation() -> None:
     assert len(global_calls) == 1
 
     # global func will create an entry
-    dest_ref = dlt.destination(global_sink_func)()  # type: ignore[assignment]
+    dest_ref = data_load_tool.destination(global_sink_func)()  # type: ignore[assignment]
     assert DestinationReference.DESTINATIONS[
         "tests.destinations.test_custom_destination.global_sink_func"
     ]
@@ -235,7 +235,7 @@ def test_instantiation() -> None:
         dest_ref.destination_type
         == "tests.destinations.test_custom_destination.GlobalSinkFuncDestination"
     )
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         "sink_test",
         destination=dest_ref,
         dev_mode=True,
@@ -254,7 +254,7 @@ def test_instantiation() -> None:
         == "tests.destinations.test_custom_destination.GlobalSinkFuncDestination"
     )
     # and still run it
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         "sink_test",
         destination=dest_ref,
         dev_mode=True,
@@ -272,7 +272,7 @@ def test_instantiation() -> None:
         == "tests.destinations.test_custom_destination.GlobalSinkFuncDestination"
     )
     # and still run it
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         "sink_test",
         destination=dest_ref,
         dev_mode=True,
@@ -281,7 +281,7 @@ def test_instantiation() -> None:
     assert len(global_calls) == 4
 
     # pass None as callable arg will fail on load
-    p = dlt.pipeline(
+    p = data_load_tool.pipeline(
         "sink_test",
         destination=Destination.from_reference("destination", destination_callable=None),
         dev_mode=True,
@@ -291,7 +291,7 @@ def test_instantiation() -> None:
 
     # pass invalid string reference will fail on instantiation
     with pytest.raises(UnknownCustomDestinationCallable):
-        p = dlt.pipeline(
+        p = data_load_tool.pipeline(
             "sink_test",
             destination=Destination.from_reference(
                 "destination", destination_callable="does.not.exist"
@@ -302,13 +302,13 @@ def test_instantiation() -> None:
     # using decorator without args will also work
     calls = []
 
-    @dlt.destination
-    def simple_decorator_sink(items, table, my_val=dlt.config.value):
+    @data_load_tool.destination
+    def simple_decorator_sink(items, table, my_val=data_load_tool.config.value):
         nonlocal calls
         assert my_val == "something"
         calls.append((items, table))
 
-    p = dlt.pipeline("sink_test", destination=simple_decorator_sink, dev_mode=True)
+    p = data_load_tool.pipeline("sink_test", destination=simple_decorator_sink, dev_mode=True)
     p.run([1, 2, 3], table_name="items")
     assert len(calls) == 1
 
@@ -320,7 +320,7 @@ def test_batched_transactions(loader_file_format: TLoaderFileFormat, batch_size:
     # provoke errors on resources
     provoke_error: Dict[str, int] = {}
 
-    @dlt.destination(
+    @data_load_tool.destination(
         loader_file_format=loader_file_format,
         batch_size=batch_size,
         skip_dlt_columns_and_tables=False,
@@ -343,12 +343,12 @@ def test_batched_transactions(loader_file_format: TLoaderFileFormat, batch_size:
 
         calls.setdefault(table_name, []).append(items)
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def items() -> TDataItems:
         for i in range(100):
             yield {"id": i, "value": str(i)}
 
-    @dlt.resource()
+    @data_load_tool.resource()
     def items2() -> TDataItems:
         for i in range(100):
             yield {"id": i, "value": str(i)}
@@ -367,7 +367,7 @@ def test_batched_transactions(loader_file_format: TLoaderFileFormat, batch_size:
             assert str(i) in collected_items
 
     # no errors are set, all items should be processed
-    p = dlt.pipeline("sink_test", destination=test_sink, dev_mode=True)
+    p = data_load_tool.pipeline("sink_test", destination=test_sink, dev_mode=True)
     load_id = p.run([items(), items2()]).loads_ids[0]
     assert_items_in_range(calls["items"], 0, 100)
     assert_items_in_range(calls["items2"], 0, 100)
@@ -380,7 +380,7 @@ def test_batched_transactions(loader_file_format: TLoaderFileFormat, batch_size:
     # provoke errors
     calls = {}
     provoke_error = {"items": 25, "items2": 45}
-    p = dlt.pipeline("sink_test", destination=test_sink, dev_mode=True)
+    p = data_load_tool.pipeline("sink_test", destination=test_sink, dev_mode=True)
     with pytest.raises(PipelineStepFailed):
         p.run([items(), items2()])
 
@@ -425,52 +425,52 @@ def test_batched_transactions(loader_file_format: TLoaderFileFormat, batch_size:
 
 
 def test_naming_convention() -> None:
-    @dlt.resource(table_name="PErson")
+    @data_load_tool.resource(table_name="PErson")
     def resource():
         yield [{"UpperCase": 1, "snake_case": 1, "camelCase": 1}]
 
     # check snake case
-    @dlt.destination(naming_convention="snake_case")
+    @data_load_tool.destination(naming_convention="snake_case")
     def snake_sink(items, table):
         assert table["name"] == "p_erson"
         assert table["columns"]["upper_case"]["name"] == "upper_case"
         assert table["columns"]["snake_case"]["name"] == "snake_case"
         assert table["columns"]["camel_case"]["name"] == "camel_case"
 
-    dlt.pipeline("sink_test", destination=snake_sink, dev_mode=True).run(resource())
+    data_load_tool.pipeline("sink_test", destination=snake_sink, dev_mode=True).run(resource())
 
     # check default (which is direct)
-    @dlt.destination()
+    @data_load_tool.destination()
     def direct_sink(items, table):
         assert table["name"] == "PErson"
         assert table["columns"]["UpperCase"]["name"] == "UpperCase"
         assert table["columns"]["snake_case"]["name"] == "snake_case"
         assert table["columns"]["camelCase"]["name"] == "camelCase"
 
-    dlt.pipeline("sink_test", destination=direct_sink, dev_mode=True).run(resource())
+    data_load_tool.pipeline("sink_test", destination=direct_sink, dev_mode=True).run(resource())
 
 
 def test_file_batch() -> None:
-    @dlt.resource(table_name="person")
+    @data_load_tool.resource(table_name="person")
     def resource1():
         for i in range(100):
             yield [{"id": i, "name": f"Name {i}"}]
 
-    @dlt.resource(table_name="address")
+    @data_load_tool.resource(table_name="address")
     def resource2():
         for i in range(50):
             yield [{"id": i, "city": f"City {i}"}]
 
-    @dlt.destination(batch_size=0, loader_file_format="parquet")
+    @data_load_tool.destination(batch_size=0, loader_file_format="parquet")
     def direct_sink(file_path, table):
-        from dlt.common.libs.pyarrow import pyarrow
+        from data_load_tool.common.libs.pyarrow import pyarrow
 
         assert table["name"] in ["person", "address"]
 
         with pyarrow.parquet.ParquetFile(file_path) as reader:
             assert reader.metadata.num_rows == (100 if table["name"] == "person" else 50)
 
-    dlt.pipeline("sink_test", destination=direct_sink, dev_mode=True).run(
+    data_load_tool.pipeline("sink_test", destination=direct_sink, dev_mode=True).run(
         [resource1(), resource2()]
     )
 
@@ -478,58 +478,58 @@ def test_file_batch() -> None:
 def test_config_spec() -> None:
     # NOTE: define the destination before the env var to test env vars are evaluated
     # at runtime
-    @dlt.destination()
-    def my_sink(file_path, table, my_val=dlt.config.value):
+    @data_load_tool.destination()
+    def my_sink(file_path, table, my_val=data_load_tool.config.value):
         assert my_val == "something"
 
     print(my_sink)
 
     # if no value is present, it should raise
     with pytest.raises(ConfigFieldMissingException):
-        dlt.pipeline("sink_test", destination=my_sink, dev_mode=True).run(
+        data_load_tool.pipeline("sink_test", destination=my_sink, dev_mode=True).run(
             [1, 2, 3], table_name="items"
         )
 
     # we may give the value via __callable__ function
-    dlt.pipeline("sink_test", destination=my_sink(my_val="something"), dev_mode=True).run(
+    data_load_tool.pipeline("sink_test", destination=my_sink(my_val="something"), dev_mode=True).run(
         [1, 2, 3], table_name="items"
     )
 
     # right value will pass
     os.environ["DESTINATION__MY_SINK__MY_VAL"] = "something"
-    dlt.pipeline("sink_test", destination=my_sink, dev_mode=True).run([1, 2, 3], table_name="items")
+    data_load_tool.pipeline("sink_test", destination=my_sink, dev_mode=True).run([1, 2, 3], table_name="items")
 
     # wrong value will raise
     os.environ["DESTINATION__MY_SINK__MY_VAL"] = "wrong"
     with pytest.raises(PipelineStepFailed):
-        dlt.pipeline("sink_test", destination=my_sink, dev_mode=True).run(
+        data_load_tool.pipeline("sink_test", destination=my_sink, dev_mode=True).run(
             [1, 2, 3], table_name="items"
         )
 
     # will respect given name
-    @dlt.destination(name="some_name")
-    def other_sink(file_path, table, my_val=dlt.config.value):
+    @data_load_tool.destination(name="some_name")
+    def other_sink(file_path, table, my_val=data_load_tool.config.value):
         assert my_val == "something"
 
     # if no value is present, it should raise
     with pytest.raises(ConfigFieldMissingException):
-        dlt.pipeline("sink_test", destination=other_sink, dev_mode=True).run(
+        data_load_tool.pipeline("sink_test", destination=other_sink, dev_mode=True).run(
             [1, 2, 3], table_name="items"
         )
 
     # right value will pass
     os.environ["DESTINATION__SOME_NAME__MY_VAL"] = "something"
-    dlt.pipeline("sink_test", destination=other_sink, dev_mode=True).run(
+    data_load_tool.pipeline("sink_test", destination=other_sink, dev_mode=True).run(
         [1, 2, 3], table_name="items"
     )
 
     # test nested spec
 
-    @dlt.destination
+    @data_load_tool.destination
     def my_gcp_sink(
         file_path,
         table,
-        credentials: ConnectionStringCredentials = dlt.secrets.value,
+        credentials: ConnectionStringCredentials = data_load_tool.secrets.value,
     ):
         assert credentials.drivername == "my_driver"
         assert credentials.database == "my_database"
@@ -537,7 +537,7 @@ def test_config_spec() -> None:
 
     # missing spec
     with pytest.raises(ConfigFieldMissingException):
-        dlt.pipeline("sink_test", destination=my_gcp_sink, dev_mode=True).run(
+        data_load_tool.pipeline("sink_test", destination=my_gcp_sink, dev_mode=True).run(
             [1, 2, 3], table_name="items"
         )
 
@@ -547,7 +547,7 @@ def test_config_spec() -> None:
     os.environ["CREDENTIALS__USERNAME"] = "my_user_name"
 
     # now it will run
-    dlt.pipeline("sink_test", destination=my_gcp_sink, dev_mode=True).run(
+    data_load_tool.pipeline("sink_test", destination=my_gcp_sink, dev_mode=True).run(
         [1, 2, 3], table_name="items"
     )
 
@@ -558,9 +558,9 @@ def test_destination_with_spec() -> None:
         my_predefined_val: str = None
 
     # check destination without additional config params
-    @dlt.destination(spec=MyDestinationSpec)
+    @data_load_tool.destination(spec=MyDestinationSpec)
     def sink_func_with_spec(
-        items: TDataItems, table: TTableSchema, my_predefined_val=dlt.config.value
+        items: TDataItems, table: TTableSchema, my_predefined_val=data_load_tool.config.value
     ) -> None:
         pass
 
@@ -571,23 +571,23 @@ def test_destination_with_spec() -> None:
 
     # call fails because `my_predefined_val` is required part of spec, even if not injected
     with pytest.raises(ConfigFieldMissingException):
-        dlt.pipeline("sink_test", destination=sink_func_with_spec(), dev_mode=True).run(
+        data_load_tool.pipeline("sink_test", destination=sink_func_with_spec(), dev_mode=True).run(
             [1, 2, 3], table_name="items"
         )
 
     # call happens now
     os.environ["MY_PREDEFINED_VAL"] = "VAL"
-    dlt.pipeline("sink_test", destination=sink_func_with_spec(), dev_mode=True).run(
+    data_load_tool.pipeline("sink_test", destination=sink_func_with_spec(), dev_mode=True).run(
         [1, 2, 3], table_name="items"
     )
 
     # check destination with additional config params
-    @dlt.destination(spec=MyDestinationSpec)
+    @data_load_tool.destination(spec=MyDestinationSpec)
     def sink_func_with_spec_and_additional_params(
-        items: TDataItems, table: TTableSchema, other_val: str = dlt.config.value
+        items: TDataItems, table: TTableSchema, other_val: str = data_load_tool.config.value
     ) -> None:
         # other_val won't be injected but can be explicitly passed
-        assert other_val is None  # dlt.config.value evaluates to none
+        assert other_val is None  # data_load_tool.config.value evaluates to none
 
     wrapped_callable = sink_func_with_spec_and_additional_params().config_params[
         "destination_callable"
@@ -597,9 +597,9 @@ def test_destination_with_spec() -> None:
     os.environ["OTHER_VAL"] = "VAL"
 
     # check destination spec with incorrect baseclass
-    @dlt.destination(spec=BaseConfiguration)  # type: ignore
+    @data_load_tool.destination(spec=BaseConfiguration)  # type: ignore
     def sink_func_wrong_base(
-        items: TDataItems, table: TTableSchema, other_val: str = dlt.config.value
+        items: TDataItems, table: TTableSchema, other_val: str = data_load_tool.config.value
     ) -> None:
         pass
 
@@ -607,9 +607,9 @@ def test_destination_with_spec() -> None:
         sink_func_wrong_base()
 
     # check no base
-    @dlt.destination(spec=None)
+    @data_load_tool.destination(spec=None)
     def sink_func_no_spec(
-        items: TDataItems, table: TTableSchema, other_val: str = dlt.config.value
+        items: TDataItems, table: TTableSchema, other_val: str = data_load_tool.config.value
     ) -> None:
         pass
 
@@ -625,7 +625,7 @@ def test_remove_internal_tables_and_columns(loader_file_format, remove_stuff) ->
     found_dlt_column = False
     found_dlt_column_value = False
 
-    @dlt.destination(
+    @data_load_tool.destination(
         skip_dlt_columns_and_tables=remove_stuff, loader_file_format=loader_file_format
     )
     def test_sink(items, table):
@@ -648,7 +648,7 @@ def test_remove_internal_tables_and_columns(loader_file_format, remove_stuff) ->
                     found_dlt_column_value = True
 
     # test with and without removing
-    p = dlt.pipeline("sink_test", destination=test_sink, dev_mode=True)
+    p = data_load_tool.pipeline("sink_test", destination=test_sink, dev_mode=True)
     p.run([{"id": 1, "value": "1"}], table_name="some_table")
 
     assert found_dlt_column != remove_stuff
@@ -668,16 +668,16 @@ def test_max_nesting_level(nesting: int) -> None:
 
     found_tables = set()
 
-    @dlt.destination(loader_file_format="typed-jsonl", max_table_nesting=nesting)
+    @data_load_tool.destination(loader_file_format="typed-jsonl", max_table_nesting=nesting)
     def nesting_sink(items, table):
         nonlocal found_tables
         found_tables.add(table["name"])
 
-    @dlt.source(max_table_nesting=2)
+    @data_load_tool.source(max_table_nesting=2)
     def source():
-        yield dlt.resource(data, name="data")
+        yield data_load_tool.resource(data, name="data")
 
-    p = dlt.pipeline("sink_test_max_nesting", destination=nesting_sink, dev_mode=True)
+    p = data_load_tool.pipeline("sink_test_max_nesting", destination=nesting_sink, dev_mode=True)
     p.run(source())
 
     # fall back to source setting
@@ -695,7 +695,7 @@ def test_large_payload():
     # NOTE: tests large number of records that get line wrapped in typed jsonl
     num_records = 50000
 
-    @dlt.resource
+    @data_load_tool.resource
     def generate_large_data():
         for i in range(0, num_records):
             yield {
@@ -707,12 +707,12 @@ def test_large_payload():
     items_count = 0
 
     # Custom destination
-    @dlt.destination(batch_size=1000)
+    @data_load_tool.destination(batch_size=1000)
     def my_destination(items: TDataItems, table: TTableSchema):
         nonlocal items_count
         items_count += len(items)
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         pipeline_name="my_pipeline",
         destination=my_destination,
         dev_mode=True,

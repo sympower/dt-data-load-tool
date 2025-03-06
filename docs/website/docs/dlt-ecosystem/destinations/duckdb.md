@@ -1,22 +1,22 @@
 ---
 title: DuckDB
-description: DuckDB `dlt` destination
+description: DuckDB `data_load_tool` destination
 keywords: [duckdb, destination, data warehouse]
 ---
 
 # DuckDB
 
-## Install dlt with DuckDB
-**To install the dlt library with DuckDB dependencies, run:**
+## Install data_load_tool with DuckDB
+**To install the data_load_tool library with DuckDB dependencies, run:**
 ```sh
-pip install "dlt[duckdb]"
+pip install "data_load_tool[duckdb]"
 ```
 
 ## Setup guide
 
 **1. Initialize a project with a pipeline that loads to DuckDB by running:**
 ```sh
-dlt init chess duckdb
+data_load_tool init chess duckdb
 ```
 
 **2. Install the necessary dependencies for DuckDB by running:**
@@ -33,10 +33,10 @@ python3 chess_pipeline.py
 All write dispositions are supported.
 
 ## Data loading
-`dlt` will load data using large INSERT VALUES statements by default. Loading is multithreaded (20 threads by default). If you are okay with installing `pyarrow`, we suggest switching to Parquet as the file format. Loading is faster (and also multithreaded).
+`data_load_tool` will load data using large INSERT VALUES statements by default. Loading is multithreaded (20 threads by default). If you are okay with installing `pyarrow`, we suggest switching to Parquet as the file format. Loading is faster (and also multithreaded).
 
 ### Data types
-`duckdb` supports various [timestamp types](https://duckdb.org/docs/sql/data_types/timestamp.html). These can be configured using the column flags `timezone` and `precision` in the `dlt.resource` decorator or the `pipeline.run` method.
+`duckdb` supports various [timestamp types](https://duckdb.org/docs/sql/data_types/timestamp.html). These can be configured using the column flags `timezone` and `precision` in the `data_load_tool.resource` decorator or the `pipeline.run` method.
 
 - **Precision**: Supported precision values are 0, 3, 6, and 9 for fractional seconds. Note that `timezone` and `precision` cannot be used together; attempting to combine them will result in an error.
 - **Timezone**:
@@ -46,33 +46,33 @@ All write dispositions are supported.
 #### Example precision: TIMESTAMP_MS
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     columns={"event_tstamp": {"data_type": "timestamp", "precision": 3}},
     primary_key="event_id",
 )
 def events():
     yield [{"event_id": 1, "event_tstamp": "2024-07-30T10:00:00.123"}]
 
-pipeline = dlt.pipeline(destination="duckdb")
+pipeline = data_load_tool.pipeline(destination="duckdb")
 pipeline.run(events())
 ```
 
 #### Example timezone: TIMESTAMP
 
 ```py
-@dlt.resource(
+@data_load_tool.resource(
     columns={"event_tstamp": {"data_type": "timestamp", "timezone": False}},
     primary_key="event_id",
 )
 def events():
     yield [{"event_id": 1, "event_tstamp": "2024-07-30T10:00:00.123+00:00"}]
 
-pipeline = dlt.pipeline(destination="duckdb")
+pipeline = data_load_tool.pipeline(destination="duckdb")
 pipeline.run(events())
 ```
 
 ### Names normalization
-`dlt` uses the standard **snake_case** naming convention to keep identical table and column identifiers across all destinations. If you want to use the **duckdb** wide range of characters (i.e., emojis) for table and column names, you can switch to the **duck_case** naming convention, which accepts almost any string as an identifier:
+`data_load_tool` uses the standard **snake_case** naming convention to keep identical table and column identifiers across all destinations. If you want to use the **duckdb** wide range of characters (i.e., emojis) for table and column names, you can switch to the **duck_case** naming convention, which accepts almost any string as an identifier:
 * New line (`\n`), carriage return (`\r`), and double quotes (`"`) are translated to an underscore (`_`).
 * Consecutive underscores (`_`) are translated to a single `_`
 
@@ -84,7 +84,7 @@ naming="duck_case"
 
 or via the env variable `SCHEMA__NAMING` or directly in the code:
 ```py
-dlt.config["schema.naming"] = "duck_case"
+data_load_tool.config["schema.naming"] = "duck_case"
 ```
 :::caution
 **duckdb** identifiers are **case insensitive** but display names preserve case. This may create name collisions if, for example, you load JSON with
@@ -97,15 +97,15 @@ You can configure the following file formats to load data into duckdb:
 * [insert-values](../file-formats/insert-format.md) is used by default.
 * [Parquet](../file-formats/parquet.md) is supported.
 :::note
-`duckdb` cannot COPY many Parquet files to a single table from multiple threads. In this situation, dlt serializes the loads. Still, that may be faster than INSERT.
+`duckdb` cannot COPY many Parquet files to a single table from multiple threads. In this situation, data_load_tool serializes the loads. Still, that may be faster than INSERT.
 :::
 * [JSONL](../file-formats/jsonl.md)
 
 :::tip
 `duckdb` has [timestamp types](https://duckdb.org/docs/sql/data_types/timestamp.html) with resolutions from milliseconds to nanoseconds. However,
-only the microseconds resolution (the most commonly used) is time zone aware. `dlt` generates timestamps with timezones by default, so loading parquet files
+only the microseconds resolution (the most commonly used) is time zone aware. `data_load_tool` generates timestamps with timezones by default, so loading parquet files
 with default settings will fail (`duckdb` does not coerce tz-aware timestamps to naive timestamps).
-Disable the timezones by changing the `dlt` [Parquet writer settings](../file-formats/parquet.md#writer-settings) as follows:
+Disable the timezones by changing the `data_load_tool` [Parquet writer settings](../file-formats/parquet.md#writer-settings) as follows:
 ```sh
 DATA_WRITER__TIMESTAMP_TIMEZONE=""
 ```
@@ -123,17 +123,17 @@ By default, a DuckDB database will be created in the current working directory w
 The `duckdb` credentials do not require any secret values. [You are free to pass the credentials and configuration explicitly](../../general-usage/destination.md#pass-explicit-credentials). For example:
 ```py
 # will load data to files/data.db (relative path) database file
-p = dlt.pipeline(
+p = data_load_tool.pipeline(
   pipeline_name='chess',
-  destination=dlt.destinations.duckdb("files/data.db"),
+  destination=data_load_tool.destinations.duckdb("files/data.db"),
   dataset_name='chess_data',
   dev_mode=False
 )
 
 # will load data to /var/local/database.duckdb (absolute path)
-p = dlt.pipeline(
+p = data_load_tool.pipeline(
   pipeline_name='chess',
-  destination=dlt.destinations.duckdb("/var/local/database.duckdb"),
+  destination=data_load_tool.destinations.duckdb("/var/local/database.duckdb"),
   dataset_name='chess_data',
   dev_mode=False
 )
@@ -141,9 +141,9 @@ p = dlt.pipeline(
 Named `duckdb` destinations will create a database file in current working directory as `<destination_name>.duckdb`. For example:
 ```py
 # will load data to files/data.db (relative path) database file
-p = dlt.pipeline(
+p = data_load_tool.pipeline(
   pipeline_name='chess',
-  destination=dlt.destinations.duckdb(destination_name="chessdb"),
+  destination=data_load_tool.destinations.duckdb(destination_name="chessdb"),
   dataset_name='chess_data',
 )
 ```
@@ -153,7 +153,7 @@ creates database `chessdb.duckdb`.
 Avoid naming dataset the same as database. That will confuse `duckdb` binder as both catalog and schema are the same. For
 example:
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
         pipeline_name="dummy",
         destination="duckdb",
         dataset_name="dummy",
@@ -162,24 +162,24 @@ pipeline = dlt.pipeline(
 will create database `dummy.duckdb` and schema (dataset) `dummy` which get confused resulting in Binder Error.
 :::
 
-The destination accepts a `duckdb` connection instance via `credentials`, so you can also open a database connection yourself and pass it to `dlt` to use.
+The destination accepts a `duckdb` connection instance via `credentials`, so you can also open a database connection yourself and pass it to `data_load_tool` to use.
 
 ```py
 import duckdb
 
 db = duckdb.connect()
-p = dlt.pipeline(
+p = data_load_tool.pipeline(
   pipeline_name="chess",
-  destination=dlt.destinations.duckdb(db),
+  destination=data_load_tool.destinations.duckdb(db),
   dataset_name="chess_data",
   dev_mode=False,
 )
 
 # Or if you would like to use an in-memory duckdb instance
 db = duckdb.connect(":memory:")
-p = pipeline_one = dlt.pipeline(
+p = pipeline_one = data_load_tool.pipeline(
   pipeline_name="in_memory_pipeline",
-  destination=dlt.destinations.duckdb(db),
+  destination=data_load_tool.destinations.duckdb(db),
   dataset_name="chess_data",
 )
 
@@ -224,9 +224,9 @@ destination.duckdb.credentials=":pipeline:"
 
 2. In Python code
 ```py
-p = pipeline_one = dlt.pipeline(
+p = pipeline_one = data_load_tool.pipeline(
   pipeline_name="my_pipeline",
-  destination=dlt.destinations.duckdb(":pipeline:"),
+  destination=data_load_tool.destinations.duckdb(":pipeline:"),
 )
 ```
 
@@ -238,10 +238,10 @@ create_indexes=true
 ```
 
 ### dbt support
-This destination [integrates with dbt](../transformations/dbt/dbt.md) via [dbt-duckdb](https://github.com/jwills/dbt-duckdb), which is a community-supported package. The `duckdb` database is shared with `dbt`. In rare cases, you may see information that the binary database format does not match the database format expected by `dbt-duckdb`. You can avoid this by updating the `duckdb` package in your `dlt` project with `pip install -U`.
+This destination [integrates with dbt](../transformations/dbt/dbt.md) via [dbt-duckdb](https://github.com/jwills/dbt-duckdb), which is a community-supported package. The `duckdb` database is shared with `dbt`. In rare cases, you may see information that the binary database format does not match the database format expected by `dbt-duckdb`. You can avoid this by updating the `duckdb` package in your `data_load_tool` project with `pip install -U`.
 
-### Syncing of `dlt` state
-This destination fully supports [dlt state sync](../../general-usage/state#syncing-state-with-destination).
+### Syncing of `data_load_tool` state
+This destination fully supports [data_load_tool state sync](../../general-usage/state#syncing-state-with-destination).
 
 <!--@@@DLT_TUBA duckdb-->
 

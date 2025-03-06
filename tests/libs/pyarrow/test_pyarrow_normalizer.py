@@ -3,10 +3,10 @@ from typing import List, Any
 import pyarrow as pa
 import pytest
 
-from dlt.common.libs.pyarrow import normalize_py_arrow_item, NameNormalizationCollision
-from dlt.common.schema.utils import new_column, TColumnSchema
-from dlt.common.schema.normalizers import configured_normalizers, import_normalizers
-from dlt.common.destination import DestinationCapabilitiesContext
+from data_load_tool.common.libs.pyarrow import normalize_py_arrow_item, NameNormalizationCollision
+from data_load_tool.common.schema.utils import new_column, TColumnSchema
+from data_load_tool.common.schema.normalizers import configured_normalizers, import_normalizers
+from data_load_tool.common.destination import DestinationCapabilitiesContext
 
 
 def _normalize(table: pa.Table, columns: List[TColumnSchema]) -> pa.Table:

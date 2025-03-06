@@ -1,11 +1,11 @@
-import dlt
+import data_load_tool
 from typing import Any, List
 
-import dlt
-from dlt.common.pipeline import PipelineContext
-from dlt.common.configuration.container import Container
+import data_load_tool
+from data_load_tool.common.pipeline import PipelineContext
+from data_load_tool.common.configuration.container import Container
 
-from dlt.destinations.impl.qdrant.qdrant_job_client import QdrantClient
+from data_load_tool.destinations.impl.qdrant.qdrant_job_client import QdrantClient
 
 
 def assert_unordered_list_equal(list1: List[Any], list2: List[Any]) -> None:
@@ -15,7 +15,7 @@ def assert_unordered_list_equal(list1: List[Any], list2: List[Any]) -> None:
 
 
 def assert_collection(
-    pipeline: dlt.Pipeline,
+    pipeline: data_load_tool.Pipeline,
     collection_name: str,
     expected_items_count: int = None,
     items: List[Any] = None,
@@ -54,7 +54,7 @@ def drop_active_pipeline_data() -> None:
 
     if Container()[PipelineContext].is_active():
         # take existing pipeline
-        p = dlt.pipeline()
+        p = data_load_tool.pipeline()
         client: QdrantClient
 
         with p.destination_client() as client:  # type: ignore[assignment]

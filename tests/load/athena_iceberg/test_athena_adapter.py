@@ -1,8 +1,8 @@
 import pytest
 
-import dlt
-from dlt.destinations import filesystem
-from dlt.destinations.adapters import athena_adapter, athena_partition
+import data_load_tool
+from data_load_tool.destinations import filesystem
+from data_load_tool.destinations.adapters import athena_adapter, athena_partition
 
 # mark all tests as essential, do not remove
 pytestmark = pytest.mark.essential
@@ -11,7 +11,7 @@ pytestmark = pytest.mark.essential
 def test_iceberg_partition_hints():
     """Create a table with athena partition hints and check that the SQL is generated correctly."""
 
-    @dlt.resource(table_format="iceberg")
+    @data_load_tool.resource(table_format="iceberg")
     def partitioned_table():
         yield {
             "product_id": 1,
@@ -22,7 +22,7 @@ def test_iceberg_partition_hints():
             "quantity": 10,
         }
 
-    @dlt.resource(table_format="iceberg")
+    @data_load_tool.resource(table_format="iceberg")
     def not_partitioned_table():
         yield {"a": 1, "b": 2}
 
@@ -36,7 +36,7 @@ def test_iceberg_partition_hints():
         ],
     )
 
-    pipeline = dlt.pipeline(
+    pipeline = data_load_tool.pipeline(
         "athena_test",
         destination="athena",
         staging=filesystem("s3://not-a-real-bucket"),

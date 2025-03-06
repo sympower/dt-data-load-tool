@@ -4,25 +4,25 @@ from copy import copy
 from typing import Any, Iterator, Tuple, cast, Dict
 import pytest
 
-from dlt.common import json, pendulum, Decimal
-from dlt.common.arithmetics import numeric_default_context
-from dlt.common.configuration.exceptions import ConfigFieldMissingException
-from dlt.common.configuration.resolve import resolve_configuration
-from dlt.common.configuration.specs import (
+from data_load_tool.common import json, pendulum, Decimal
+from data_load_tool.common.arithmetics import numeric_default_context
+from data_load_tool.common.configuration.exceptions import ConfigFieldMissingException
+from data_load_tool.common.configuration.resolve import resolve_configuration
+from data_load_tool.common.configuration.specs import (
     GcpServiceAccountCredentials,
     GcpServiceAccountCredentialsWithoutDefaults,
     GcpOAuthCredentials,
     GcpOAuthCredentialsWithoutDefaults,
 )
-from dlt.common.configuration.specs import gcp_credentials
-from dlt.common.configuration.specs.exceptions import InvalidGoogleNativeCredentialsType
-from dlt.common.schema.utils import new_table
-from dlt.common.storages import FileStorage
-from dlt.common.utils import digest128, uniq_id, custom_environ
-from dlt.common.destination.client import RunnableLoadJob
-from dlt.destinations.impl.bigquery.bigquery import BigQueryClient, BigQueryClientConfiguration
+from data_load_tool.common.configuration.specs import gcp_credentials
+from data_load_tool.common.configuration.specs.exceptions import InvalidGoogleNativeCredentialsType
+from data_load_tool.common.schema.utils import new_table
+from data_load_tool.common.storages import FileStorage
+from data_load_tool.common.utils import digest128, uniq_id, custom_environ
+from data_load_tool.common.destination.client import RunnableLoadJob
+from data_load_tool.destinations.impl.bigquery.bigquery import BigQueryClient, BigQueryClientConfiguration
 
-from dlt.destinations.impl.bigquery.bigquery_adapter import (
+from data_load_tool.destinations.impl.bigquery.bigquery_adapter import (
     AUTODETECT_SCHEMA_HINT,
     should_autodetect_schema,
 )

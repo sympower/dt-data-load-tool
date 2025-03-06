@@ -41,10 +41,10 @@ from sqlalchemy import (
 
 from sqlalchemy.dialects.postgresql import JSONB
 
-from dlt.common.pendulum import pendulum, timedelta
-from dlt.common.utils import chunks, uniq_id
-from dlt.sources.credentials import ConnectionStringCredentials
-from dlt.common.typing import TypedDict
+from data_load_tool.common.pendulum import pendulum, timedelta
+from data_load_tool.common.utils import chunks, uniq_id
+from data_load_tool.sources.credentials import ConnectionStringCredentials
+from data_load_tool.common.typing import TypedDict
 
 
 class SQLAlchemySourceDB:

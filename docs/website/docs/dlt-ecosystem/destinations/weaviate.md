@@ -1,23 +1,23 @@
 ---
 title: Weaviate
-description: Weaviate is an open source vector database that can be used as a destination in dlt.
-keywords: [weaviate, vector database, destination, dlt]
+description: Weaviate is an open source vector database that can be used as a destination in data_load_tool.
+keywords: [weaviate, vector database, destination, data_load_tool]
 ---
 
 # Weaviate
 
 [Weaviate](https://weaviate.io/) is an open-source vector database. It allows you to store data objects and perform similarity searches over them.
-This destination helps you load data into Weaviate from [dlt resources](../../general-usage/resource.md).
+This destination helps you load data into Weaviate from [data_load_tool resources](../../general-usage/resource.md).
 
 ## Setup guide
 
-1. To use Weaviate as a destination, make sure dlt is installed with the 'weaviate' extra:
+1. To use Weaviate as a destination, make sure data_load_tool is installed with the 'weaviate' extra:
 
 ```sh
-pip install "dlt[weaviate]"
+pip install "data_load_tool[weaviate]"
 ```
 
-2. Next, configure the destination in the dlt secrets file. The file is located at `~/.dlt/secrets.toml` by default. Add the following section to the secrets file:
+2. Next, configure the destination in the data_load_tool secrets file. The file is located at `~/.data_load_tool/secrets.toml` by default. Add the following section to the secrets file:
 
 ```toml
 [destination.weaviate.credentials]
@@ -30,7 +30,7 @@ X-OpenAI-Api-Key = "your-openai-api-key"
 
 In this setup guide, we are using the [Weaviate Cloud Services](https://console.weaviate.cloud/) to get a Weaviate instance and [OpenAI API](https://platform.openai.com/) for generating embeddings through the [text2vec-openai](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-openai) module.
 
-You can host your own Weaviate instance using Docker Compose, Kubernetes, or embedded. Refer to Weaviate's [How-to: Install](https://weaviate.io/developers/weaviate/installation) or [dlt recipe we use for our tests](#run-weaviate-fully-standalone). In that case, you can skip the credentials part altogether:
+You can host your own Weaviate instance using Docker Compose, Kubernetes, or embedded. Refer to Weaviate's [How-to: Install](https://weaviate.io/developers/weaviate/installation) or [data_load_tool recipe we use for our tests](#run-weaviate-fully-standalone). In that case, you can skip the credentials part altogether:
 
 ```toml
 [destination.weaviate.credentials.additional_headers]
@@ -42,8 +42,8 @@ The `url` will default to **http://localhost:8080** and `api_key` is not defined
 3. Define the source of the data. For starters, let's load some data from a simple data structure:
 
 ```py
-import dlt
-from dlt.destinations.adapters import weaviate_adapter
+import data_load_tool
+from data_load_tool.destinations.adapters import weaviate_adapter
 
 movies = [
     {
@@ -64,7 +64,7 @@ movies = [
 4. Define the pipeline:
 
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="movies",
     destination="weaviate",
     dataset_name="MoviesDataset",
@@ -90,7 +90,7 @@ print(info)
 
 The data is now loaded into Weaviate.
 
-Weaviate destination is different from other [dlt destinations](../destinations/). To use vector search after the data has been loaded, you must specify which fields Weaviate needs to include in the vector index. You do that by wrapping the data (or dlt resource) with the `weaviate_adapter` function.
+Weaviate destination is different from other [data_load_tool destinations](../destinations/). To use vector search after the data has been loaded, you must specify which fields Weaviate needs to include in the vector index. You do that by wrapping the data (or data_load_tool resource) with the `weaviate_adapter` function.
 
 ## Weaviate adapter
 
@@ -101,11 +101,11 @@ weaviate_adapter(data, vectorize, tokenization)
 ```
 
 It accepts the following arguments:
-- `data`: a dlt resource object or a Python data structure (e.g., a list of dictionaries).
+- `data`: a data_load_tool resource object or a Python data structure (e.g., a list of dictionaries).
 - `vectorize`: a name of the field or a list of names that should be vectorized by Weaviate.
 - `tokenization`: the dictionary containing the tokenization configuration for a field. The dictionary should have the following structure `{'field_name': 'method'}`. Valid methods are "word", "lowercase", "whitespace", "field". The default is "word". See [Property tokenization](https://weaviate.io/developers/weaviate/config-refs/schema#property-tokenization) in Weaviate documentation for more details.
 
-Returns: a [dlt resource](../../general-usage/resource.md) object that you can pass to the `pipeline.run()`.
+Returns: a [data_load_tool resource](../../general-usage/resource.md) object that you can pass to the `pipeline.run()`.
 
 Example:
 
@@ -121,7 +121,7 @@ When using the `weaviate_adapter`, it's important to apply it directly to resour
 ```py
 products_tables = sql_database().with_resources("products", "customers")
 
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
         pipeline_name="postgres_to_weaviate_pipeline",
         destination="weaviate",
     )
@@ -135,7 +135,7 @@ info = pipeline.run(products_tables)
 
 :::tip
 
-A more comprehensive pipeline would load data from some API or use one of dlt's [verified sources](../verified-sources/).
+A more comprehensive pipeline would load data from some API or use one of data_load_tool's [verified sources](../verified-sources/).
 
 :::
 
@@ -175,7 +175,7 @@ info = pipeline.run(
 )
 ```
 
-Internally, dlt will use `primary_key` (`document_id` in the example above) to generate a unique identifier ([UUID](https://weaviate.io/developers/weaviate/manage-data/create#id)) for each object in Weaviate. If the object with the same UUID already exists in Weaviate, it will be updated with the new data. Otherwise, a new object will be created.
+Internally, data_load_tool will use `primary_key` (`document_id` in the example above) to generate a unique identifier ([UUID](https://weaviate.io/developers/weaviate/manage-data/create#id)) for each object in Weaviate. If the object with the same UUID already exists in Weaviate, it will be updated with the new data. Otherwise, a new object will be created.
 
 
 :::caution
@@ -194,9 +194,9 @@ Loading data into Weaviate from different sources requires a proper understandin
 
 ### Data types
 
-Data loaded into Weaviate from various sources might have different types. To ensure compatibility with Weaviate's schema, there's a predefined mapping between the [dlt types](../../general-usage/schema.md#data-types) and [Weaviate's native types](https://weaviate.io/developers/weaviate/config-refs/datatypes):
+Data loaded into Weaviate from various sources might have different types. To ensure compatibility with Weaviate's schema, there's a predefined mapping between the [data_load_tool types](../../general-usage/schema.md#data-types) and [Weaviate's native types](https://weaviate.io/developers/weaviate/config-refs/datatypes):
 
-| dlt Type  | Weaviate Type |
+| data_load_tool Type  | Weaviate Type |
 | --------- | ------------- |
 | text      | text          |
 | double    | number        |
@@ -211,7 +211,7 @@ Data loaded into Weaviate from various sources might have different types. To en
 
 ### Dataset name
 
-Weaviate uses classes to categorize and identify data. To avoid potential naming conflicts, especially when dealing with multiple datasets that might have overlapping table names, dlt includes the dataset name in the Weaviate class name. This ensures a unique identifier for every class.
+Weaviate uses classes to categorize and identify data. To avoid potential naming conflicts, especially when dealing with multiple datasets that might have overlapping table names, data_load_tool includes the dataset name in the Weaviate class name. This ensures a unique identifier for every class.
 
 For example, if you have a dataset named `movies_dataset` and a table named `actors`, the Weaviate class name would be `MoviesDataset_Actors` (the default separator is an underscore).
 
@@ -220,7 +220,7 @@ However, if you prefer to have class names without the dataset prefix, skip the 
 For example:
 
 ```py
-pipeline = dlt.pipeline(
+pipeline = data_load_tool.pipeline(
     pipeline_name="movies",
     destination="weaviate",
 )
@@ -228,7 +228,7 @@ pipeline = dlt.pipeline(
 
 ### Names normalization
 
-When loading data into Weaviate, dlt tries to maintain naming conventions consistent with the Weaviate schema.
+When loading data into Weaviate, data_load_tool tries to maintain naming conventions consistent with the Weaviate schema.
 
 Here's a summary of the naming normalization approach:
 
@@ -266,7 +266,7 @@ it will be normalized to:
 so your best course of action is to clean up the data yourself before loading and use the default naming convention. Nevertheless, you can configure the alternative in `config.toml`:
 ```toml
 [schema]
-naming="dlt.destinations.impl.weaviate.ci_naming"
+naming="data_load_tool.destinations.impl.weaviate.ci_naming"
 ```
 
 ## Additional destination options
@@ -305,15 +305,15 @@ Below is an example that configures the **contextionary** vectorizer. You can pu
 vectorizer="text2vec-contextionary"
 module_config={text2vec-contextionary = { vectorizeClassName = false, vectorizePropertyName = true}}
 ```
-You can find Docker Compose with the instructions to run [here](https://github.com/dlt-hub/dlt/tree/devel/dlt/destinations/impl/weaviate/README.md).
+You can find Docker Compose with the instructions to run [here](https://github.com/dlt-hub/data_load_tool/tree/devel/data_load_tool/destinations/impl/weaviate/README.md).
 
 ### dbt support
 
 Currently, Weaviate destination does not support dbt.
 
-### Syncing of `dlt` state
+### Syncing of `data_load_tool` state
 
-Weaviate destination supports syncing of the `dlt` state.
+Weaviate destination supports syncing of the `data_load_tool` state.
 
 <!--@@@DLT_TUBA weaviate-->
 
